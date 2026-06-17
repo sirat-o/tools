@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Picker Tool</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+    :root {
+      /* Modern 2025 Color Palette */
+      --primary: #00ff9d;
+      --primary-dark: #00cc7a;
+      --secondary: #6366f1;
+      --secondary-dark: #4f46e5;
+      --accent: #f59e0b;
+      --accent-dark: #d97706;
+      --danger: #ef4444;
+      --danger-dark: #dc2626;
+      --success: #10b981;
+      --warning: #f59e0b;
+      
+      /* Sophisticated neutral palette */
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #1a1a1a;
+      --bg-tertiary: #2a2a2a;
+      --bg-glass: rgba(255, 255, 255, 0.03);
+      --bg-glass-hover: rgba(255, 255, 255, 0.08);
+      
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.8);
+      --text-muted: rgba(255, 255, 255, 0.6);
+      --text-disabled: rgba(255, 255, 255, 0.4);
+      
+      --border-primary: rgba(255, 255, 255, 0.1);
+      --border-secondary: rgba(255, 255, 255, 0.05);
+      --border-accent: rgba(0, 255, 157, 0.3);
+      
+      /* Advanced shadows and effects */
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.2);
+      --shadow-lg: 0 16px 64px rgba(0, 0, 0, 0.3);
+      --shadow-glow: 0 0 32px rgba(0, 255, 157, 0.2);
+      --shadow-glow-hover: 0 0 48px rgba(0, 255, 157, 0.3);
+      
+      /* Spacing system */
+      --space-xs: 0.5rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2rem;
+      --space-2xl: 3rem;
+      
+      /* Border radius system */
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+      
+      /* Typography scale */
+      --text-xs: 0.75rem;
+      --text-sm: 0.875rem;
+      --text-base: 1rem;
+      --text-lg: 1.125rem;
+      --text-xl: 1.25rem;
+      --text-2xl: 1.5rem;
+      --text-3xl: 1.875rem;
+      --text-4xl: 2.25rem;
+      --text-5xl: 3rem;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      padding: var(--space-xl);
+      line-height: 1.5;
+    }
+
+    /* Animated background elements */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 25% 25%, rgba(0, 255, 157, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(0, 184, 255, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: -1;
+      animation: backgroundShift 20s ease-in-out infinite;
+    }
+    
+    @keyframes backgroundShift {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: var(--space-2xl);
+      position: relative;
+      padding-bottom: var(--space-lg);
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      border-radius: var(--radius-full);
+      box-shadow: var(--shadow-glow);
+    }
+
+    h1 {
+      font-size: clamp(var(--text-3xl), 5vw, var(--text-4xl));
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: var(--space-md);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      position: relative;
+      animation: titleGlow 3s ease-in-out infinite;
+    }
+    
+    @keyframes titleGlow {
+      0%, 100% { filter: drop-shadow(0 0 20px rgba(0, 255, 157, 0.3)); }
+      50% { filter: drop-shadow(0 0 30px rgba(0, 255, 157, 0.5)); }
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: var(--text-lg);
+      max-width: 600px;
+      margin: 0 auto;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+
+    .card {
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-lg);
+      border: 1px solid var(--border-primary);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #dropZone {
+      border: 2px dashed var(--border-primary);
+      padding: var(--space-xl);
+      border-radius: var(--radius-xl);
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      margin: 0 auto;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      max-width: 500px;
+    }
+
+    #dropZone::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(0, 255, 157, 0.1), rgba(99, 102, 241, 0.1));
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      border-radius: var(--radius-xl);
+    }
+
+    #dropZone:hover::before,
+    #dropZone.dragover::before {
+      opacity: 1;
+    }
+
+    #dropZone:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg), var(--shadow-glow);
+    }
+
+    #dropZone.dragover {
+      border-color: var(--primary);
+      background: rgba(0, 255, 157, 0.05);
+      transform: scale(1.02);
+    }
+
+    #dropZone p {
+      margin: 0 0 var(--space-md);
+      color: var(--text-muted);
+      font-size: var(--text-base);
+    }
+
+    .upload-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: var(--bg-primary);
+      border: none;
+      padding: var(--space-sm) var(--space-md); /* Smaller padding */
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs); /* Smaller font */
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .upload-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .upload-btn:hover::before {
+      left: 100%;
+    }
+
+    .upload-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md), var(--shadow-glow);
+    }
+
+    .upload-btn:active {
+      transform: translateY(0);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .image-container {
+      position: relative;
+      margin: var(--space-lg) auto;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-primary);
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      max-width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+
+    canvas {
+      display: block;
+      max-width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      cursor: crosshair;
+      border-radius: var(--radius-lg);
+    }
+
+        .lens {
+      position: fixed;
+      pointer-events: none;
+      display: none;
+      z-index: 10;
+      border: 2px solid var(--primary);
+      border-radius: 50%;
+      box-shadow: var(--shadow-glow);
+      width: 150px;
+      height: 150px;
+      transform: translate(20px, 20px); /* Maintains distance from cursor */
+    }
+
+    .color-info {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-lg);
+      flex-wrap: wrap;
+      margin: var(--space-lg) 0;
+    }
+
+    .color-display {
+      width: 70px; /* Slightly smaller */
+      height: 70px;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-primary);
+      box-shadow: var(--shadow-md);
+      transition: all 0.3s ease;
+    }
+
+    .color-values {
+      text-align: left;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      padding: var(--space-md); /* Smaller padding */
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      min-width: 220px; /* Slightly smaller */
+      border: 1px solid var(--border-primary);
+    }
+
+    .color-values p {
+      margin: var(--space-xs) 0; /* Smaller margin */
+      font-family: 'Inter', monospace;
+      font-size: var(--text-sm);
+      color: var(--text-primary);
+    }
+
+    .color-values strong {
+      color: var(--primary);
+    }
+
+    .copy-btn {
+      background: var(--bg-glass);
+      color: var(--primary);
+      border: 1px solid var(--border-primary);
+      padding: 0.2rem 0.5rem; /* Smaller padding */
+      border-radius: var(--radius-sm);
+      font-size: var(--text-xs);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-left: var(--space-xs);
+      font-weight: 500;
+      backdrop-filter: blur(10px);
+    }
+
+    .copy-btn:hover {
+      background: var(--primary);
+      color: var(--bg-primary);
+      border-color: var(--primary);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .palette-title {
+      text-align: center;
+      margin: var(--space-xl) 0 var(--space-md); /* Smaller margins */
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: var(--text-lg); /* Smaller font */
+    }
+
+    .palette {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: var(--space-sm); /* Smaller gap */
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      padding: var(--space-lg); /* Smaller padding */
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-lg);
+      border: 1px solid var(--border-primary);
+    }
+
+    .color-swatch {
+      width: 50px; /* Smaller */
+      height: 50px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .color-swatch:hover {
+      transform: scale(1.1) translateY(-5px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .color-swatch::after {
+      content: attr(title);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-size: var(--text-xs); /* Smaller font */
+      padding: 0.2rem; /* Smaller padding */
+      text-align: center;
+      transform: translateY(100%);
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .color-swatch:hover::after {
+      transform: translateY(0);
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-sm); /* Smaller gap */
+      margin-top: var(--space-md); /* Smaller margin */
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: var(--bg-primary);
+      border: none;
+      padding: var(--space-xs) var(--space-md); /* Smaller padding */
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs); /* Smaller font */
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs); /* Smaller gap */
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md), var(--shadow-glow);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+      box-shadow: none;
+    }
+
+    .btn-outline:hover {
+      background: rgba(0, 255, 157, 0.1);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: var(--space-xl);
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--bg-tertiary);
+      color: white;
+      padding: var(--space-sm) var(--space-md); /* Smaller padding */
+      border-radius: var(--radius-full);
+      box-shadow: var(--shadow-lg);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 100;
+      font-weight: 600;
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-primary);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: var(--space-md);
+      }
+      
+      .header {
+        margin-bottom: var(--space-xl);
+      }
+      
+      .color-info {
+        flex-direction: column;
+        gap: var(--space-md);
+      }
+      
+      .palette {
+        gap: var(--space-xs); /* Even smaller gap on mobile */
+        padding: var(--space-md); /* Smaller padding on mobile */
+      }
+      
+      .color-swatch {
+        width: 40px; /* Smaller on mobile */
+        height: 40px;
+      }
+      
+      .actions {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Color Picker From Image</h1>
+      <p class="subtitle">Extract colors from any image, create beautiful palettes, and get precise color values for your designs.</p>
+    </header>
+
+    <div id="dropZone" class="card">
+      <i class="fas fa-cloud-upload-alt upload-icon" style="font-size: 2.5rem; margin-bottom: var(--space-sm); color: var(--primary);"></i>
+      <p>Drag & drop an image anywhere or</p>
+      <label for="imageInput" class="upload-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+        </svg>
+        Select Image
+      </label>
+      <input type="file" accept="image/*" id="imageInput" />
+    </div>
+
+    <div id="imageContainer" class="image-container" style="display: none;">
+      <canvas id="canvas"></canvas>
+    </div>
+    <canvas class="lens" id="lens" width="180" height="180"></canvas>
+
+    <div id="colorInfo" class="color-info" style="display: none;">
+      <div id="colorDisplay" class="color-display"></div>
+      <div id="colorValues" class="color-values">
+        <p><strong>HEX:</strong> <span id="hexValue">#------</span> <button class="copy-btn" id="copyHex">Copy</button></p>
+        <p><strong>RGB:</strong> <span id="rgbValue">rgb(--, --, --)</span> <button class="copy-btn" id="copyRgb">Copy</button></p>
+      </div>
+    </div>
+
+    <h3 id="paletteTitle" class="palette-title" style="display: none;">Color Palette</h3>
+    
+    <div id="palette" class="palette" style="display: none;"></div>
+
+    <div class="actions">
+      <button id="downloadBtn" class="btn" style="display: none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+          <path d="M5 20h14v-2H5v2zm7-18v12.17l4.88-4.88 1.42 1.41L12 18l-6.29-6.29 1.41-1.41L11 14.17V2h2z"/>
+        </svg>
+        Download Palette
+      </button>
+      <button id="clearBtn" class="btn btn-outline" style="display: none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+          <polyline points="23 4 23 10 17 10"/>
+          <polyline points="1 20 1 14 7 14"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+        Reset
+      </button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js"></script>
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const lens = document.getElementById("lens");
+    const lctx = lens.getContext("2d");
+    const imageInput = document.getElementById("imageInput");
+    const dropZone = document.getElementById("dropZone");
+    const paletteDiv = document.getElementById("palette");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const imageContainer = document.getElementById("imageContainer");
+    const colorInfo = document.getElementById("colorInfo");
+    const colorDisplay = document.getElementById("colorDisplay");
+    const hexValue = document.getElementById("hexValue");
+    const rgbValue = document.getElementById("rgbValue");
+    const paletteTitle = document.getElementById("paletteTitle");
+    const toast = document.getElementById("toast");
+    const copyHex = document.getElementById("copyHex");
+    const copyRgb = document.getElementById("copyRgb");
+    let zoom = 10;
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+
+    // Upload or Drop
+    imageInput.addEventListener("change", e => loadImage(e.target.files[0]));
+    dropZone.addEventListener("dragover", e => {
+      e.preventDefault();
+      dropZone.classList.add("dragover");
+    });
+    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
+    dropZone.addEventListener("drop", e => {
+      e.preventDefault();
+      dropZone.classList.remove("dragover");
+      loadImage(e.dataTransfer.files[0]);
+    });
+
+    function loadImage(file) {
+      if (!file.type.match('image.*')) {
+        showToast("Please select an image file");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        img.onload = () => {
+          // Calculate dimensions while maintaining aspect ratio
+          const maxWidth = 1000;
+          const maxHeight = 700;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth) {
+            const ratio = maxWidth / width;
+            width = maxWidth;
+            height = height * ratio;
+          }
+
+          if (height > maxHeight) {
+            const ratio = maxHeight / height;
+            height = maxHeight;
+            width = width * ratio;
+          }
+
+          // Set canvas dimensions
+          canvas.width = width;
+          canvas.height = height;
+          
+          // Draw image on canvas
+          ctx.drawImage(img, 0, 0, width, height);
+          extractPalette(img);
+          
+          // Show UI elements
+          imageContainer.style.display = "flex";
+          colorInfo.style.display = "flex";
+          paletteTitle.style.display = "block";
+          paletteDiv.style.display = "flex";
+          downloadBtn.style.display = "flex";
+          clearBtn.style.display = "flex";
+          
+          // Hide drop zone
+          dropZone.style.display = "none";
+        };
+        img.onerror = () => showToast("Error loading image");
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function extractPalette(image) {
+      const colorThief = new ColorThief();
+      let colors;
+      
+      try {
+        colors = colorThief.getPalette(image, 8);
+      } catch (e) {
+        showToast("Error extracting colors");
+        return;
+      }
+      
+      paletteDiv.innerHTML = "";
+      colors.forEach(rgb => {
+        const hex = rgbToHex(...rgb);
+        const div = document.createElement("div");
+        div.className = "color-swatch";
+        div.style.background = hex;
+        div.title = `${hex} | rgb(${rgb.join(',')})`;
+        div.onclick = () => {
+          updateColorDisplay(hex, rgb);
+        };
+        paletteDiv.appendChild(div);
+      });
+    }
+
+    function rgbToHex(r, g, b) {
+      return "#" + [r, g, b].map(x => x.toString(16).padStart(2, "0")).join("");
+    }
+
+    function showLens(x, y, mouseX, mouseY) {
+      const size = lens.width / zoom;
+      const sx = x - size / 2;
+      const sy = y - size / 2;
+      lctx.imageSmoothingEnabled = false;
+      lctx.clearRect(0, 0, lens.width, lens.height);
+      lctx.drawImage(canvas, sx, sy, size, size, 0, 0, lens.width, lens.height);
+
+      // Pixel Grid
+      const pixelSize = lens.width / size;
+      lctx.strokeStyle = "rgba(67, 97, 238, 0.3)";
+      for (let i = 0; i <= size; i++) {
+        lctx.beginPath();
+        lctx.moveTo(i * pixelSize, 0);
+        lctx.lineTo(i * pixelSize, lens.height);
+        lctx.stroke();
+        lctx.beginPath();
+        lctx.moveTo(0, i * pixelSize);
+        lctx.lineTo(lens.width, i * pixelSize);
+        lctx.stroke();
+      }
+
+      // Center Selector
+      lctx.strokeStyle = "#4361ee";
+      lctx.lineWidth = 2;
+      const cx = Math.floor(size / 2) * pixelSize;
+      const cy = Math.floor(size / 2) * pixelSize;
+      lctx.strokeRect(cx, cy, pixelSize, pixelSize);
+
+      // Position lens with offset from cursor
+      lens.style.left = `${mouseX}px`;
+      lens.style.top = `${mouseY}px`;
+      lens.style.display = "block";
+    }
+
+    canvas.addEventListener("mouseleave", () => lens.style.display = "none");
+
+   canvas.addEventListener("mousemove", e => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+      
+      showLens(x, y, e.clientX, e.clientY);
+    });
+
+    canvas.addEventListener("click", e => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+      
+      const pixel = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
+      const hex = rgbToHex(pixel[0], pixel[1], pixel[2]);
+      updateColorDisplay(hex, [pixel[0], pixel[1], pixel[2]]);
+      
+      // Show color info only after click
+      colorInfo.style.display = "flex";
+    });
+
+    function updateColorDisplay(hex, rgb) {
+      colorDisplay.style.background = hex;
+      hexValue.textContent = hex;
+      hexValue.style.color = hex;
+      rgbValue.textContent = `rgb(${rgb.join(', ')})`;
+    }
+
+    copyHex.addEventListener("click", () => {
+      const hex = hexValue.textContent;
+      copyToClipboard(hex);
+    });
+
+    copyRgb.addEventListener("click", () => {
+      const rgb = rgbValue.textContent;
+      copyToClipboard(rgb);
+    });
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("Copied to clipboard: " + text);
+      }).catch(() => {
+        showToast("Failed to copy");
+      });
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    downloadBtn.addEventListener("click", () => {
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = paletteDiv.childNodes.length * 120;
+      tempCanvas.height = 120;
+      const tempCtx = tempCanvas.getContext("2d");
+      
+      // Draw color swatches
+      paletteDiv.childNodes.forEach((div, i) => {
+        tempCtx.fillStyle = div.style.background;
+        tempCtx.fillRect(i * 120, 0, 120, 120);
+        
+        // Add text labels
+        tempCtx.fillStyle = getContrastColor(div.style.background);
+        tempCtx.font = "bold 16px 'Inter', sans-serif";
+        tempCtx.textAlign = "center";
+        tempCtx.fillText(div.title.split(" | ")[0], i * 120 + 60, 70);
+      });
+      
+      const link = document.createElement("a");
+      link.download = "color-palette.png";
+      link.href = tempCanvas.toDataURL();
+      link.click();
+    });
+
+    function getContrastColor(hexColor) {
+      // Convert hex to RGB
+      const r = parseInt(hexColor.substr(1, 2), 16);
+      const g = parseInt(hexColor.substr(3, 2), 16);
+      const b = parseInt(hexColor.substr(5, 2), 16);
+      
+      // Calculate luminance
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      return luminance > 0.5 ? "#000000" : "#ffffff";
+    }
+
+    clearBtn.addEventListener("click", () => {
+      // Reset the app
+      imageContainer.style.display = "none";
+      colorInfo.style.display = "none";
+      paletteTitle.style.display = "none";
+      paletteDiv.style.display = "none";
+      downloadBtn.style.display = "none";
+      clearBtn.style.display = "none";
+      
+      // Show drop zone again
+      dropZone.style.display = "block";
+    });
+  </script>
+</body>
+</html>
