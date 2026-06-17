@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FrameRip — Video Frame Extractor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    :root {
+      --bg: #080a0f;
+      --surface: #0e1118;
+      --surface-2: #141820;
+      --surface-3: #1c2232;
+      --accent: #7DF9C0;
+      --accent-dim: rgba(125, 249, 192, 0.12);
+      --accent-glow: rgba(125, 249, 192, 0.25);
+      --accent-2: #5B8AF0;
+      --accent-2-dim: rgba(91, 138, 240, 0.12);
+      --warn: #F97D7D;
+      --text: #E8EDF5;
+      --text-2: #8A94A8;
+      --text-3: #3E4757;
+      --border: rgba(255,255,255,0.07);
+      --border-accent: rgba(125, 249, 192, 0.3);
+      --radius: 16px;
+      --radius-sm: 8px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -40%;
+      left: -20%;
+      width: 80vw;
+      height: 80vw;
+      background: radial-gradient(ellipse, rgba(91,138,240,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -30%;
+      right: -20%;
+      width: 60vw;
+      height: 60vw;
+      background: radial-gradient(ellipse, rgba(125,249,192,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 5rem;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 3.5rem;
+    }
+
+    .logo-group { display: flex; flex-direction: column; gap: 0.4rem; }
+
+    .logo-label {
+      font-size: 0.7rem;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.22em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+
+    h1 span { color: var(--accent); }
+
+    .tagline {
+      font-size: 0.85rem;
+      color: var(--text-2);
+      font-family: 'DM Mono', monospace;
+      margin-top: 0.8rem;
+      letter-spacing: 0.03em;
+    }
+
+    .header-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.72rem;
+      font-family: 'DM Mono', monospace;
+      color: var(--text-2);
+      letter-spacing: 0.05em;
+    }
+
+    .badge.active {
+      border-color: var(--border-accent);
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    /* ── Upload Zone ── */
+    .upload-zone {
+      border-radius: var(--radius);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      background: var(--surface);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: stretch;
+      transition: box-shadow 0.35s cubic-bezier(0.22,1,0.36,1);
+    }
+
+    /* animated dashed border via SVG outline trick */
+    .upload-zone::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      border: 1.5px dashed rgba(255,255,255,0.1);
+      pointer-events: none;
+      transition: border-color 0.3s;
+    }
+
+    .upload-zone:hover::after, .upload-zone.drag-over::after {
+      border-color: var(--border-accent);
+    }
+
+    .upload-zone.has-file::after {
+      border-color: var(--border-accent);
+      border-style: solid;
+    }
+
+    .upload-zone:hover {
+      box-shadow: 0 0 0 1px var(--border-accent), 0 8px 32px rgba(125,249,192,0.06);
+    }
+
+    /* Left: main drop area */
+    .upload-left {
+      padding: 2.5rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.75rem;
+      position: relative;
+    }
+
+    .upload-left::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 0% 50%, rgba(125,249,192,0.06) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.4s;
+      pointer-events: none;
+    }
+
+    .upload-zone:hover .upload-left::before,
+    .upload-zone.drag-over .upload-left::before { opacity: 1; }
+
+    .upload-icon {
+      width: 56px;
+      height: 56px;
+      flex-shrink: 0;
+      background: var(--accent-dim);
+      border: 1px solid var(--border-accent);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1), box-shadow 0.35s;
+    }
+
+    .upload-zone:hover .upload-icon {
+      transform: scale(1.08);
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .upload-icon svg { width: 26px; height: 26px; stroke: var(--accent); fill: none; stroke-width: 1.8; }
+
+    .upload-text { display: flex; flex-direction: column; gap: 0.35rem; }
+
+    .upload-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .upload-subtitle {
+      font-size: 0.76rem;
+      color: var(--text-2);
+      font-family: 'DM Mono', monospace;
+      line-height: 1.5;
+    }
+
+    .upload-chips {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+
+    .upload-chip {
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 0.18rem 0.5rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-3);
+      letter-spacing: 0.05em;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .upload-zone:hover .upload-chip {
+      color: var(--text-2);
+      border-color: rgba(255,255,255,0.12);
+    }
+
+    /* Right: CTA button column */
+    .upload-right {
+      border-left: 1px solid var(--border);
+      padding: 2rem 1.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      min-width: 160px;
+      background: var(--surface-2);
+      transition: background 0.3s;
+    }
+
+    .upload-zone:hover .upload-right { background: var(--surface-3); }
+
+    .upload-cta {
+      background: var(--accent);
+      color: #060a08;
+      border: none;
+      border-radius: 10px;
+      padding: 0.65rem 1.25rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+      pointer-events: none; /* label handles click */
+      white-space: nowrap;
+    }
+
+    .upload-zone:hover .upload-cta {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--accent-glow);
+    }
+
+    .upload-cta svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
+    .upload-or {
+      font-size: 0.72rem;
+      color: var(--text-3);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .upload-drag-hint {
+      font-size: 0.7rem;
+      color: var(--text-3);
+      font-family: 'DM Mono', monospace;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    /* loaded state */
+    .upload-zone.has-file .upload-chip { color: var(--accent); border-color: var(--border-accent); }
+    .upload-zone.has-file .upload-right { background: var(--accent-dim); border-left-color: var(--border-accent); }
+    .upload-zone.has-file .upload-cta { background: var(--surface-3); color: var(--text-2); box-shadow: none; }
+
+    /* drag-over pulse */
+    .upload-zone.drag-over {
+      box-shadow: 0 0 0 2px var(--accent), 0 0 40px rgba(125,249,192,0.1);
+    }
+
+    @keyframes dash-move {
+      to { stroke-dashoffset: -20; }
+    }
+
+    #videoInput { display: none; }
+
+    @media(max-width: 600px) {
+      .upload-zone { grid-template-columns: 1fr; }
+      .upload-right { border-left: none; border-top: 1px solid var(--border); flex-direction: row; justify-content: space-between; min-width: unset; }
+      .upload-left { padding: 1.75rem 1.25rem; }
+    }
+
+    /* ── Video Preview ── */
+    .video-wrapper {
+      margin-top: 1.5rem;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #000;
+      display: none;
+      position: relative;
+    }
+
+    .video-wrapper.visible { display: block; }
+
+    #video {
+      width: 100%;
+      max-height: 380px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .video-meta {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      padding: 1.5rem 1rem 0.75rem;
+      display: flex;
+      gap: 1.2rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .video-meta span { display: flex; align-items: center; gap: 0.4rem; }
+
+    /* ── Panel Layout ── */
+    .panel-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+
+    @media(max-width: 680px) { .panel-grid { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: border-color 0.3s;
+    }
+
+    .panel:hover { border-color: rgba(255,255,255,0.12); }
+
+    .panel-title {
+      font-size: 0.68rem;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.2em;
+      color: var(--text-2);
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .panel-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Controls ── */
+    .ctrl-row {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .ctrl-item { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .ctrl-label {
+      font-size: 0.78rem;
+      color: var(--text-2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .ctrl-label strong {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    input[type="number"], select {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      padding: 0.7rem 1rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.9rem;
+      transition: border-color 0.25s, box-shadow 0.25s;
+      -webkit-appearance: none;
+    }
+
+    input[type="number"]:focus, select:focus {
+      outline: none;
+      border-color: var(--border-accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    select option { background: var(--surface-2); }
+
+    /* ── Slider ── */
+    .slider-wrap { position: relative; }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: var(--surface-3);
+      border-radius: 3px;
+      border: none;
+      padding: 0;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 3px solid var(--bg);
+      box-shadow: 0 0 10px var(--accent-glow);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      box-shadow: 0 0 18px var(--accent-glow);
+    }
+
+    /* ── Format Toggle ── */
+    .format-toggle {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .fmt-btn {
+      flex: 1;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-2);
+      padding: 0.6rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .fmt-btn.active {
+      background: var(--accent-dim);
+      border-color: var(--border-accent);
+      color: var(--accent);
+    }
+
+    /* ── Mode Toggle ── */
+    .mode-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .mode-btn {
+      background: transparent;
+      border: none;
+      border-radius: calc(var(--radius-sm) - 2px);
+      color: var(--text-2);
+      padding: 0.55rem 0.5rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .mode-btn.active {
+      background: var(--surface-3);
+      color: var(--accent);
+    }
+
+    /* ── Advanced Options ── */
+    .adv-toggle {
+      background: none;
+      border: none;
+      color: var(--text-2);
+      font-size: 0.78rem;
+      font-family: 'DM Mono', monospace;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0;
+      transition: color 0.2s;
+      margin-top: 0.5rem;
+    }
+    .adv-toggle:hover { color: var(--accent); }
+    .adv-toggle svg { transition: transform 0.3s; }
+    .adv-toggle.open svg { transform: rotate(180deg); }
+
+    .adv-panel {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.4s cubic-bezier(0.22,1,0.36,1);
+    }
+    .adv-panel.open { max-height: 300px; }
+    .adv-panel-inner { padding-top: 1rem; display: flex; flex-direction: column; gap: 1rem; }
+
+    /* ── Checkboxes ── */
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      font-size: 0.82rem;
+      color: var(--text-2);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .check-item input[type="checkbox"] { display: none; }
+
+    .check-box {
+      width: 18px; height: 18px;
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      background: var(--surface-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .check-item input:checked + .check-box {
+      background: var(--accent-dim);
+      border-color: var(--border-accent);
+    }
+
+    .check-box svg { width: 10px; opacity: 0; transition: opacity 0.2s; stroke: var(--accent); fill: none; stroke-width: 2.5; }
+    .check-item input:checked + .check-box svg { opacity: 1; }
+
+    /* ── Progress ── */
+    .progress-section {
+      background: var(--surface);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      display: none;
+      margin-top: 1.5rem;
+    }
+
+    .progress-section.visible { display: block; animation: fadeUp 0.4s both; }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+    }
+
+    .progress-status { color: var(--text-2); }
+    .progress-pct { color: var(--accent); font-weight: 500; }
+
+    .progress-track {
+      height: 6px;
+      background: var(--surface-3);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-2), var(--accent));
+      border-radius: 3px;
+      transition: width 0.3s cubic-bezier(0.22,1,0.36,1);
+      position: relative;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      right: 0; top: -2px; bottom: -2px;
+      width: 3px;
+      border-radius: 2px;
+      background: white;
+      box-shadow: 0 0 8px var(--accent);
+      opacity: 0.8;
+    }
+
+    .progress-stats {
+      display: flex;
+      gap: 2rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-2);
+    }
+
+    .progress-stats span strong {
+      color: var(--text);
+      display: block;
+      font-size: 1.1rem;
+      font-weight: 400;
+      margin-top: 0.2rem;
+    }
+
+    /* ── Action Buttons ── */
+    .action-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 1.75rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.22,1,0.36,1);
+      letter-spacing: 0.01em;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #060a08;
+      flex: 1;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px var(--accent-glow), 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .btn-ghost {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+    }
+
+    .btn-ghost:hover {
+      background: var(--surface-3);
+      color: var(--text);
+      border-color: rgba(255,255,255,0.15);
+    }
+
+    .btn-danger {
+      background: rgba(249,125,125,0.1);
+      border: 1px solid rgba(249,125,125,0.25);
+      color: var(--warn);
+    }
+
+    .btn-danger:hover {
+      background: rgba(249,125,125,0.18);
+    }
+
+    .btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(6,10,8,0.3);
+      border-top-color: rgba(6,10,8,0.9);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Results Section ── */
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 2.5rem 0 1.25rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .results-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .results-count {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--accent);
+      background: var(--accent-dim);
+      padding: 0.25rem 0.75rem;
+      border-radius: 100px;
+    }
+
+    .results-actions { display: flex; gap: 0.6rem; }
+
+    /* ── Image Grid ── */
+    .view-controls {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    .view-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+    }
+
+    .view-btn svg { width: 14px; height: 14px; stroke: var(--text-3); fill: none; stroke-width: 2; }
+    .view-btn.active { background: var(--surface-3); border-color: rgba(255,255,255,0.15); }
+    .view-btn.active svg { stroke: var(--text-2); }
+
+    #imageContainer {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    #imageContainer.list-view {
+      grid-template-columns: 1fr;
+    }
+
+    .frame-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.22,1,0.36,1);
+      animation: fadeUp 0.4s both;
+      position: relative;
+    }
+
+    .frame-card:hover {
+      border-color: rgba(255,255,255,0.14);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+    }
+
+    .frame-img-wrap {
+      position: relative;
+      overflow: hidden;
+      background: #000;
+      aspect-ratio: 16/10;
+    }
+
+    .list-view .frame-img-wrap {
+      aspect-ratio: unset;
+      height: 100px;
+      width: 160px;
+      flex-shrink: 0;
+    }
+
+    .list-view .frame-card {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+    }
+
+    .list-view .frame-footer {
+      flex: 1;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .frame-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s cubic-bezier(0.22,1,0.36,1);
+    }
+
+    .frame-card:hover .frame-img-wrap img { transform: scale(1.04); }
+
+    .frame-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .frame-card:hover .frame-overlay { opacity: 1; }
+
+    .overlay-btn {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      color: white;
+      padding: 0.5rem 0.8rem;
+      font-size: 0.78rem;
+      font-family: 'DM Mono', monospace;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: background 0.2s;
+    }
+
+    .overlay-btn:hover { background: rgba(255,255,255,0.25); }
+    .overlay-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    .frame-footer {
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .frame-time {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text-2);
+    }
+
+    .frame-time strong { color: var(--text); font-weight: 400; }
+
+    .frame-dims {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-3);
+      margin-left: auto;
+      margin-right: 0.75rem;
+    }
+
+    .dl-btn {
+      background: var(--accent-dim);
+      border: 1px solid var(--border-accent);
+      border-radius: 6px;
+      color: var(--accent);
+      padding: 0.35rem 0.7rem;
+      font-size: 0.75rem;
+      font-family: 'DM Mono', monospace;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s;
+    }
+
+    .dl-btn:hover { background: rgba(125,249,192,0.2); }
+    .dl-btn svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
+    /* ── Empty State ── */
+    .empty-state {
+      grid-column: 1/-1;
+      padding: 5rem 2rem;
+      text-align: center;
+    }
+
+    .empty-icon {
+      width: 80px; height: 80px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .empty-icon svg { width: 36px; height: 36px; stroke: var(--text-3); fill: none; stroke-width: 1.5; }
+
+    .empty-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-2);
+      margin-bottom: 0.4rem;
+    }
+
+    .empty-sub {
+      font-size: 0.8rem;
+      color: var(--text-3);
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ── Notifications ── */
+    .notif-stack {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      z-index: 9999;
+    }
+
+    .notif {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.8rem 1.2rem;
+      font-size: 0.82rem;
+      font-family: 'DM Mono', monospace;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      animation: slideIn 0.3s both;
+      max-width: 320px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    .notif.success { border-color: var(--border-accent); color: var(--accent); }
+    .notif.error { border-color: rgba(249,125,125,0.3); color: var(--warn); }
+    .notif.info { color: var(--text-2); }
+
+    .notif svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+
+    /* ── Lightbox ── */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      backdrop-filter: blur(12px);
+    }
+
+    .lightbox.open { opacity: 1; pointer-events: all; }
+
+    .lightbox-img {
+      max-width: 90vw;
+      max-height: 85vh;
+      border-radius: var(--radius);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+      transform: scale(0.9);
+      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+    }
+
+    .lightbox.open .lightbox-img { transform: scale(1); }
+
+    .lightbox-close {
+      position: absolute;
+      top: 1.5rem; right: 1.5rem;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 50%;
+      width: 40px; height: 40px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .lightbox-close:hover { background: rgba(255,255,255,0.2); }
+    .lightbox-close svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2; }
+
+    .lightbox-info {
+      position: absolute;
+      bottom: 1.5rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ── Responsive ── */
+    @media(max-width: 600px) {
+      header { flex-direction: column; gap: 1.5rem; }
+      .header-badge { align-items: flex-start; }
+      .action-row { flex-direction: column; }
+      .results-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Header -->
+  <header>
+    <div class="logo-group">
+      <span class="logo-label">v2.0 · Client-side</span>
+      <h1>Frame<span>Rip</span></h1>
+      <p class="tagline">// extract · convert · download</p>
+    </div>
+    <div class="header-badge">
+      <span class="badge active" id="statusBadge">● ready</span>
+      <span class="badge">100% local · no upload</span>
+    </div>
+  </header>
+
+  <!-- Upload Zone -->
+  <label for="videoInput" class="upload-zone" id="uploadZone">
+    <div class="upload-left">
+      <div class="upload-icon">
+        <svg viewBox="0 0 24 24"><path d="M15 10l4.553-2.069A1 1 0 0121 8.847v6.306a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+      </div>
+      <div class="upload-text">
+        <div class="upload-title" id="uploadTitle">Drop your video here</div>
+        <div class="upload-subtitle" id="uploadSub">Any video format · Max 500MB · Processed locally</div>
+        <div class="upload-chips">
+          <span class="upload-chip">MP4</span>
+          <span class="upload-chip">WebM</span>
+          <span class="upload-chip">MOV</span>
+          <span class="upload-chip">AVI</span>
+          <span class="upload-chip">MKV</span>
+          <span class="upload-chip">+ more</span>
+        </div>
+      </div>
+    </div>
+    <div class="upload-right">
+      <div class="upload-cta">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Browse file
+      </div>
+      <span class="upload-or">or drag &amp; drop</span>
+      <div class="upload-drag-hint" id="uploadDragHint">No file selected</div>
+    </div>
+    <input type="file" id="videoInput" accept="video/*">
+  </label>
+
+  <!-- Video Preview -->
+  <div class="video-wrapper" id="videoWrapper">
+    <video id="video" controls></video>
+    <div class="video-meta" id="videoMeta"></div>
+  </div>
+
+  <!-- Controls Grid -->
+  <div class="panel-grid">
+    <!-- Extraction Panel -->
+    <div class="panel">
+      <div class="panel-title">Extraction</div>
+      <div class="ctrl-row">
+        <div class="ctrl-item">
+          <div class="ctrl-label">Mode</div>
+          <div class="mode-toggle">
+            <button class="mode-btn active" id="modeInterval" onclick="setMode('interval')">By Interval</button>
+            <button class="mode-btn" id="modeCount" onclick="setMode('count')">By Count</button>
+          </div>
+        </div>
+        <div class="ctrl-item" id="intervalCtrl">
+          <div class="ctrl-label">Interval (seconds) <strong id="intervalDisplay">3s</strong></div>
+          <input type="number" id="frameInterval" value="3" min="0.1" max="600" step="0.1">
+        </div>
+        <div class="ctrl-item" id="countCtrl" style="display:none">
+          <div class="ctrl-label">Total frames to extract <strong id="countDisplay">10</strong></div>
+          <input type="number" id="frameCount2" value="10" min="1" max="500" step="1">
+        </div>
+        <div class="ctrl-item">
+          <div class="ctrl-label">Output format</div>
+          <div class="format-toggle">
+            <button class="fmt-btn active" onclick="setFormat('jpeg')">JPEG</button>
+            <button class="fmt-btn" onclick="setFormat('png')">PNG</button>
+            <button class="fmt-btn" onclick="setFormat('webp')">WebP</button>
+          </div>
+          <input type="hidden" id="formatSelect" value="jpeg">
+        </div>
+      </div>
+    </div>
+
+    <!-- Quality Panel -->
+    <div class="panel">
+      <div class="panel-title">Quality &amp; Size</div>
+      <div class="ctrl-row">
+        <div class="ctrl-item">
+          <div class="ctrl-label">Compression quality <strong id="qualityValue">92%</strong></div>
+          <input type="range" id="qualitySlider" min="1" max="100" value="92">
+        </div>
+        <div class="ctrl-item">
+          <div class="ctrl-label">Max width (px) <strong id="widthDisplay">Original</strong></div>
+          <input type="number" id="maxWidth" placeholder="e.g. 1920" min="100" max="7680">
+        </div>
+
+        <button class="adv-toggle" id="advToggle" onclick="toggleAdv()">
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          Advanced options
+        </button>
+        <div class="adv-panel" id="advPanel">
+          <div class="adv-panel-inner">
+            <label class="check-item">
+              <input type="checkbox" id="chkGrayscale">
+              <span class="check-box"><svg viewBox="0 0 12 12"><polyline points="1,6 4,10 11,2"/></svg></span>
+              Export as grayscale
+            </label>
+            <label class="check-item">
+              <input type="checkbox" id="chkTimestamp">
+              <span class="check-box"><svg viewBox="0 0 12 12"><polyline points="1,6 4,10 11,2"/></svg></span>
+              Burn timestamp overlay
+            </label>
+            <label class="check-item">
+              <input type="checkbox" id="chkZip" checked>
+              <span class="check-box"><svg viewBox="0 0 12 12"><polyline points="1,6 4,10 11,2"/></svg></span>
+              Download all as ZIP
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-row">
+    <button class="btn btn-primary" id="extractBtn" disabled onclick="extractFrames()">
+      <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="M8 12h8M12 8v8"/></svg>
+      Extract Frames
+    </button>
+    <button class="btn btn-ghost" id="previewBtn" disabled onclick="previewFirstFrame()">
+      <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Preview
+    </button>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-section" id="progressSection">
+    <div class="progress-header">
+      <span class="progress-status" id="progressText">Initializing...</span>
+      <span class="progress-pct" id="progressPercent">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-stats">
+      <span>Frames done <strong id="statDone">0</strong></span>
+      <span>Remaining <strong id="statLeft">—</strong></span>
+      <span>Elapsed <strong id="statTime">0s</strong></span>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="resultsSection" style="display:none">
+    <div class="results-header">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <span class="results-title">Extracted Frames</span>
+        <span class="results-count" id="resultsCount">0 frames</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <div class="view-controls">
+          <button class="view-btn active" id="viewGrid" title="Grid view" onclick="setView('grid')">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          </button>
+          <button class="view-btn" id="viewList" title="List view" onclick="setView('list')">
+            <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="results-actions">
+          <button class="btn btn-ghost" style="padding:0.6rem 1rem;font-size:0.82rem" onclick="downloadAll()">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download All
+          </button>
+          <button class="btn btn-danger" style="padding:0.6rem 1rem;font-size:0.82rem" onclick="clearAll()">
+            <svg viewBox="0 0 24 24"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+            Clear
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="imageContainer">
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+        </div>
+        <p class="empty-title">No frames yet</p>
+        <p class="empty-sub">Load a video and click Extract Frames</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">
+    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <img class="lightbox-img" id="lightboxImg" src="" alt="">
+  <div class="lightbox-info" id="lightboxInfo"></div>
+</div>
+
+<!-- Notification Stack -->
+<div class="notif-stack" id="notifStack"></div>
+
+<script>
+  // State
+  let extractedFrames = [];
+  let isProcessing = false;
+  let currentMode = 'interval';
+  let currentFormat = 'jpeg';
+  let extractStartTime = 0;
+  let elapsedTimer = null;
+  let currentView = 'grid';
+
+  // DOM
+  const video = document.getElementById('video');
+  const videoInput = document.getElementById('videoInput');
+  const uploadZone = document.getElementById('uploadZone');
+  const extractBtn = document.getElementById('extractBtn');
+  const previewBtn = document.getElementById('previewBtn');
+
+  // ── Format Toggle ──
+  function setFormat(fmt) {
+    currentFormat = fmt;
+    document.getElementById('formatSelect').value = fmt;
+    document.querySelectorAll('.fmt-btn').forEach(b => {
+      b.classList.toggle('active', b.textContent.toLowerCase() === fmt);
+    });
+  }
+
+  // ── Mode Toggle ──
+  function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('modeInterval').classList.toggle('active', mode === 'interval');
+    document.getElementById('modeCount').classList.toggle('active', mode === 'count');
+    document.getElementById('intervalCtrl').style.display = mode === 'interval' ? '' : 'none';
+    document.getElementById('countCtrl').style.display = mode === 'count' ? '' : 'none';
+  }
+
+  // ── Advanced Toggle ──
+  function toggleAdv() {
+    const toggle = document.getElementById('advToggle');
+    const panel = document.getElementById('advPanel');
+    toggle.classList.toggle('open');
+    panel.classList.toggle('open');
+  }
+
+  // ── View Toggle ──
+  function setView(view) {
+    currentView = view;
+    document.getElementById('imageContainer').className = view === 'list' ? 'list-view' : '';
+    document.getElementById('viewGrid').classList.toggle('active', view === 'grid');
+    document.getElementById('viewList').classList.toggle('active', view === 'list');
+  }
+
+  // ── Slider & Input live values ──
+  document.getElementById('qualitySlider').addEventListener('input', function() {
+    document.getElementById('qualityValue').textContent = this.value + '%';
+  });
+  document.getElementById('frameInterval').addEventListener('input', function() {
+    document.getElementById('intervalDisplay').textContent = this.value + 's';
+  });
+  document.getElementById('maxWidth').addEventListener('input', function() {
+    document.getElementById('widthDisplay').textContent = this.value ? this.value + 'px' : 'Original';
+  });
+  document.getElementById('frameCount2').addEventListener('input', function() {
+    document.getElementById('countDisplay').textContent = this.value;
+  });
+
+  // ── Drag & Drop ──
+  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('video/')) loadVideo(file);
+    else notify('Please drop a valid video file', 'error');
+  });
+
+  videoInput.addEventListener('change', e => { if (e.target.files[0]) loadVideo(e.target.files[0]); });
+
+  function loadVideo(file) {
+    if (file.size > 500 * 1024 * 1024) { notify('File exceeds 500MB limit', 'error'); return; }
+    const url = URL.createObjectURL(file);
+    video.src = url;
+    uploadZone.classList.add('has-file');
+    document.getElementById('uploadTitle').textContent = file.name;
+    document.getElementById('uploadSub').textContent = formatSize(file.size) + ' · click to change';
+    document.getElementById('uploadDragHint').textContent = '✓ loaded';
+    document.getElementById('videoWrapper').classList.add('visible');
+    document.getElementById('statusBadge').textContent = '● loading';
+    video.onloadedmetadata = () => {
+      extractBtn.disabled = false;
+      previewBtn.disabled = false;
+      document.getElementById('statusBadge').textContent = '● ready';
+      const meta = `<span>⏱ ${fmtDuration(video.duration)}</span><span>📐 ${video.videoWidth}×${video.videoHeight}</span>`;
+      document.getElementById('videoMeta').innerHTML = meta;
+      notify('Video loaded · ' + fmtDuration(video.duration) + ' · ' + video.videoWidth + '×' + video.videoHeight, 'success');
+    };
+  }
+
+  // ── Extract Frames ──
+  async function extractFrames() {
+    if (isProcessing) return;
+    if (video.readyState < 2) { notify('Load a video first', 'error'); return; }
+    isProcessing = true;
+    extractBtn.innerHTML = '<div class="spinner"></div> Extracting...';
+    extractBtn.disabled = true;
+    previewBtn.disabled = true;
+    document.getElementById('statusBadge').textContent = '● processing';
+
+    const progressSection = document.getElementById('progressSection');
+    progressSection.classList.add('visible');
+    document.getElementById('resultsSection').style.display = 'block';
+    document.getElementById('imageContainer').innerHTML = '';
+    extractedFrames = [];
+    extractStartTime = Date.now();
+
+    elapsedTimer = setInterval(() => {
+      document.getElementById('statTime').textContent = ((Date.now() - extractStartTime) / 1000).toFixed(1) + 's';
+    }, 200);
+
+    const quality = parseInt(document.getElementById('qualitySlider').value) / 100;
+    const maxW = document.getElementById('maxWidth').value ? parseInt(document.getElementById('maxWidth').value) : null;
+    const grayscale = document.getElementById('chkGrayscale').checked;
+    const timestamp = document.getElementById('chkTimestamp').checked;
+    const duration = video.duration;
+
+    let times = [];
+    if (currentMode === 'interval') {
+      const interval = parseFloat(document.getElementById('frameInterval').value);
+      for (let t = 0; t < duration; t += interval) times.push(parseFloat(t.toFixed(3)));
+    } else {
+      const count = parseInt(document.getElementById('frameCount2').value);
+      for (let i = 0; i < count; i++) times.push(parseFloat(((duration / count) * i).toFixed(3)));
+    }
+
+    const total = times.length;
+    document.getElementById('statLeft').textContent = total;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    for (let i = 0; i < times.length; i++) {
+      await captureAt(times[i], canvas, ctx, quality, maxW, grayscale, timestamp);
+      updateProgress((i + 1) / total * 100, i + 1, total);
+    }
+
+    clearInterval(elapsedTimer);
+    isProcessing = false;
+    extractBtn.innerHTML = '<svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="M8 12h8M12 8v8"/></svg> Extract Frames';
+    extractBtn.disabled = false;
+    previewBtn.disabled = false;
+    document.getElementById('statusBadge').textContent = '● done';
+    document.getElementById('progressText').textContent = 'Extraction complete!';
+    document.getElementById('resultsCount').textContent = extractedFrames.length + ' frames';
+    notify(extractedFrames.length + ' frames extracted · ' + ((Date.now() - extractStartTime)/1000).toFixed(1) + 's', 'success');
+  }
+
+  async function captureAt(time, canvas, ctx, quality, maxW, grayscale, showTimestamp) {
+    return new Promise(resolve => {
+      video.currentTime = time;
+      video.onseeked = () => {
+        let w = video.videoWidth, h = video.videoHeight;
+        if (maxW && w > maxW) { h = Math.round((maxW / w) * h); w = maxW; }
+        canvas.width = w; canvas.height = h;
+        ctx.drawImage(video, 0, 0, w, h);
+
+        if (grayscale) {
+          const d = ctx.getImageData(0, 0, w, h);
+          for (let i = 0; i < d.data.length; i += 4) {
+            const g = d.data[i]*0.299 + d.data[i+1]*0.587 + d.data[i+2]*0.114;
+            d.data[i] = d.data[i+1] = d.data[i+2] = g;
+          }
+          ctx.putImageData(d, 0, 0);
+        }
+
+        if (showTimestamp) {
+          const txt = fmtDuration(time);
+          ctx.save();
+          ctx.font = `bold ${Math.max(16, w * 0.025)}px monospace`;
+          ctx.fillStyle = 'rgba(0,0,0,0.55)';
+          const pad = w * 0.015;
+          const tw = ctx.measureText(txt).width;
+          const fh = Math.max(16, w * 0.025);
+          ctx.fillRect(pad - 4, h - pad - fh - 4, tw + 8, fh + 8);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(txt, pad, h - pad);
+          ctx.restore();
+        }
+
+        canvas.toBlob(blob => {
+          const url = URL.createObjectURL(blob);
+          const info = { url, time, format: currentFormat, width: w, height: h, blob };
+          extractedFrames.push(info);
+          appendFrame(info, extractedFrames.length - 1);
+          resolve();
+        }, `image/${currentFormat}`, quality);
+      };
+    });
+  }
+
+  function appendFrame(info, idx) {
+    const card = document.createElement('div');
+    card.className = 'frame-card';
+    card.style.animationDelay = Math.min(idx * 0.04, 0.4) + 's';
+
+    card.innerHTML = `
+      <div class="frame-img-wrap">
+        <img src="${info.url}" loading="lazy" alt="Frame at ${info.time.toFixed(2)}s">
+        <div class="frame-overlay">
+          <button class="overlay-btn preview-btn">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            View
+          </button>
+          <button class="overlay-btn dl-overlay-btn">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Save
+          </button>
+        </div>
+      </div>
+      <div class="frame-footer">
+        <div class="frame-time"><strong>${fmtDuration(info.time)}</strong> <span style="font-size:0.7rem;color:var(--text-3)">· ${info.format.toUpperCase()}</span></div>
+        <span class="frame-dims">${info.width}×${info.height}</span>
+        <button class="dl-btn">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Save
+        </button>
+      </div>`;
+
+    const filename = `frame_${info.time.toFixed(2).replace('.','_')}s.${info.format}`;
+    card.querySelector('.dl-btn').addEventListener('click', () => downloadBlob(info.blob, filename));
+    card.querySelector('.dl-overlay-btn').addEventListener('click', () => downloadBlob(info.blob, filename));
+    card.querySelector('.preview-btn').addEventListener('click', () => openLightbox(info));
+
+    document.getElementById('imageContainer').appendChild(card);
+    if (currentView === 'list') card.classList.add('');
+    setView(currentView);
+  }
+
+  // ── Progress ──
+  function updateProgress(pct, done, total) {
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressPercent').textContent = Math.round(pct) + '%';
+    document.getElementById('progressText').textContent = `Frame ${done} of ${total}`;
+    document.getElementById('statDone').textContent = done;
+    document.getElementById('statLeft').textContent = total - done;
+  }
+
+  // ── Preview First Frame ──
+  async function previewFirstFrame() {
+    if (video.readyState < 2) { notify('Load a video first', 'error'); return; }
+    previewBtn.innerHTML = '<div class="spinner"></div>';
+    previewBtn.disabled = true;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const quality = parseInt(document.getElementById('qualitySlider').value) / 100;
+    const maxW = document.getElementById('maxWidth').value ? parseInt(document.getElementById('maxWidth').value) : null;
+    document.getElementById('imageContainer').innerHTML = '';
+    extractedFrames = [];
+    document.getElementById('resultsSection').style.display = 'block';
+    await captureAt(Math.min(0.5, video.duration * 0.05), canvas, ctx, quality, maxW, false, false);
+    document.getElementById('resultsCount').textContent = '1 frame (preview)';
+    previewBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Preview';
+    previewBtn.disabled = false;
+    notify('Preview generated', 'info');
+  }
+
+  // ── Download All (ZIP) ──
+  async function downloadAll() {
+    if (extractedFrames.length === 0) { notify('No frames to download', 'error'); return; }
+    const useZip = document.getElementById('chkZip').checked;
+    if (!useZip || typeof JSZip === 'undefined') {
+      extractedFrames.forEach((f, i) => {
+        const filename = `frame_${f.time.toFixed(2).replace('.','_')}s.${f.format}`;
+        setTimeout(() => downloadBlob(f.blob, filename), i * 80);
+      });
+      notify(`Downloading ${extractedFrames.length} files individually`, 'info');
+      return;
+    }
+    notify('Building ZIP...', 'info');
+    const zip = new JSZip();
+    const folder = zip.folder('frames');
+    for (const f of extractedFrames) {
+      const fname = `frame_${f.time.toFixed(2).replace('.','_')}s.${f.format}`;
+      folder.file(fname, f.blob);
+    }
+    const content = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 1 } });
+    downloadBlob(content, 'framerip_frames.zip');
+    notify('ZIP ready · ' + extractedFrames.length + ' frames', 'success');
+  }
+
+  function downloadBlob(blob, filename) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  }
+
+  // ── Clear ──
+  function clearAll() {
+    if (!extractedFrames.length) return;
+    extractedFrames.forEach(f => URL.revokeObjectURL(f.url));
+    extractedFrames = [];
+    document.getElementById('imageContainer').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon"><svg viewBox="0 0 24 24" width="36" height="36" stroke="var(--text-3)" fill="none" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg></div>
+        <p class="empty-title">Cleared</p>
+        <p class="empty-sub">Extract new frames to see them here</p>
+      </div>`;
+    document.getElementById('resultsCount').textContent = '0 frames';
+    document.getElementById('progressSection').classList.remove('visible');
+    document.getElementById('statusBadge').textContent = '● ready';
+    notify('Frames cleared', 'info');
+  }
+
+  // ── Lightbox ──
+  function openLightbox(info) {
+    const lb = document.getElementById('lightbox');
+    document.getElementById('lightboxImg').src = info.url;
+    document.getElementById('lightboxInfo').textContent = `${fmtDuration(info.time)}  ·  ${info.width}×${info.height}  ·  ${info.format.toUpperCase()}`;
+    lb.classList.add('open');
+  }
+
+  function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+  // ── Notifications ──
+  function notify(msg, type = 'info') {
+    const icons = {
+      success: '<svg viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg>',
+      error: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+      info: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+    };
+    const el = document.createElement('div');
+    el.className = `notif ${type}`;
+    el.innerHTML = icons[type] + msg;
+    const stack = document.getElementById('notifStack');
+    stack.appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(20px)'; el.style.transition = 'all 0.3s'; setTimeout(() => el.remove(), 300); }, 3000);
+  }
+
+  // ── Helpers ──
+  function fmtDuration(s) {
+    const m = Math.floor(s / 60), sec = (s % 60).toFixed(2).padStart(5, '0');
+    return m > 0 ? `${m}:${sec}` : `${parseFloat(s.toFixed(2))}s`;
+  }
+
+  function formatSize(b) {
+    if (b < 1024) return b + 'B';
+    if (b < 1048576) return (b/1024).toFixed(1) + 'KB';
+    return (b/1048576).toFixed(1) + 'MB';
+  }
+</script>
+</body>
+</html>
