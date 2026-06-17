@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CutMask</title>
+  <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080c10;
+      --surface: #0d1117;
+      --surface2: #161b22;
+      --border: rgba(255,255,255,0.07);
+      --border-bright: rgba(255,255,255,0.14);
+      --accent: #39d353;
+      --accent2: #58a6ff;
+      --text: #e6edf3;
+      --muted: #7d8590;
+      --header-bg: rgba(8,12,16,0.95);
+      --notif-text: #080c10;
+    }
+    :root.light-mode {
+      --bg: #f0f4f8;
+      --surface: #ffffff;
+      --surface2: #e8edf3;
+      --border: rgba(0,0,0,0.09);
+      --border-bright: rgba(0,0,0,0.16);
+      --accent: #1a9e3a;
+      --accent2: #1a6fd4;
+      --text: #1c2128;
+      --muted: #57606a;
+      --header-bg: rgba(240,244,248,0.95);
+      --notif-text: #ffffff;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: var(--bg);
+      font-family: 'Syne', sans-serif;
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.7rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--header-bg);
+      backdrop-filter: blur(20px);
+      flex-shrink: 0;
+      z-index: 50;
+    }
+    .logo { display:flex; align-items:center; gap:0.6rem; }
+    .logo-icon {
+      width:28px; height:28px;
+      background: var(--accent);
+      border-radius:6px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:12px; color:var(--notif-text); font-weight:800;
+    }
+    .logo-text {
+      font-size:1.05rem; font-weight:800; letter-spacing:0.04em;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+    }
+    .header-meta { font-family:'DM Mono',monospace; font-size:0.72rem; color:var(--muted); }
+    #imgSizeLabel { color:var(--accent); }
+
+    /* LAYOUT */
+    .app-body {
+      display: flex;
+      flex: 1;
+      min-height: 0; /* critical: lets flex children shrink below content size */
+      overflow: hidden;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 248px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .sidebar::-webkit-scrollbar { width:4px; }
+    .sidebar::-webkit-scrollbar-thumb { background:var(--border-bright); border-radius:4px; }
+
+    .sidebar-section { padding:0.9rem 1rem; border-bottom:1px solid var(--border); }
+    .section-label {
+      font-family:'DM Mono',monospace;
+      font-size:0.63rem; font-weight:500;
+      color:var(--muted); letter-spacing:0.1em; text-transform:uppercase;
+      margin-bottom:0.55rem;
+    }
+
+    .upload-zone {
+      border:1.5px dashed var(--border-bright);
+      border-radius:10px; padding:0.9rem;
+      text-align:center; cursor:pointer;
+      transition:all 0.2s;
+      background:rgba(255,255,255,0.02);
+      display:block;
+    }
+    .upload-zone:hover { border-color:var(--accent); background:rgba(57,211,83,0.05); }
+    .upload-zone i { font-size:1.3rem; color:var(--muted); margin-bottom:0.35rem; display:block; }
+    .upload-zone span { font-size:0.8rem; color:var(--muted); line-height:1.5; }
+    .upload-zone strong { color:var(--accent); font-weight:600; }
+    #fileInput { display:none; }
+
+    /* Zoom */
+    .zoom-controls { display:flex; align-items:center; gap:0.35rem; flex-wrap:wrap; }
+    .zoom-btn {
+      width:26px; height:26px; border-radius:6px;
+      border:1px solid var(--border-bright);
+      background:var(--surface2); color:var(--text);
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      font-size:0.82rem; transition:all 0.15s; flex-shrink:0;
+    }
+    .zoom-btn:hover { background:var(--accent); color:#080c10; border-color:var(--accent); }
+    .zoom-btn.wide { width:auto; padding:0 8px; font-family:'DM Mono',monospace; font-size:0.68rem; }
+    .zoom-level { font-family:'DM Mono',monospace; font-size:0.75rem; color:var(--accent); min-width:40px; text-align:center; }
+
+    /* Tools */
+    .tools-list { display:flex; flex-direction:column; gap:2px; }
+    .tool-btn {
+      width:100%; padding:0.5rem 0.8rem;
+      border:1px solid transparent; border-radius:8px;
+      background:transparent; color:var(--muted);
+      font-family:'Syne',sans-serif; font-weight:500; font-size:0.86rem;
+      display:flex; align-items:center; gap:0.65rem;
+      cursor:pointer; transition:all 0.15s; text-align:left;
+    }
+    .tool-btn i { width:15px; font-size:0.82rem; text-align:center; flex-shrink:0; }
+    .tool-btn:hover { background:var(--surface2); color:var(--text); }
+    .tool-btn.active { background:rgba(57,211,83,0.12); color:var(--accent); border-color:rgba(57,211,83,0.25); }
+    .tool-btn.active i { color:var(--accent); }
+
+    .tool-options {
+      display:none; flex-direction:column; gap:0.65rem;
+      padding:0.7rem; background:var(--surface2);
+      border-radius:8px; border:1px solid var(--border);
+      margin-top:0.4rem;
+    }
+    .tool-options.active { display:flex; }
+    .opt-row { display:flex; align-items:center; justify-content:space-between; gap:0.5rem; }
+    .opt-label { font-family:'DM Mono',monospace; font-size:0.73rem; color:var(--muted); }
+    .opt-right { display:flex; align-items:center; gap:0.35rem; }
+    .opt-value { font-family:'DM Mono',monospace; font-size:0.73rem; color:var(--accent); min-width:22px; text-align:right; }
+    input[type="range"] {
+      -webkit-appearance:none; width:88px; height:3px;
+      background:var(--border-bright); border-radius:2px; outline:none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance:none; width:11px; height:11px;
+      background:var(--accent); border-radius:50%; cursor:pointer;
+    }
+    input[type="color"] {
+      width:30px; height:22px; border-radius:4px;
+      border:1px solid var(--border-bright);
+      background:transparent; cursor:pointer; padding:0;
+    }
+    select.opt-select {
+      background:var(--surface); border:1px solid var(--border-bright);
+      border-radius:6px; color:var(--text);
+      font-family:'DM Mono',monospace; font-size:0.73rem;
+      padding:0.22rem 0.45rem; cursor:pointer; outline:none;
+    }
+
+    /* CANVAS AREA */
+    .canvas-area {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .canvas-toolbar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0.45rem 1rem;
+      border-bottom:1px solid var(--border);
+      background:var(--surface);
+      flex-shrink:0; gap:1rem; flex-wrap:wrap;
+    }
+    .status-badge {
+      font-family:'DM Mono',monospace; font-size:0.72rem;
+      color:var(--muted); background:var(--surface2);
+      padding:0.22rem 0.65rem; border-radius:20px;
+      border:1px solid var(--border);
+    }
+    #instructions { color:var(--text); }
+    .toolbar-right { display:flex; align-items:center; gap:0.55rem; }
+    .btn {
+      padding:0.38rem 0.95rem; border-radius:7px;
+      border:1px solid transparent;
+      font-family:'Syne',sans-serif; font-size:0.82rem; font-weight:600;
+      cursor:pointer; display:flex; align-items:center; gap:0.35rem;
+      transition:all 0.15s;
+    }
+    .btn-primary { background:var(--accent); color:var(--notif-text); border-color:var(--accent); }
+    .btn-primary:hover { box-shadow:0 0 14px rgba(57,211,83,0.4); }
+    .btn-download {
+      background:var(--accent2); color:var(--notif-text); border-color:var(--accent2);
+      text-decoration:none; opacity:0.35; pointer-events:none;
+    }
+    .btn-download.active { opacity:1; pointer-events:auto; }
+    .btn-download:hover { box-shadow:0 0 14px rgba(88,166,255,0.4); }
+    #applyBtn { display:none; }
+
+    /*
+     * THE KEY FIX:
+     * .canvas-viewport must:
+     *  - fill remaining space (flex:1, min-height:0)
+     *  - overflow:auto so scrollbars appear when content is larger
+     *  - NOT use display:flex with align/justify (those prevent scroll)
+     * The display canvas inside will be sized to imgW*zoom × imgH*zoom
+     * so the browser natively scrolls it.
+     */
+    .canvas-viewport {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      position: relative;
+      padding: 2rem;
+      background:
+        radial-gradient(ellipse at 15% 15%, rgba(57,211,83,0.025) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 85%, rgba(88,166,255,0.025) 0%, transparent 55%),
+        repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(255,255,255,0.016) 23px, rgba(255,255,255,0.016) 24px),
+        repeating-linear-gradient(90deg, transparent, transparent 23px, rgba(255,255,255,0.016) 23px, rgba(255,255,255,0.016) 24px);
+    }
+    .canvas-viewport::-webkit-scrollbar { width:10px; height:10px; }
+    .canvas-viewport::-webkit-scrollbar-track { background:var(--surface2); }
+    .canvas-viewport::-webkit-scrollbar-thumb { background:#333d48; border-radius:5px; border:2px solid var(--surface2); }
+    .canvas-viewport::-webkit-scrollbar-corner { background:var(--surface2); }
+
+    /*
+     * The display canvas sits in normal flow inside .canvas-viewport.
+     * Its width/height attributes are set by JS to imgW*zoom × imgH*zoom.
+     * This gives the viewport real scrollable dimensions.
+     * Mouse events on this canvas → divide by zoom → image pixel coords.
+     */
+    #displayCanvas {
+      display: block;
+      cursor: crosshair;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.07);
+      border-radius: 3px;
+      /* NO max-width, NO max-height — let it be as big as zoom demands */
+    }
+
+    /* Empty state */
+    .empty-state {
+      position:absolute; inset:0;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      gap:0.8rem; pointer-events:none;
+    }
+    .empty-icon { font-size:2.8rem; color:var(--border-bright); }
+    .empty-text { font-size:0.95rem; font-weight:600; color:var(--muted); }
+    .empty-sub { font-family:'DM Mono',monospace; font-size:0.72rem; color:rgba(125,133,144,0.55); }
+    #emptyState { display:flex; }
+    #emptyState.hidden { display:none; }
+
+    .notification {
+      position:fixed; bottom:1.8rem; left:50%;
+      transform:translateX(-50%);
+      padding:0.5rem 1.3rem; border-radius:40px;
+      background:var(--accent); color:var(--notif-text);
+      font-weight:700; font-size:0.83rem;
+      box-shadow:0 8px 24px rgba(57,211,83,0.3);
+      z-index:9999; animation:notifIn 0.2s ease;
+    }
+    @keyframes notifIn {
+      from { opacity:0; transform:translateX(-50%) translateY(10px); }
+      to   { opacity:1; transform:translateX(-50%) translateY(0); }
+    }
+    /* Theme toggle */
+    .theme-toggle {
+      width: 34px; height: 34px; border-radius: 8px;
+      border: 1px solid var(--border-bright);
+      background: var(--surface2); color: var(--text);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 0.95rem; transition: all 0.2s; flex-shrink: 0;
+    }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Light mode canvas background */
+    :root.light-mode .canvas-viewport {
+      background:
+        radial-gradient(ellipse at 15% 15%, rgba(26,158,58,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 85%, rgba(26,111,212,0.06) 0%, transparent 55%),
+        repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(0,0,0,0.04) 23px, rgba(0,0,0,0.04) 24px),
+        repeating-linear-gradient(90deg, transparent, transparent 23px, rgba(0,0,0,0.04) 23px, rgba(0,0,0,0.04) 24px);
+    }
+    :root.light-mode #displayCanvas {
+      box-shadow: 0 8px 48px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.1);
+    }
+    :root.light-mode .canvas-viewport::-webkit-scrollbar-track { background: var(--surface2); }
+    :root.light-mode .canvas-viewport::-webkit-scrollbar-thumb { background: #b0bac5; border-color: var(--surface2); }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">CM</div>
+      <span class="logo-text">CutMask</span>
+    </div>
+    <div class="header-meta">
+      image editor &nbsp;·&nbsp; <span id="imgSizeLabel">no image</span>
+    </div>
+    <button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode">
+      <i class="fas fa-sun" id="themeIcon"></i>
+    </button>
+  </div>
+
+  <div class="app-body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+      <div class="sidebar-section">
+        <div class="section-label">Image</div>
+        <label for="fileInput" class="upload-zone">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <span>Click to upload<br><strong>JPG / PNG / WEBP</strong></span>
+        </label>
+        <input type="file" id="fileInput" accept="image/*">
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-label">Zoom</div>
+        <div class="zoom-controls">
+          <button class="zoom-btn" id="zoomOut" title="Zoom out"><i class="fas fa-minus"></i></button>
+          <span class="zoom-level" id="zoomLabel">100%</span>
+          <button class="zoom-btn" id="zoomIn" title="Zoom in"><i class="fas fa-plus"></i></button>
+          <button class="zoom-btn wide" id="zoomFit" title="Fit to screen">Fit</button>
+          <button class="zoom-btn wide" id="zoom100" title="Actual size">1:1</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-label">Tools</div>
+        <div class="tools-list">
+
+          <button id="cutBtn" class="tool-btn active"><i class="fas fa-cut"></i> Remove &amp; Join</button>
+
+          <button id="blackoutBtn" class="tool-btn"><i class="fas fa-square"></i> Black-out</button>
+          <div class="tool-options" id="blackoutOptions">
+            <div class="opt-row">
+              <span class="opt-label">Color</span>
+              <input type="color" id="blackoutColor" value="#000000">
+            </div>
+          </div>
+
+          <button id="blurBtn" class="tool-btn"><i class="fas fa-tint"></i> Blur</button>
+          <div class="tool-options" id="blurOptions">
+            <div class="opt-row">
+              <span class="opt-label">Amount</span>
+              <div class="opt-right">
+                <input type="range" id="blurAmount" min="1" max="50" value="10">
+                <span class="opt-value" id="blurAmountValue">10</span>
+              </div>
+            </div>
+          </div>
+
+          <button id="pixelateBtn" class="tool-btn"><i class="fas fa-th"></i> Pixelate</button>
+          <div class="tool-options" id="pixelateOptions">
+            <div class="opt-row">
+              <span class="opt-label">Pixel size</span>
+              <div class="opt-right">
+                <input type="range" id="pixelateSize" min="2" max="50" value="10">
+                <span class="opt-value" id="pixelateSizeValue">10</span>
+              </div>
+            </div>
+          </div>
+
+          <button id="highlightBtn" class="tool-btn"><i class="fas fa-highlighter"></i> Highlight</button>
+          <div class="tool-options" id="highlightOptions">
+            <div class="opt-row">
+              <span class="opt-label">Color</span>
+              <input type="color" id="highlightColor" value="#FFFF00">
+            </div>
+          </div>
+
+          <button id="drawBtn" class="tool-btn"><i class="fas fa-pencil-alt"></i> Draw</button>
+          <div class="tool-options" id="drawOptions">
+            <div class="opt-row">
+              <span class="opt-label">Color</span>
+              <input type="color" id="drawColor" value="#ff0000">
+            </div>
+            <div class="opt-row">
+              <span class="opt-label">Brush</span>
+              <div class="opt-right">
+                <input type="range" id="brushSize" min="1" max="50" value="5">
+                <span class="opt-value" id="brushSizeValue">5</span>
+              </div>
+            </div>
+          </div>
+
+          <button id="rotateBtn" class="tool-btn"><i class="fas fa-undo-alt"></i> Rotate 90°</button>
+
+          <button id="cropBtn" class="tool-btn"><i class="fas fa-crop-alt"></i> Crop</button>
+          <div class="tool-options" id="cropOptions">
+            <div class="opt-row">
+              <span class="opt-label">Aspect</span>
+              <select id="aspectRatio" class="opt-select">
+                <option value="NaN">Free</option>
+                <option value="1">1:1</option>
+                <option value="4/3">4:3</option>
+                <option value="16/9">16:9</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /sidebar -->
+
+    <!-- CANVAS AREA -->
+    <div class="canvas-area">
+
+      <div class="canvas-toolbar">
+        <span class="status-badge" id="instructions">Upload an image to get started</span>
+        <div class="toolbar-right">
+          <button id="applyBtn" class="btn btn-primary"><i class="fas fa-check"></i> Apply</button>
+          <a id="downloadLink" class="btn btn-download" download="cutmask-image.png">
+            <i class="fas fa-download"></i> Download
+          </a>
+        </div>
+      </div>
+
+      <!-- Scrollable viewport. displayCanvas sits in normal flow → browser scrolls it. -->
+      <div class="canvas-viewport" id="canvasViewport">
+        <div id="emptyState" class="empty-state">
+          <div class="empty-icon"><i class="fas fa-image"></i></div>
+          <div class="empty-text">No image loaded</div>
+          <div class="empty-sub">Upload a JPG, PNG, or WEBP file to begin</div>
+        </div>
+        <!-- This is the DISPLAY canvas. Its pixel dimensions = imgW*zoom × imgH*zoom.
+             It draws from the hidden workCanvas so edits are always at full resolution. -->
+        <canvas id="displayCanvas"></canvas>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Hidden full-resolution working canvas (never in DOM display) -->
+  <canvas id="workCanvas" style="display:none;"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+  <script>
+  (function() {
+
+    // ── DOM ────────────────────────────────────────────────────────────────────
+    const fileInput      = document.getElementById('fileInput');
+    const displayCanvas  = document.getElementById('displayCanvas');
+    const dCtx           = displayCanvas.getContext('2d');
+    const workCanvas     = document.getElementById('workCanvas');   // hidden, full-res
+    const wCtx           = workCanvas.getContext('2d');
+    const downloadLink   = document.getElementById('downloadLink');
+    const applyBtn       = document.getElementById('applyBtn');
+    const instructions   = document.getElementById('instructions');
+    const imgSizeLabel   = document.getElementById('imgSizeLabel');
+    const viewport       = document.getElementById('canvasViewport');
+    const emptyState     = document.getElementById('emptyState');
+    const zoomLabel      = document.getElementById('zoomLabel');
+
+    const cutBtn         = document.getElementById('cutBtn');
+    const blackoutBtn    = document.getElementById('blackoutBtn');
+    const blurBtn        = document.getElementById('blurBtn');
+    const pixelateBtn    = document.getElementById('pixelateBtn');
+    const highlightBtn   = document.getElementById('highlightBtn');
+    const drawBtn        = document.getElementById('drawBtn');
+    const rotateBtn      = document.getElementById('rotateBtn');
+    const cropBtn        = document.getElementById('cropBtn');
+    const toolButtons    = { cut:cutBtn, blackout:blackoutBtn, blur:blurBtn, pixelate:pixelateBtn, highlight:highlightBtn, draw:drawBtn, rotate:rotateBtn, crop:cropBtn };
+
+    const blackoutOptions  = document.getElementById('blackoutOptions');
+    const blurOptions      = document.getElementById('blurOptions');
+    const pixelateOptions  = document.getElementById('pixelateOptions');
+    const drawOptions      = document.getElementById('drawOptions');
+    const cropOptions      = document.getElementById('cropOptions');
+    const highlightOptions = document.getElementById('highlightOptions');
+    const toolOptions = { blackout:blackoutOptions, blur:blurOptions, pixelate:pixelateOptions, draw:drawOptions, crop:cropOptions, highlight:highlightOptions };
+
+    const blackoutColor      = document.getElementById('blackoutColor');
+    const blurAmount         = document.getElementById('blurAmount');
+    const blurAmountValue    = document.getElementById('blurAmountValue');
+    const pixelateSize       = document.getElementById('pixelateSize');
+    const pixelateSizeValue  = document.getElementById('pixelateSizeValue');
+    const drawColor          = document.getElementById('drawColor');
+    const brushSize          = document.getElementById('brushSize');
+    const brushSizeValue     = document.getElementById('brushSizeValue');
+    const aspectRatio        = document.getElementById('aspectRatio');
+    const highlightColor     = document.getElementById('highlightColor');
+
+    // ── State ──────────────────────────────────────────────────────────────────
+    let img          = new Image();
+    let hasImage     = false;
+    let currentTool  = 'cut';
+    let isDragging   = false;
+    let isDrawing    = false;
+    let hasSelection = false;
+    let startX, startY, endX, endY;  // in IMAGE pixel coords
+    let zoomScale    = 1;             // display canvas = workCanvas * zoomScale
+    let cropper      = null;
+
+    // ── ZOOM ───────────────────────────────────────────────────────────────────
+    // The display canvas width/height are set to imgW*zoom and imgH*zoom.
+    // This gives the viewport real layout dimensions so it can scroll.
+    function setZoom(z) {
+      if (!hasImage) return;
+      zoomScale = Math.max(0.05, Math.min(10, z));
+      resizeDisplayCanvas();
+      refreshDisplay();
+      zoomLabel.textContent = Math.round(zoomScale * 100) + '%';
+    }
+
+    function resizeDisplayCanvas() {
+      displayCanvas.width  = Math.round(workCanvas.width  * zoomScale);
+      displayCanvas.height = Math.round(workCanvas.height * zoomScale);
+    }
+
+    // Blit workCanvas → displayCanvas at zoom scale
+    function refreshDisplay() {
+      dCtx.imageSmoothingEnabled = zoomScale < 1;
+      dCtx.imageSmoothingQuality = 'high';
+      dCtx.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
+      dCtx.drawImage(workCanvas, 0, 0, displayCanvas.width, displayCanvas.height);
+    }
+
+    function fitToScreen() {
+      if (!hasImage) return;
+      const vw = viewport.clientWidth  - 64;
+      const vh = viewport.clientHeight - 64;
+      const fit = Math.min(vw / workCanvas.width, vh / workCanvas.height, 1);
+      setZoom(fit);
+    }
+
+    // ── Coord mapping ──────────────────────────────────────────────────────────
+    // Mouse event on displayCanvas → image pixel coords on workCanvas
+    function getImgCoords(e) {
+      const rect = displayCanvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left)  / zoomScale,
+        y: (e.clientY - rect.top)   / zoomScale
+      };
+    }
+
+    // ── Upload ─────────────────────────────────────────────────────────────────
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) { showNotification('Not an image'); return; }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        img = new Image();
+        img.onload = () => {
+          // Set workCanvas to actual image size
+          workCanvas.width  = img.width;
+          workCanvas.height = img.height;
+          wCtx.drawImage(img, 0, 0);
+          hasImage = true;
+          emptyState.classList.add('hidden');
+          if (cropper) { cropper.destroy(); cropper = null; }
+          updateDownloadLink();
+          imgSizeLabel.textContent = img.width + ' × ' + img.height;
+          instructions.textContent = 'Tool: ' + currentTool + ' — drag to select';
+          showNotification('Image loaded ✓');
+          // Auto-fit on load, then refresh
+          setTimeout(() => {
+            fitToScreen();
+            if (currentTool === 'crop') setTimeout(() => initCropper(), 10);
+          }, 50);
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+      fileInput.value = '';
+    });
+
+    // ── Tool selection ─────────────────────────────────────────────────────────
+    function selectTool(tool) {
+      currentTool = tool;
+      Object.values(toolButtons).forEach(b => b && b.classList.remove('active'));
+      if (toolButtons[tool]) toolButtons[tool].classList.add('active');
+      Object.values(toolOptions).forEach(o => o && o.classList.remove('active'));
+      if (toolOptions[tool]) toolOptions[tool].classList.add('active');
+
+      if (tool === 'crop') {
+        if (hasImage) { initCropper(); applyBtn.style.display = 'flex'; }
+      } else {
+        if (cropper) { cropper.destroy(); cropper = null; }
+        applyBtn.style.display = hasSelection ? 'flex' : 'none';
+      }
+      if (tool === 'rotate') rotateImage();
+      if (hasImage) instructions.textContent = 'Tool: ' + tool + ' — drag to select';
+    }
+
+    function initCropper() {
+      if (cropper) cropper.destroy();
+      if (!hasImage) return;
+      // Cropper must work on a visible canvas. We use displayCanvas.
+      cropper = new Cropper(displayCanvas, {
+        aspectRatio: eval(aspectRatio.value),
+        viewMode: 1,
+        autoCropArea: 0.8,
+      });
+    }
+
+    // ── Mouse handlers ─────────────────────────────────────────────────────────
+    displayCanvas.addEventListener('mousedown', (e) => {
+      if (!hasImage || currentTool === 'crop' || currentTool === 'rotate') return;
+      const {x, y} = getImgCoords(e);
+      if (currentTool === 'draw') {
+        isDrawing = true;
+        wCtx.beginPath(); wCtx.moveTo(x, y);
+        wCtx.strokeStyle = drawColor.value;
+        wCtx.lineWidth   = parseInt(brushSize.value);
+        wCtx.lineCap     = 'round';
+        wCtx.lineJoin    = 'round';
+        return;
+      }
+      isDragging   = true;
+      startX = x;  startY = y;
+      hasSelection = false;
+      applyBtn.style.display = 'flex';
+    });
+
+    displayCanvas.addEventListener('mousemove', (e) => {
+      if (!hasImage || currentTool === 'crop' || currentTool === 'rotate') return;
+      const {x, y} = getImgCoords(e);
+      if (currentTool === 'draw' && isDrawing) {
+        wCtx.lineTo(x, y); wCtx.stroke();
+        refreshDisplay();
+        return;
+      }
+      if (!isDragging) return;
+      endX = x; endY = y;
+      drawSelectionOverlay();
+    });
+
+    displayCanvas.addEventListener('mouseup', () => {
+      if (currentTool === 'draw' && isDrawing) {
+        isDrawing = false;
+        img.src = workCanvas.toDataURL();
+        updateDownloadLink();
+        return;
+      }
+      if (!isDragging || !hasImage) return;
+      isDragging   = false;
+      hasSelection = true;
+      if (currentTool === 'blur' || currentTool === 'pixelate') applyCurrentTool();
+    });
+
+    displayCanvas.addEventListener('mouseleave', () => {
+      isDragging = false; isDrawing = false;
+    });
+
+    // Draw selection overlay onto workCanvas temporarily, then blit to display
+    function drawSelectionOverlay() {
+      // Draw work state from img (committed) then overlay selection rect
+      wCtx.clearRect(0, 0, workCanvas.width, workCanvas.height);
+      wCtx.drawImage(img, 0, 0);
+
+      const x  = Math.min(startX, endX);
+      const y  = Math.min(startY, endY);
+      const w  = currentTool === 'cut' ? workCanvas.width : Math.abs(endX - startX);
+      const h  = Math.abs(endY - startY);
+      const rx = currentTool === 'cut' ? 0 : x;
+
+      wCtx.fillStyle   = getSelectionColor();
+      wCtx.fillRect(rx, y, w, h);
+      wCtx.strokeStyle = getBorderColor();
+      wCtx.lineWidth   = Math.max(1, 1.5 / zoomScale);
+      wCtx.setLineDash([4 / zoomScale, 3 / zoomScale]);
+      wCtx.strokeRect(rx, y, w, h);
+      wCtx.setLineDash([]);
+
+      refreshDisplay();
+    }
+
+    function getSelectionColor() {
+      const m = {cut:'rgba(239,68,68,0.28)',blackout:'rgba(57,211,83,0.18)',blur:'rgba(88,166,255,0.22)',pixelate:'rgba(245,158,11,0.2)',highlight:'rgba(255,255,0,0.2)'};
+      return m[currentTool] || 'rgba(255,255,255,0.2)';
+    }
+    function getBorderColor() {
+      const m = {cut:'#ef4444',blackout:blackoutColor.value,blur:'#58a6ff',pixelate:'#f59e0b',highlight:'#FFFF00'};
+      return m[currentTool] || '#fff';
+    }
+
+    // ── Apply ──────────────────────────────────────────────────────────────────
+    function applyCurrentTool() {
+      if (!hasSelection && currentTool !== 'crop') { showNotification('Make a selection first'); return; }
+      switch (currentTool) {
+        case 'cut':       applyCut();       break;
+        case 'blackout':  applyBlackout();  break;
+        case 'blur':      applyBlur();      break;
+        case 'pixelate':  applyPixelate();  break;
+        case 'crop':      applyCrop();      break;
+        case 'highlight': applyHighlight(); break;
+        default: return;
+      }
+      hasSelection = false;
+      applyBtn.style.display = 'none';
+      updateDownloadLink();
+    }
+
+    // Redraw workCanvas from committed img, apply edit, commit back to img
+    function commitWork() {
+      img = new Image();
+      img.src = workCanvas.toDataURL();
+    }
+
+    function applyCut() {
+      // Restore clean image first (remove selection overlay)
+      wCtx.clearRect(0, 0, workCanvas.width, workCanvas.height);
+      wCtx.drawImage(img, 0, 0);
+
+      const y    = Math.min(startY, endY);
+      const h    = Math.abs(endY - startY);
+      const newH = workCanvas.height - h;
+      const temp = document.createElement('canvas');
+      temp.width = workCanvas.width; temp.height = newH;
+      const tCtx = temp.getContext('2d');
+      tCtx.drawImage(workCanvas, 0, 0, workCanvas.width, y, 0, 0, workCanvas.width, y);
+      tCtx.drawImage(workCanvas, 0, y+h, workCanvas.width, workCanvas.height-(y+h), 0, y, workCanvas.width, workCanvas.height-(y+h));
+      workCanvas.height = newH;
+      wCtx.drawImage(temp, 0, 0);
+      commitWork();
+      imgSizeLabel.textContent = workCanvas.width + ' × ' + workCanvas.height;
+      resizeDisplayCanvas();
+      refreshDisplay();
+    }
+
+    function applyBlackout() {
+      wCtx.clearRect(0, 0, workCanvas.width, workCanvas.height);
+      wCtx.drawImage(img, 0, 0);
+      wCtx.fillStyle = blackoutColor.value;
+      wCtx.fillRect(Math.min(startX,endX), Math.min(startY,endY), Math.abs(endX-startX), Math.abs(endY-startY));
+      commitWork(); refreshDisplay();
+    }
+
+    function applyBlur() {
+      const x=Math.min(startX,endX), y=Math.min(startY,endY), w=Math.abs(endX-startX), h=Math.abs(endY-startY);
+      wCtx.clearRect(0,0,workCanvas.width,workCanvas.height); wCtx.drawImage(img,0,0);
+      const tmp=document.createElement('canvas'); tmp.width=w; tmp.height=h;
+      const tCtx=tmp.getContext('2d');
+      tCtx.drawImage(workCanvas,x,y,w,h,0,0,w,h);
+      tCtx.filter=`blur(${blurAmount.value}px)`;
+      tCtx.drawImage(tmp,0,0);
+      wCtx.drawImage(tmp,0,0,w,h,x,y,w,h);
+      commitWork(); refreshDisplay();
+    }
+
+    function applyPixelate() {
+      const x=Math.min(startX,endX), y=Math.min(startY,endY), w=Math.abs(endX-startX), h=Math.abs(endY-startY);
+      const sz=parseInt(pixelateSize.value);
+      wCtx.clearRect(0,0,workCanvas.width,workCanvas.height); wCtx.drawImage(img,0,0);
+      const tmp=document.createElement('canvas'); tmp.width=w; tmp.height=h;
+      const tCtx=tmp.getContext('2d'); tCtx.drawImage(workCanvas,x,y,w,h,0,0,w,h);
+      const sw=Math.max(1,Math.floor(w/sz)), sh=Math.max(1,Math.floor(h/sz));
+      const small=document.createElement('canvas'); small.width=sw; small.height=sh;
+      const sCtx=small.getContext('2d'); sCtx.imageSmoothingEnabled=false; sCtx.drawImage(tmp,0,0,sw,sh);
+      tCtx.imageSmoothingEnabled=false; tCtx.drawImage(small,0,0,sw,sh,0,0,w,h);
+      wCtx.drawImage(tmp,0,0,w,h,x,y,w,h);
+      commitWork(); refreshDisplay();
+    }
+
+    function applyHighlight() {
+      const x=Math.min(startX,endX), y=Math.min(startY,endY), w=Math.abs(endX-startX), h=Math.abs(endY-startY);
+      wCtx.clearRect(0,0,workCanvas.width,workCanvas.height); wCtx.drawImage(img,0,0);
+      wCtx.globalAlpha=0.5; wCtx.fillStyle=highlightColor.value; wCtx.fillRect(x,y,w,h); wCtx.globalAlpha=1;
+      commitWork(); refreshDisplay();
+    }
+
+    function applyCrop() {
+      if (!cropper) return;
+      const cropped = cropper.getCroppedCanvas();
+      // cropped is at display size; we need to scale back to original image coords
+      const scaleX = workCanvas.width  / displayCanvas.width;
+      const scaleY = workCanvas.height / displayCanvas.height;
+      const cropData = cropper.getData();
+      // getCroppedCanvas already gives us the right pixels; just use it directly
+      workCanvas.width  = cropped.width;
+      workCanvas.height = cropped.height;
+      wCtx.drawImage(cropped, 0, 0);
+      cropper.destroy(); cropper = null;
+      commitWork();
+      imgSizeLabel.textContent = workCanvas.width + ' × ' + workCanvas.height;
+      resizeDisplayCanvas();
+      refreshDisplay();
+    }
+
+    function rotateImage() {
+      if (!hasImage) return;
+      const temp = document.createElement('canvas');
+      temp.width = workCanvas.height; temp.height = workCanvas.width;
+      const tCtx = temp.getContext('2d');
+      tCtx.translate(temp.width/2, temp.height/2);
+      tCtx.rotate(Math.PI/2);
+      tCtx.drawImage(workCanvas, -workCanvas.width/2, -workCanvas.height/2);
+      workCanvas.width = temp.width; workCanvas.height = temp.height;
+      wCtx.drawImage(temp, 0, 0);
+      commitWork();
+      imgSizeLabel.textContent = workCanvas.width + ' × ' + workCanvas.height;
+      resizeDisplayCanvas();
+      refreshDisplay();
+      updateDownloadLink();
+    }
+
+    function updateDownloadLink() {
+      if (hasImage) {
+        downloadLink.href = workCanvas.toDataURL();
+        downloadLink.classList.add('active');
+      } else {
+        downloadLink.classList.remove('active');
+      }
+    }
+
+    function showNotification(msg) {
+      const n = document.createElement('div'); n.className='notification'; n.textContent=msg;
+      document.body.appendChild(n);
+      setTimeout(() => n.remove(), 2200);
+    }
+
+    // ── Ctrl+scroll to zoom ────────────────────────────────────────────────────
+    viewport.addEventListener('wheel', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        setZoom(zoomScale + (e.deltaY > 0 ? -0.12 : 0.12));
+      }
+    }, { passive: false });
+
+    // ── Zoom buttons ───────────────────────────────────────────────────────────
+    document.getElementById('zoomIn').addEventListener('click',  () => setZoom(zoomScale + 0.25));
+    document.getElementById('zoomOut').addEventListener('click', () => setZoom(zoomScale - 0.25));
+    document.getElementById('zoomFit').addEventListener('click', fitToScreen);
+    document.getElementById('zoom100').addEventListener('click', () => setZoom(1));
+
+    // ── Tool buttons ───────────────────────────────────────────────────────────
+    cutBtn.addEventListener('click',       () => selectTool('cut'));
+    blackoutBtn.addEventListener('click',  () => selectTool('blackout'));
+    blurBtn.addEventListener('click',      () => selectTool('blur'));
+    pixelateBtn.addEventListener('click',  () => selectTool('pixelate'));
+    highlightBtn.addEventListener('click', () => selectTool('highlight'));
+    drawBtn.addEventListener('click',      () => selectTool('draw'));
+    rotateBtn.addEventListener('click',    () => selectTool('rotate'));
+    cropBtn.addEventListener('click',      () => selectTool('crop'));
+
+    blurAmount.addEventListener('input',   () => blurAmountValue.textContent   = blurAmount.value);
+    pixelateSize.addEventListener('input', () => pixelateSizeValue.textContent = pixelateSize.value);
+    brushSize.addEventListener('input',    () => brushSizeValue.textContent    = brushSize.value);
+    aspectRatio.addEventListener('change', () => { if (cropper) cropper.setAspectRatio(eval(aspectRatio.value)); });
+    applyBtn.addEventListener('click', applyCurrentTool);
+
+    selectTool('cut');
+
+    // ── Theme toggle ───────────────────────────────────────────────────────────
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon   = document.getElementById('themeIcon');
+    themeToggle.addEventListener('click', () => {
+      const isLight = document.documentElement.classList.toggle('light-mode');
+      themeIcon.className = isLight ? 'fas fa-moon' : 'fas fa-sun';
+      themeToggle.title = isLight ? 'Switch to dark mode' : 'Switch to light mode';
+    });
+  })();
+  </script>
+</body>
+</html>
