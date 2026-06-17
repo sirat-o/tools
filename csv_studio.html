@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSV Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Dark Mode (Default) */
+      --bg: #0d0d0f;
+      --bg2: #141416;
+      --bg3: #1c1c1f;
+      --bg4: #252528;
+      --border: #2a2a2e;
+      --border2: #38383d;
+      --text: #e8e8ec;
+      --muted: #7c7c87;
+      --dim: #4a4a52;
+      --accent: #5b8af0;
+      --accent2: #3d6fd4;
+      --accent-glow: rgba(91,138,240,0.15);
+      --green: #3ecf8e;
+      --red: #f06565;
+      --yellow: #f0b83e;
+      --purple: #a78bfa;
+      --orange: #fb923c;
+      --r: 6px;
+      --r2: 10px;
+      --row-hover: rgba(255,255,255,.015);
+    }
+
+    body.light-mode {
+      /* Light Mode Overrides */
+      --bg: #ffffff;
+      --bg2: #f8f9fa;
+      --bg3: #e9ecef;
+      --bg4: #dee2e6;
+      --border: #e9ecef;
+      --border2: #dee2e6;
+      --text: #212529;
+      --muted: #6c757d;
+      --dim: #adb5bd;
+      --accent: #3b82f6;
+      --accent2: #2563eb;
+      --accent-glow: rgba(59, 130, 246, 0.15);
+      --green: #10b981;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --purple: #8b5cf6;
+      --orange: #f97316;
+      --row-hover: rgba(0,0,0,.03);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    i svg { display: inline-block; vertical-align: middle; flex-shrink: 0; }
+    .sb-label svg { opacity: 0.7; }
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      font-size: 13px;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+    /* Layout */
+    #app { display: flex; flex-direction: column; height: 100vh; }
+    #titlebar {
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 16px;
+      height: 44px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 600; font-size: 13px; letter-spacing: -0.02em;
+    }
+    .logo-icon {
+      width: 24px; height: 24px;
+      background: var(--accent);
+      border-radius: 5px;
+      display: grid; place-items: center;
+      font-size: 10px; color: white; font-weight: 700;
+    }
+    .logo-text { color: var(--text); }
+    .logo-ver { color: var(--muted); font-size: 10px; font-weight: 400; }
+    #titlebar-sep { flex: 1; }
+    #file-pill {
+      display: flex; align-items: center; gap: 6px;
+      padding: 3px 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      color: var(--muted); font-size: 11px;
+      font-family: 'IBM Plex Mono', monospace;
+      transition: all .2s;
+    }
+    #file-pill.loaded { color: var(--text); border-color: var(--accent); background: var(--accent-glow); }
+    .titlebar-btn {
+      background: transparent; border: 1px solid var(--border); color: var(--muted);
+      padding: 4px 10px; border-radius: var(--r); cursor: pointer;
+      font-family: inherit; font-size: 11px; font-weight: 500;
+      display: flex; align-items: center; gap: 5px;
+      transition: all .15s;
+    }
+    .titlebar-btn:hover { background: var(--bg3); color: var(--text); border-color: var(--border2); }
+    .titlebar-btn.active { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); }
+
+    /* Main */
+    #main { display: flex; flex: 1; overflow: hidden; }
+
+    /* Sidebar */
+    #sidebar {
+      width: 240px; flex-shrink: 0;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      overflow-y: auto;
+      transition: width .3s ease, opacity .3s;
+    }
+    #sidebar.collapsed { width: 0; opacity: 0; overflow: hidden; }
+    .sb-section { padding: 12px; border-bottom: 1px solid var(--border); }
+    .sb-label {
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--dim); margin-bottom: 8px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .drop-zone {
+      border: 1.5px dashed var(--border2); border-radius: var(--r2);
+      padding: 24px 16px; text-align: center; cursor: pointer;
+      transition: all .2s ease; position: relative;
+      background: var(--bg3);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .drop-zone:hover, .drop-zone.over {
+      border-color: var(--accent); background: var(--accent-glow);
+      transform: translateY(-2px);
+    }
+    .drop-zone:active { transform: scale(0.98); }
+    .drop-zone input { display: none; }
+    .drop-icon {
+      color: var(--accent); margin-bottom: 12px;
+      padding: 10px; background: var(--bg); border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: inline-flex;
+      border: 1px solid var(--border);
+    }
+    .drop-icon svg { width: 22px; height: 22px; color: var(--accent); }
+    .drop-title { font-weight: 600; font-size: 13px; color: var(--text); }
+    .drop-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .sb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .sb-full { grid-column: 1/-1; }
+    .input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      color: var(--text); border-radius: var(--r); padding: 5px 8px;
+      font-family: inherit; font-size: 12px; outline: none; transition: border .15s;
+    }
+    .input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+    .select { appearance: none; cursor: pointer; }
+    .btn {
+      width: 100%; padding: 6px 8px; border-radius: var(--r);
+      font-family: inherit; font-size: 12px; font-weight: 500;
+      cursor: pointer; border: 1px solid transparent;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      transition: all .15s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent2); }
+    .btn-outline { background: transparent; border-color: var(--border); color: var(--text); }
+    .btn-outline:hover { background: var(--bg3); border-color: var(--border2); }
+    .btn-ghost { background: transparent; color: var(--muted); border: none; }
+    .btn-ghost:hover { background: var(--bg3); color: var(--text); }
+    .btn-red { background: rgba(240,101,101,.1); color: var(--red); border: none; }
+    .btn-red:hover { background: rgba(240,101,101,.2); }
+    .btn-green { background: rgba(62,207,142,.1); color: var(--green); border: none; }
+    .btn-green:hover { background: rgba(62,207,142,.2); }
+    .btn-xs { padding: 3px 7px; font-size: 11px; }
+
+    /* Column info panel */
+    #col-info {
+      padding: 10px 12px; border-bottom: 1px solid var(--border);
+    }
+    .col-stat { display: flex; justify-content: space-between; padding: 2px 0; font-size: 11px; }
+    .col-stat-key { color: var(--muted); }
+    .col-stat-val { font-family: 'IBM Plex Mono', monospace; font-weight: 500; }
+
+    /* Content area */
+    #content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* Stats bar */
+    #stats-bar {
+      display: flex; align-items: center; gap: 0;
+      height: 36px; padding: 0 16px;
+      background: var(--bg2); border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .stat-item {
+      display: flex; align-items: center; gap: 6px;
+      padding: 0 12px; height: 100%;
+      border-right: 1px solid var(--border);
+      font-size: 11px; color: var(--muted);
+    }
+    .stat-item:first-child { padding-left: 0; }
+    .stat-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 600; font-size: 13px; color: var(--text);
+    }
+    .stat-sel { color: var(--accent); font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 12px; }
+
+    /* Toolbar */
+    #toolbar {
+      display: flex; align-items: center; gap: 4px;
+      padding: 6px 12px;
+      background: var(--bg2); border-bottom: 1px solid var(--border);
+      flex-shrink: 0; flex-wrap: wrap;
+    }
+    .tb-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+    .tb-btn {
+      background: transparent; border: 1px solid transparent; color: var(--muted);
+      padding: 4px 8px; border-radius: var(--r); cursor: pointer;
+      font-family: inherit; font-size: 11px; font-weight: 500;
+      display: flex; align-items: center; gap: 4px;
+      transition: all .15s; white-space: nowrap;
+    }
+    .tb-btn:hover { background: var(--bg3); border-color: var(--border); color: var(--text); }
+    .tb-btn.danger:hover { background: rgba(240,101,101,.1); border-color: rgba(240,101,101,.3); color: var(--red); }
+    .tb-btn.success:hover { background: rgba(62,207,142,.1); border-color: rgba(62,207,142,.3); color: var(--green); }
+    .tb-spacer { flex: 1; }
+    .search-wrap {
+      position: relative; display: flex; align-items: center;
+    }
+    .search-icon { position: absolute; left: 8px; color: var(--dim); pointer-events: none; }
+    .search-input {
+      background: var(--bg); border: 1px solid var(--border); color: var(--text);
+      padding: 4px 8px 4px 28px; border-radius: var(--r); font-family: inherit;
+      font-size: 12px; outline: none; width: 200px; transition: all .2s;
+    }
+    .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); width: 240px; }
+    .col-filter-wrap { position: relative; }
+    .col-filter-select {
+      background: var(--bg); border: 1px solid var(--border); color: var(--text);
+      padding: 4px 24px 4px 8px; border-radius: var(--r); font-family: inherit;
+      font-size: 12px; outline: none; appearance: none; cursor: pointer; transition: border .15s;
+    }
+    .col-filter-select:focus { border-color: var(--accent); }
+    .col-filter-wrap::after {
+      content: ''; position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      border: 4px solid transparent; border-top-color: var(--muted); pointer-events: none;
+    }
+
+    /* Table */
+    #table-wrap { flex: 1; overflow: auto; position: relative; background: var(--bg); }
+    #empty-state {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 12px; color: var(--muted);
+    }
+    .empty-icon { color: var(--border2); }
+    .empty-title { font-size: 15px; font-weight: 600; color: var(--dim); }
+    .empty-sub { font-size: 12px; }
+    .empty-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .empty-actions .btn { width: auto; padding: 6px 14px; }
+
+    table { border-collapse: separate; border-spacing: 0; min-width: max-content; width: 100%; }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      position: relative;
+    }
+    th {
+      position: sticky; top: 0; z-index: 10;
+      background: var(--bg2); border-bottom: 1px solid var(--border2);
+      user-select: none;
+    }
+    .th-inner {
+      display: flex; align-items: center; gap: 4px; padding: 0 4px 0 8px; min-height: 34px;
+    }
+    .th-name {
+      flex: 1; background: transparent; border: none; color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .04em; outline: none; cursor: pointer;
+      padding: 2px; transition: color .15s; min-width: 60px;
+    }
+    .th-name:focus { color: var(--text); background: var(--bg3); border-radius: 3px; cursor: text; }
+    .th-type-badge {
+      font-size: 9px; padding: 1px 5px; border-radius: 99px; font-weight: 700;
+      font-family: 'IBM Plex Mono', monospace; letter-spacing: .02em; flex-shrink: 0;
+    }
+    .type-text { background: rgba(91,138,240,.15); color: var(--accent); }
+    .type-num { background: rgba(62,207,142,.15); color: var(--green); }
+    .type-date { background: rgba(167,139,250,.15); color: var(--purple); }
+    .type-bool { background: rgba(240,184,62,.15); color: var(--yellow); }
+    .th-actions {
+      display: flex; opacity: 0; transition: opacity .15s; flex-shrink: 0;
+    }
+    th:hover .th-actions { opacity: 1; }
+    .th-btn {
+      background: transparent; border: none; color: var(--dim); cursor: pointer;
+      padding: 3px; border-radius: 3px; display: flex; transition: all .15s;
+    }
+    .th-btn:hover { background: var(--bg3); color: var(--text); }
+    .th-btn.sort-active { color: var(--accent); }
+    .th-btn.del:hover { color: var(--red); background: rgba(240,101,101,.1); }
+    .col-resize {
+      position: absolute; right: 0; top: 0; bottom: 0; width: 4px;
+      cursor: col-resize; z-index: 2;
+    }
+    .col-resize:hover { background: var(--accent); }
+
+    td { padding: 0; background: var(--bg); transition: background .1s; }
+    .td-input {
+      width: 100%; min-width: 80px; background: transparent; border: none;
+      color: var(--text); padding: 5px 8px;
+      font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+      outline: none; display: block; transition: background .1s;
+    }
+    .td-input:focus {
+      background: rgba(91,138,240,.06);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+    td.selected { background: rgba(91,138,240,.1) !important; }
+    td.selected .td-input { background: transparent; }
+    tr:hover td { background: var(--row-hover); }
+    tr.row-selected td { background: rgba(91,138,240,.07) !important; }
+    tr.row-selected td.selected { background: rgba(91,138,240,.18) !important; }
+
+    .col-idx {
+      width: 42px; min-width: 42px; text-align: center;
+      color: var(--dim); font-size: 10px; font-family: 'IBM Plex Mono', monospace;
+      background: var(--bg2) !important;
+      position: sticky; left: 0; z-index: 4;
+      border-right: 1px solid var(--border2) !important;
+      cursor: pointer; transition: all .1s;
+    }
+    th.col-idx { z-index: 15; }
+    .col-idx:hover { background: var(--bg3) !important; color: var(--text); }
+    .col-idx.row-sel { background: var(--accent-glow) !important; color: var(--accent); }
+    .col-del { width: 32px; min-width: 32px; text-align: center; opacity: 0; transition: opacity .15s; }
+    tr:hover .col-del { opacity: 1; }
+    .row-del-btn {
+      background: transparent; border: none; color: var(--dim); cursor: pointer;
+      padding: 4px; border-radius: 4px; display: flex; transition: all .15s;
+    }
+    .row-del-btn:hover { color: var(--red); background: rgba(240,101,101,.1); }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.65);
+      display: none; align-items: center; justify-content: center; z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--r2);
+      padding: 20px; min-width: 360px; max-width: 500px; width: 90%;
+      box-shadow: 0 24px 48px rgba(0,0,0,.5);
+    }
+    .modal-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; }
+    .modal-row { margin-bottom: 12px; }
+    .modal-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end; }
+    .modal-actions .btn { width: auto; padding: 6px 16px; }
+
+    /* Context menu */
+    #ctx-menu {
+      position: fixed; background: var(--bg3); border: 1px solid var(--border2);
+      border-radius: var(--r2); padding: 4px; z-index: 2000; min-width: 180px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.5); display: none;
+    }
+    .ctx-item {
+      display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+      border-radius: var(--r); cursor: pointer; font-size: 12px; color: var(--text);
+      transition: background .1s;
+    }
+    .ctx-item:hover { background: var(--bg4); }
+    .ctx-item.danger { color: var(--red); }
+    .ctx-item.danger:hover { background: rgba(240,101,101,.1); }
+    .ctx-sep { height: 1px; background: var(--border); margin: 4px 0; }
+    .ctx-item svg { color: var(--muted); flex-shrink: 0; }
+    .ctx-item.danger svg { color: var(--red); }
+
+    /* Toast */
+    #toast-container {
+      position: fixed; bottom: 20px; right: 20px; z-index: 3000;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .toast {
+      padding: 9px 14px; border-radius: var(--r);
+      font-size: 12px; font-weight: 500;
+      display: flex; align-items: center; gap: 8px;
+      animation: toast-in .3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,.3);
+      max-width: 280px;
+    }
+    .toast-success { background: rgba(62,207,142,.15); border: 1px solid rgba(62,207,142,.3); color: var(--green); }
+    .toast-error { background: rgba(240,101,101,.15); border: 1px solid rgba(240,101,101,.3); color: var(--red); }
+    .toast-info { background: rgba(91,138,240,.15); border: 1px solid rgba(91,138,240,.3); color: var(--accent); }
+    @keyframes toast-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+
+    /* Find & Replace Modal */
+    #fnr-result { font-size: 11px; color: var(--muted); margin-top: 8px; min-height: 14px; }
+
+    /* Formula bar */
+    #formula-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 12px; background: var(--bg2); border-bottom: 1px solid var(--border);
+      flex-shrink: 0; height: 30px;
+    }
+    #cell-ref {
+      font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600;
+      color: var(--accent); min-width: 48px; text-align: center;
+      padding: 2px 6px; background: var(--bg3); border-radius: var(--r);
+    }
+    #formula-sep { width: 1px; height: 16px; background: var(--border); }
+    #formula-val {
+      flex: 1; background: transparent; border: none; color: var(--text);
+      font-family: 'IBM Plex Mono', monospace; font-size: 12px; outline: none;
+    }
+
+    /* Col analysis */
+    #analysis-bar {
+      height: 26px; padding: 0 12px;
+      display: none; align-items: center; gap: 16px;
+      background: rgba(91,138,240,.05); border-bottom: 1px solid rgba(91,138,240,.15);
+      font-size: 11px; color: var(--muted); flex-shrink: 0;
+    }
+    #analysis-bar.visible { display: flex; }
+    .analysis-item { display: flex; gap: 5px; }
+    .analysis-key { color: var(--dim); }
+    .analysis-val { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: var(--text); }
+
+    /* FULLSCREEN MODE (Focus Mode) */
+    body.fullscreen-mode #sidebar { width: 0 !important; opacity: 0 !important; overflow: hidden !important; }
+    body.fullscreen-mode #titlebar .logo,
+    body.fullscreen-mode #titlebar #btn-fnr,
+    body.fullscreen-mode #titlebar #btn-undo,
+    body.fullscreen-mode #titlebar #btn-redo,
+    body.fullscreen-mode #titlebar #btn-theme,
+    body.fullscreen-mode #titlebar #btn-sidebar-toggle { display: none !important; }
+    
+    body.fullscreen-mode #stats-bar,
+    body.fullscreen-mode #analysis-bar { display: none !important; }
+    
+    body.fullscreen-mode #toolbar { display: none !important; }
+    
+    #titlebar-search-zone { display: none; align-items: center; margin-right: 8px; }
+    body.fullscreen-mode #titlebar-search-zone { display: flex; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- Title bar -->
+  <div id="titlebar">
+    <div class="logo">
+      <div class="logo-icon">CSV</div>
+      <span class="logo-text">Studio</span>
+    </div>
+    <div id="file-pill"><span id="file-name">No file loaded</span></div>
+    <div id="titlebar-sep"></div>
+    
+    <div id="titlebar-search-zone"></div>
+    
+    <button class="titlebar-btn" id="btn-fnr" title="Find & Replace (Ctrl+H)">
+      <svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 19-3.5-3.5"/><path d="m2 2 20 20"/><path d="M9 9a3 3 0 0 0 5 5"/><circle cx="11" cy="11" r="8"/></svg> Find & Replace
+    </button>
+    <button class="titlebar-btn" id="btn-undo" title="Undo (Ctrl+Z)" disabled>
+      <svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+    </button>
+    <button class="titlebar-btn" id="btn-redo" title="Redo (Ctrl+Y)" disabled>
+      <svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"/></svg>
+    </button>
+    
+    <!-- Theme Toggle -->
+    <button class="titlebar-btn" id="btn-theme" title="Toggle Light/Dark Theme">
+      <svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+
+    <!-- Fullscreen Toggle -->
+    <button class="titlebar-btn" id="btn-fullscreen" title="Toggle Fullscreen Focus Mode">
+      <svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+    </button>
+
+    <button class="titlebar-btn" id="btn-sidebar-toggle" title="Toggle Sidebar">
+      <svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
+    </button>
+  </div>
+
+  <div id="main">
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div class="sb-section">
+        <div class="sb-label"><svg style="width:10px;height:10px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Import</div>
+        <label class="drop-zone" id="drop-zone">
+          <input type="file" id="file-input" accept=".csv,.tsv,text/csv" />
+          <div class="drop-icon"><svg style="width:20px;height:20px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 12v6"/><path d="m15 15-3-3-3 3"/></svg></div>
+          <div class="drop-title">Drop CSV / TSV</div>
+          <div class="drop-sub">or click to browse</div>
+        </label>
+      </div>
+
+      <div class="sb-section">
+        <div class="sb-label"><svg style="width:10px;height:10px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"/><polyline points="14 2 14 8 20 8"/><path d="M3 15h6"/><path d="M6 12v6"/></svg> New Sheet</div>
+        <div class="sb-grid">
+          <input class="input" type="number" id="new-rows" min="1" value="10" placeholder="Rows" />
+          <input class="input" type="number" id="new-cols" min="1" value="5" placeholder="Cols" />
+          <button class="btn btn-outline sb-full" id="btn-new-sheet">
+            <svg style="width:12px;height:12px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Create Sheet
+          </button>
+        </div>
+      </div>
+
+      <div class="sb-section">
+        <div class="sb-label"><svg style="width:10px;height:10px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="18" x="2" y="3" rx="1"/><rect width="8" height="18" x="14" y="3" rx="1"/></svg> Columns</div>
+        <div class="sb-grid">
+          <input class="input sb-full" id="new-col-name" placeholder="Column name..." />
+          <button class="btn btn-outline sb-full" id="btn-add-col">
+            <svg style="width:12px;height:12px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Column
+          </button>
+        </div>
+      </div>
+
+      <div class="sb-section">
+        <div class="sb-label"><svg style="width:10px;height:10px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="7" x="3" y="3" rx="1"/><rect width="18" height="7" x="3" y="14" rx="1"/></svg> Rows</div>
+        <div class="sb-grid">
+          <button class="btn btn-outline sb-full" id="btn-add-row">
+            <svg style="width:12px;height:12px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Row
+          </button>
+          <button class="btn btn-outline" id="btn-dup-row">
+            <svg style="width:11px;height:11px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Duplicate
+          </button>
+          <button class="btn btn-ghost" id="btn-del-sel-rows">
+            <svg style="width:11px;height:11px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Del Selected
+          </button>
+        </div>
+      </div>
+
+      <div class="sb-section">
+        <div class="sb-label"><svg style="width:10px;height:10px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg> Delimiter</div>
+        <select class="input select" id="delimiter-select">
+          <option value=",">Comma (,)</option>
+          <option value=";">Semicolon (;)</option>
+          <option value="	">Tab (\t)</option>
+          <option value="|">Pipe (|)</option>
+        </select>
+      </div>
+
+      <div class="sb-section">
+        <div class="sb-label"><svg style="width:10px;height:10px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg> Filter Column</div>
+        <select class="input select" id="filter-col-select">
+          <option value="">All columns</option>
+        </select>
+        <input class="input" id="filter-val-input" placeholder="Filter value..." style="margin-top:6px;" />
+      </div>
+
+      <div id="col-info" style="display:none">
+        <div class="sb-label"><svg style="width:10px;height:10px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Column Stats</div>
+        <div id="col-stats-content"></div>
+      </div>
+
+      <div style="flex:1"></div>
+
+      <div class="sb-section">
+        <div class="sb-label"><svg style="width:10px;height:10px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export</div>
+        <div class="sb-grid">
+          <button class="btn btn-primary sb-full" id="btn-export-csv">
+            <svg style="width:12px;height:12px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export CSV
+          </button>
+          <button class="btn btn-outline" id="btn-export-json">JSON</button>
+          <button class="btn btn-outline" id="btn-export-tsv">TSV</button>
+          <button class="btn btn-outline" id="btn-export-xlsx">Excel</button>
+          <button class="btn btn-ghost sb-full" id="btn-copy-csv">
+            <svg style="width:12px;height:12px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy to Clipboard
+          </button>
+        </div>
+      </div>
+
+      <div class="sb-section">
+        <button class="btn btn-red" id="btn-clear">
+          <svg style="width:12px;height:12px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Clear All
+        </button>
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <div id="content">
+      <div id="stats-bar">
+        <div class="stat-item">
+          <span class="stat-num" id="stat-rows">0</span> rows
+        </div>
+        <div class="stat-item">
+          <span class="stat-num" id="stat-cols">0</span> cols
+        </div>
+        <div class="stat-item">
+          <span class="stat-num" id="stat-filled">0</span> filled
+        </div>
+        <div class="stat-item" id="stat-vis-wrap">
+          <span class="stat-num" id="stat-vis">0</span> visible
+        </div>
+        <div class="stat-item" id="stat-sel-wrap" style="display:none">
+          <span class="stat-sel" id="stat-sel"></span>
+        </div>
+        <div style="flex:1"></div>
+        <div class="stat-item" style="border-right:none; border-left:1px solid var(--border);">
+          <span style="font-size:10px;color:var(--dim);font-family:'IBM Plex Mono',monospace;" id="stat-modified"></span>
+        </div>
+      </div>
+
+      <div id="formula-bar">
+        <div id="cell-ref">—</div>
+        <div id="formula-sep"></div>
+        <input id="formula-val" placeholder="Select a cell to edit..." readonly />
+      </div>
+
+      <div id="toolbar">
+        <button class="tb-btn" id="tb-sort-asc">
+          <svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/><path d="M11 12h4"/><path d="M11 16h7"/><path d="M11 20h10"/></svg> Sort A→Z
+        </button>
+        <button class="tb-btn" id="tb-sort-desc">
+          <svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M11 4h10"/><path d="M11 8h7"/><path d="M11 12h4"/></svg> Sort Z→A
+        </button>
+        <div class="tb-sep"></div>
+        <button class="tb-btn" id="tb-trim-col">
+          <svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg> Trim Whitespace
+        </button>
+        <div class="tb-sep"></div>
+        <button class="tb-btn danger" id="tb-del-dupes">
+          <svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg> Remove Duplicates
+        </button>
+        <button class="tb-btn danger" id="tb-del-empty">
+          <svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg> Delete Empty Rows
+        </button>
+        <div class="tb-spacer"></div>
+        
+        <div id="toolbar-search-zone">
+          <div class="search-wrap" id="search-wrap">
+            <span class="search-icon"><svg style="width:12px;height:12px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+            <input class="search-input" id="search-input" placeholder="Search all cells..." />
+          </div>
+        </div>
+        
+        <div class="col-filter-wrap">
+          <select class="col-filter-select" id="col-search-select">
+            <option value="">All cols</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="analysis-bar">
+        <div class="analysis-item"><span class="analysis-key">col:</span> <span class="analysis-val" id="an-col"></span></div>
+        <div class="analysis-item"><span class="analysis-key">count:</span> <span class="analysis-val" id="an-count"></span></div>
+        <div class="analysis-item" id="an-num-wrap" style="display:none"><span class="analysis-key">sum:</span> <span class="analysis-val" id="an-sum"></span></div>
+        <div class="analysis-item" id="an-avg-wrap" style="display:none"><span class="analysis-key">avg:</span> <span class="analysis-val" id="an-avg"></span></div>
+        <div class="analysis-item" id="an-min-wrap" style="display:none"><span class="analysis-key">min:</span> <span class="analysis-val" id="an-min"></span></div>
+        <div class="analysis-item" id="an-max-wrap" style="display:none"><span class="analysis-key">max:</span> <span class="analysis-val" id="an-max"></span></div>
+        <div class="analysis-item"><span class="analysis-key">unique:</span> <span class="analysis-val" id="an-unique"></span></div>
+        <div class="analysis-item"><span class="analysis-key">empty:</span> <span class="analysis-val" id="an-empty"></span></div>
+        <button class="tb-btn" style="margin-left:auto; font-size:10px; padding:2px 6px;" id="an-close">✕</button>
+      </div>
+
+      <div id="table-wrap">
+        <div id="empty-state">
+          <div class="empty-icon"><svg style="width:40px;height:40px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg></div>
+          <div class="empty-title">No Data</div>
+          <div class="empty-sub">Drop a CSV file or create a blank sheet</div>
+          <div class="empty-actions">
+            <button class="btn btn-primary" id="empty-upload-btn">
+              <svg style="width:14px;height:14px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload CSV
+            </button>
+            <button class="btn btn-outline" id="empty-new-btn">
+              <svg style="width:14px;height:14px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"/><polyline points="14 2 14 8 20 8"/><path d="M3 15h6"/><path d="M6 12v6"/></svg> New Sheet
+            </button>
+          </div>
+        </div>
+        <table id="csv-table" style="display:none"></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Context menu -->
+<div id="ctx-menu">
+  <div class="ctx-item" id="ctx-copy-row"><svg style="width:12px;height:12px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Row</div>
+  <div class="ctx-item" id="ctx-paste-below"><svg style="width:12px;height:12px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg> Paste Row Below</div>
+  <div class="ctx-item" id="ctx-dup-row"><svg style="width:12px;height:12px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Duplicate Row</div>
+  <div class="ctx-item" id="ctx-insert-above"><svg style="width:12px;height:12px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg> Insert Row Above</div>
+  <div class="ctx-item" id="ctx-insert-below"><svg style="width:12px;height:12px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg> Insert Row Below</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-analyze-col"><svg style="width:12px;height:12px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Analyze Column</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" id="ctx-del-row"><svg style="width:12px;height:12px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Delete Row</div>
+  <div class="ctx-item danger" id="ctx-del-col"><svg style="width:12px;height:12px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Delete Column</div>
+</div>
+
+<!-- Find & Replace Modal -->
+<div class="modal-overlay" id="modal-fnr">
+  <div class="modal">
+    <div class="modal-title"><svg style="width:14px;height:14px;display:inline-block;vertical-align:middle;flex-shrink:0;display:inline-block;vertical-align:middle;margin-right:6px;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 19-3.5-3.5"/><path d="m2 2 20 20"/><path d="M9 9a3 3 0 0 0 5 5"/><circle cx="11" cy="11" r="8"/></svg>Find & Replace</div>
+    <div class="modal-row">
+      <div class="modal-label">Find</div>
+      <input class="input" id="fnr-find" placeholder="Search text..." />
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">Replace with</div>
+      <input class="input" id="fnr-replace" placeholder="Replacement text..." />
+    </div>
+    <div class="modal-row" style="display:flex;gap:12px;align-items:center;">
+      <label style="display:flex;gap:6px;align-items:center;font-size:12px;cursor:pointer;">
+        <input type="checkbox" id="fnr-case" /> Case sensitive
+      </label>
+      <label style="display:flex;gap:6px;align-items:center;font-size:12px;cursor:pointer;">
+        <input type="checkbox" id="fnr-whole" /> Whole word
+      </label>
+    </div>
+    <div id="fnr-result"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="fnr-cancel">Cancel</button>
+      <button class="btn btn-outline" id="fnr-find-all">Find All</button>
+      <button class="btn btn-primary" id="fnr-replace-btn">Replace All</button>
+    </div>
+  </div>
+</div>
+
+<!-- Column rename / transform Modal -->
+<div class="modal-overlay" id="modal-col">
+  <div class="modal">
+    <div class="modal-title">Column Options</div>
+    <div class="modal-row">
+      <div class="modal-label">Column Name</div>
+      <input class="input" id="col-opt-name" placeholder="Column name..." />
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">Move</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline" id="col-move-left"><svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Left</button>
+        <button class="btn btn-outline" id="col-move-right"><svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> Right</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="col-opt-cancel">Cancel</button>
+      <button class="btn btn-primary" id="col-opt-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<script>
+
+  // ─── STATE ───────────────────────────────────────────────────────────────────
+  const S = {
+    headers: [], rows: [], filteredIdxs: [],
+    fileName: '', sort: { col: -1, dir: 'asc' },
+    search: '', searchCol: -1,
+    filterCol: -1, filterVal: '',
+    selectedCells: new Set(), selectedRows: new Set(),
+    activeCell: null, // { row, col }
+    colWidths: {},
+    undoStack: [], redoStack: [],
+    modified: false,
+    copiedRow: null,
+    ctxRow: -1, ctxCol: -1,
+  };
+
+  const $ = id => document.getElementById(id);
+  const table = $('csv-table');
+
+  // ─── THEME & FULLSCREEN ──────────────────────────────────────────────────────
+  $('btn-theme').onclick = () => {
+    document.body.classList.toggle('light-mode');
+    const isLight = document.body.classList.contains('light-mode');
+    $('btn-theme').innerHTML = isLight
+      ? '<svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>' // Moon
+      : '<svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'; // Sun
+  };
+
+  function updateFullscreenIcon(isFull) {
+    $('btn-fullscreen').innerHTML = isFull
+      ? '<svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>' // Shrink
+      : '<svg style="width:13px;height:13px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>'; // Expand
+  }
+
+  function applyFullscreenState(isFull) {
+    document.body.classList.toggle('fullscreen-mode', isFull);
+    updateFullscreenIcon(isFull);
+    if (isFull) {
+      $('titlebar-search-zone').appendChild($('search-wrap'));
+    } else {
+      $('toolbar-search-zone').appendChild($('search-wrap'));
+    }
+  }
+
+  $('btn-fullscreen').onclick = () => {
+    if (!document.fullscreenElement) {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {
+          applyFullscreenState(!document.body.classList.contains('fullscreen-mode'));
+        });
+      } else {
+        applyFullscreenState(!document.body.classList.contains('fullscreen-mode'));
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else {
+        applyFullscreenState(false);
+      }
+    }
+  };
+
+  document.addEventListener('fullscreenchange', () => {
+    applyFullscreenState(!!document.fullscreenElement);
+  });
+
+  // ─── UNDO/REDO ───────────────────────────────────────────────────────────────
+  function snapshot() {
+    S.undoStack.push({ headers: S.headers.map(h => h), rows: S.rows.map(r => [...r]) });
+    if (S.undoStack.length > 100) S.undoStack.shift();
+    S.redoStack = [];
+    S.modified = true;
+    updateUndoUI();
+    updateModifiedBadge();
+  }
+
+  function undo() {
+    if (!S.undoStack.length) return;
+    S.redoStack.push({ headers: S.headers.map(h => h), rows: S.rows.map(r => [...r]) });
+    const prev = S.undoStack.pop();
+    S.headers = prev.headers; S.rows = prev.rows;
+    updateUndoUI(); applyFilter(); toast('Undone', 'info');
+  }
+
+  function redo() {
+    if (!S.redoStack.length) return;
+    S.undoStack.push({ headers: S.headers.map(h => h), rows: S.rows.map(r => [...r]) });
+    const next = S.redoStack.pop();
+    S.headers = next.headers; S.rows = next.rows;
+    updateUndoUI(); applyFilter(); toast('Redone', 'info');
+  }
+
+  function updateUndoUI() {
+    $('btn-undo').disabled = !S.undoStack.length;
+    $('btn-redo').disabled = !S.redoStack.length;
+  }
+
+  function updateModifiedBadge() {
+    $('stat-modified').textContent = S.modified ? '● unsaved changes' : '';
+  }
+
+  // ─── CSV PARSE ───────────────────────────────────────────────────────────────
+  function parseCsv(text, delim = ',') {
+    const rows = []; let row = [], val = '', inQ = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i], n = text[i+1];
+      if (c === '"') { inQ ? (n === '"' ? (val += '"', i++) : (inQ = false)) : (inQ = true); }
+      else if (c === delim && !inQ) { row.push(val); val = ''; }
+      else if ((c === '\n' || c === '\r') && !inQ) {
+        if (c === '\r' && n === '\n') i++;
+        row.push(val); val = '';
+        if (row.some(v => v !== '') || row.length > 1) rows.push(row);
+        row = [];
+      } else val += c;
+    }
+    row.push(val);
+    if (row.some(v => v !== '') || row.length > 1) rows.push(row);
+    return rows;
+  }
+
+  function escapeCsvVal(v, d = ',') {
+    const s = String(v ?? '');
+    return (s.includes('"') || s.includes('\n') || s.includes(d))
+      ? `"${s.replaceAll('"','""')}"` : s;
+  }
+
+  function generateCsv(delim = ',') {
+    return [
+      S.headers.map(h => escapeCsvVal(h, delim)).join(delim),
+      ...S.rows.map(r => r.map(c => escapeCsvVal(c, delim)).join(delim))
+    ].join('\r\n');
+  }
+
+  // ─── DATA TYPES ──────────────────────────────────────────────────────────────
+  function detectColType(colIdx) {
+    const vals = S.rows.map(r => r[colIdx]).filter(v => v !== '' && v != null);
+    if (!vals.length) return 'text';
+    const numOk = vals.every(v => !isNaN(parseFloat(v)) && isFinite(v));
+    if (numOk) return 'num';
+    const dateOk = vals.every(v => !isNaN(Date.parse(v)));
+    if (dateOk) return 'date';
+    const boolVals = new Set(['true','false','yes','no','1','0','y','n']);
+    if (vals.every(v => boolVals.has(v.toLowerCase()))) return 'bool';
+    return 'text';
+  }
+
+  function typeLabel(t) {
+    return { text: 'TXT', num: '123', date: 'DATE', bool: 'TF' }[t] || 'TXT';
+  }
+
+  // ─── SET DATA ─────────────────────────────────────────────────────────────────
+  function setData(headers, rows, fileName) {
+    S.headers = [...headers];
+    S.rows = rows.map(r => {
+      const n = [...r];
+      while (n.length < headers.length) n.push('');
+      return n.slice(0, headers.length);
+    });
+    S.fileName = fileName || '';
+    S.sort = { col: -1, dir: 'asc' };
+    S.selectedCells.clear(); S.selectedRows.clear(); S.activeCell = null;
+    const label = fileName || 'Untitled';
+    $('file-name').textContent = label;
+    $('file-pill').classList.toggle('loaded', !!fileName);
+    updateColSelects();
+    applyFilter();
+    S.modified = false;
+    updateModifiedBadge();
+  }
+
+  function createBlank(rCount = 10, cCount = 5) {
+    const h = Array.from({length: cCount}, (_, i) => `Column ${i+1}`);
+    const r = Array.from({length: rCount}, () => Array(cCount).fill(''));
+    setData(h, r, 'Untitled');
+    S.undoStack = []; S.redoStack = [];
+    updateUndoUI();
+  }
+
+  // ─── COL SELECTS ─────────────────────────────────────────────────────────────
+  function updateColSelects() {
+    const opts = `<option value="">All columns</option>` + S.headers.map((h,i) => `<option value="${i}">${escH(h)}</option>`).join('');
+    $('filter-col-select').innerHTML = opts;
+    $('col-search-select').innerHTML = opts;
+  }
+
+  // ─── FILTER / SEARCH ─────────────────────────────────────────────────────────
+  function applyFilter() {
+    const q = S.search.toLowerCase();
+    const fc = S.filterCol; const fv = S.filterVal.toLowerCase();
+    S.filteredIdxs = S.rows
+      .map((row, i) => {
+        if (fv !== '' && fc >= 0 && String(row[fc] ?? '').toLowerCase() !== fv) return null;
+        if (q) {
+          const scope = S.searchCol >= 0 ? [row[S.searchCol]] : row;
+          if (!scope.some(c => String(c ?? '').toLowerCase().includes(q))) return null;
+        }
+        return i;
+      })
+      .filter(i => i !== null);
+    renderTable();
+    updateStats();
+  }
+
+  // ─── STATS ───────────────────────────────────────────────────────────────────
+  function updateStats() {
+    $('stat-rows').textContent = S.rows.length;
+    $('stat-cols').textContent = S.headers.length;
+    $('stat-filled').textContent = S.rows.flat().filter(v => String(v ?? '').trim() !== '').length;
+    $('stat-vis').textContent = S.filteredIdxs.length;
+    updateSelStats();
+  }
+
+  function updateSelStats() {
+    if (S.selectedRows.size > 0) {
+      const rows = [...S.selectedRows].map(i => S.rows[i]);
+      const nums = rows.flatMap(r => r).map(Number).filter(v => !isNaN(v));
+      let txt = `${S.selectedRows.size} rows`;
+      if (nums.length) {
+        const sum = nums.reduce((a,b) => a+b, 0);
+        txt += ` · sum: ${fmt(sum)} · avg: ${fmt(sum/nums.length)}`;
+      }
+      $('stat-sel').textContent = txt;
+      $('stat-sel-wrap').style.display = 'flex';
+    } else {
+      $('stat-sel-wrap').style.display = 'none';
+    }
+  }
+
+  function fmt(n) { return Number.isInteger(n) ? n : parseFloat(n.toFixed(4)); }
+
+  // ─── RENDER TABLE ─────────────────────────────────────────────────────────────
+  function renderTable() {
+    const has = S.headers.length > 0;
+    $('empty-state').style.display = has ? 'none' : 'flex';
+    table.style.display = has ? 'table' : 'none';
+    if (!has) return;
+
+    // thead
+    const colTypes = S.headers.map((_, i) => detectColType(i));
+    let thead = `<thead><tr>
+      <th class="col-idx" style="user-select:none;" title="Click to select/deselect all">
+        <span style="font-size:9px;color:var(--dim)">⊞</span>
+      </th>`;
+    S.headers.forEach((h, i) => {
+      const w = S.colWidths[i] ? `width:${S.colWidths[i]}px;` : '';
+      const type = colTypes[i];
+      const sortIcon = S.sort.col === i ? (S.sort.dir === 'asc' ? '↑' : '↓') : '';
+      thead += `<th style="${w}" data-col="${i}">
+        <div class="th-inner">
+          <input class="th-name" value="${escH(h)}" onchange="renameHeader(${i}, this.value)" title="Double-click to rename" />
+          <span class="th-type-badge type-${type}" title="Data type">${typeLabel(type)}</span>
+          <div class="th-actions">
+            <button class="th-btn${S.sort.col===i?' sort-active':''}" onclick="sortByCol(${i})" title="Sort">${sortIcon || '<svg style="width:11px;height:11px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>'}</button>
+            <button class="th-btn" onclick="openColOptions(${i})" title="Column options"><svg style="width:11px;height:11px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg></button>
+            <button class="th-btn del" onclick="deleteColumn(${i})" title="Delete column"><svg style="width:11px;height:11px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </div>
+        </div>
+        <div class="col-resize" data-col="${i}"></div>
+      </th>`;
+    });
+    thead += `<th style="width:32px;"></th></tr></thead>`;
+
+    // tbody
+    let tbody = '<tbody>';
+    S.filteredIdxs.forEach((ri, vi) => {
+      const row = S.rows[ri];
+      const rowSel = S.selectedRows.has(ri);
+      tbody += `<tr class="${rowSel ? 'row-selected' : ''}" data-ri="${ri}" oncontextmenu="showCtxMenu(event,${ri},-1)">
+        <td class="col-idx${rowSel ? ' row-sel' : ''}" onclick="toggleRowSelect(${ri}, event)" title="Select row">${vi+1}</td>`;
+      row.forEach((cell, ci) => {
+        const cellKey = `${ri}_${ci}`;
+        const sel = S.selectedCells.has(cellKey);
+        tbody += `<td class="${sel ? 'selected' : ''}" data-ri="${ri}" data-ci="${ci}" oncontextmenu="showCtxMenu(event,${ri},${ci})">
+          <input class="td-input" value="${escH(cell)}" 
+            oninput="updateCell(${ri},${ci},this.value)"
+            onfocus="onCellFocus(${ri},${ci},this)"
+            onkeydown="onCellKey(event,${ri},${ci})"
+            />
+        </td>`;
+      });
+      tbody += `<td class="col-del"><button class="row-del-btn" onclick="deleteRow(${ri})" title="Delete row"><svg style="width:12px;height:12px;display:inline-block;vertical-align:middle;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button></td>
+      </tr>`;
+    });
+    tbody += '</tbody>';
+    table.innerHTML = thead + tbody;
+
+    // Col resize handlers
+    table.querySelectorAll('.col-resize').forEach(el => {
+      el.addEventListener('mousedown', initColResize);
+    });
+
+    // Header select all
+    table.querySelector('thead .col-idx').addEventListener('click', toggleSelectAll);
+  }
+
+  // ─── CELL FOCUS / FORMULA BAR ────────────────────────────────────────────────
+  function onCellFocus(ri, ci, el) {
+    S.activeCell = { ri, ci };
+    const colName = S.headers[ci] || `C${ci+1}`;
+    const letter = String.fromCharCode(65 + (ci % 26));
+    $('cell-ref').textContent = `${letter}${ri+1}`;
+    const fv = $('formula-val');
+    fv.removeAttribute('readonly');
+    fv.value = el.value;
+    fv.oninput = () => { el.value = fv.value; updateCell(ri, ci, fv.value); };
+    analyzeCol(ci);
+  }
+
+  function onCellKey(e, ri, ci) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const nextVi = S.filteredIdxs.indexOf(ri) + 1;
+      if (nextVi < S.filteredIdxs.length) {
+        const nextRi = S.filteredIdxs[nextVi];
+        focusCell(nextRi, ci);
+      }
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      const nextCi = ci + (e.shiftKey ? -1 : 1);
+      if (nextCi >= 0 && nextCi < S.headers.length) focusCell(ri, nextCi);
+    } else if (e.key === 'Escape') {
+      e.target.blur(); S.activeCell = null;
+      $('cell-ref').textContent = '—';
+      $('formula-val').value = '';
+      $('formula-val').setAttribute('readonly', '');
+    }
+  }
+
+  function focusCell(ri, ci) {
+    const el = table.querySelector(`[data-ri="${ri}"][data-ci="${ci}"] .td-input`);
+    if (el) { el.focus(); el.select(); }
+  }
+
+  // ─── CELL UPDATE ─────────────────────────────────────────────────────────────
+  function updateCell(ri, ci, val) {
+    if (S.rows[ri][ci] === val) return;
+    snapshot();
+    S.rows[ri][ci] = val;
+    updateStats();
+    if ($('formula-val').value !== val && S.activeCell?.ri === ri && S.activeCell?.ci === ci) {
+      $('formula-val').value = val;
+    }
+    if (S.sort.col >= 0) {
+      sortByColNoRender(S.sort.col, S.sort.dir);
+    }
+    analyzeCol(ci);
+    const filled = S.rows.flat().filter(v => String(v ?? '').trim() !== '').length;
+    $('stat-filled').textContent = filled;
+  }
+
+  function renameHeader(i, v) {
+    snapshot();
+    S.headers[i] = v.trim() || `Column ${i+1}`;
+    renderTable();
+    updateColSelects();
+  }
+
+  // ─── SORT ────────────────────────────────────────────────────────────────────
+  function sortByCol(i) {
+    const dir = S.sort.col === i && S.sort.dir === 'asc' ? 'desc' : 'asc';
+    snapshot();
+    sortByColNoRender(i, dir);
+    applyFilter();
+  }
+
+  function sortByColNoRender(i, dir) {
+    S.rows.sort((a, b) => {
+      const av = String(a[i] ?? '').toLowerCase();
+      const bv = String(b[i] ?? '').toLowerCase();
+      const an = parseFloat(av), bn = parseFloat(bv);
+      if (!isNaN(an) && !isNaN(bn)) return dir === 'asc' ? an - bn : bn - an;
+      return dir === 'asc' ? av.localeCompare(bv, undefined, {numeric:true}) : bv.localeCompare(av, undefined, {numeric:true});
+    });
+    S.sort = { col: i, dir };
+  }
+
+  // ─── ROW OPS ─────────────────────────────────────────────────────────────────
+  function addRow() {
+    if (!S.headers.length) return createBlank(1, 4);
+    snapshot();
+    S.rows.push(Array(S.headers.length).fill(''));
+    applyFilter();
+    setTimeout(() => $('table-wrap').scrollTop = $('table-wrap').scrollHeight, 50);
+  }
+
+  function deleteRow(ri) {
+    snapshot();
+    S.rows.splice(ri, 1);
+    S.selectedRows.delete(ri);
+    applyFilter();
+  }
+
+  function insertRowAt(ri, above = true) {
+    snapshot();
+    const pos = above ? ri : ri + 1;
+    S.rows.splice(pos, 0, Array(S.headers.length).fill(''));
+    applyFilter();
+  }
+
+  function dupRow(ri) {
+    snapshot();
+    S.rows.splice(ri + 1, 0, [...S.rows[ri]]);
+    applyFilter();
+  }
+
+  function deleteSelectedRows() {
+    if (!S.selectedRows.size) { toast('No rows selected', 'error'); return; }
+    snapshot();
+    const toDelete = [...S.selectedRows].sort((a,b) => b-a);
+    toDelete.forEach(i => S.rows.splice(i, 1));
+    S.selectedRows.clear();
+    applyFilter();
+    toast(`Deleted ${toDelete.length} rows`, 'success');
+  }
+
+  // ─── COL OPS ─────────────────────────────────────────────────────────────────
+  function addColumn(name) {
+    if (!S.headers.length) return createBlank(1,1);
+    snapshot();
+    S.headers.push(name.trim() || `Column ${S.headers.length+1}`);
+    S.rows.forEach(r => r.push(''));
+    applyFilter(); updateColSelects();
+  }
+
+  function deleteColumn(ci) {
+    if (S.headers.length <= 1) { toast('Cannot delete the last column', 'error'); return; }
+    snapshot();
+    S.headers.splice(ci, 1);
+    S.rows.forEach(r => r.splice(ci, 1));
+    if (S.sort.col === ci) S.sort = { col: -1, dir: 'asc' };
+    else if (S.sort.col > ci) S.sort.col--;
+    applyFilter(); updateColSelects();
+  }
+
+  let activeColModal = -1;
+  function openColOptions(ci) {
+    activeColModal = ci;
+    $('col-opt-name').value = S.headers[ci];
+    $('modal-col').classList.add('open');
+  }
+
+  // ─── ROW SELECT ──────────────────────────────────────────────────────────────
+  function toggleRowSelect(ri, e) {
+    if (e.shiftKey && S.selectedRows.size > 0) {
+      const last = [...S.selectedRows].pop();
+      const [lo, hi] = [Math.min(last, ri), Math.max(last, ri)];
+      for (let i = lo; i <= hi; i++) S.selectedRows.add(i);
+    } else if (e.ctrlKey || e.metaKey) {
+      S.selectedRows.has(ri) ? S.selectedRows.delete(ri) : S.selectedRows.add(ri);
+    } else {
+      if (S.selectedRows.has(ri) && S.selectedRows.size === 1) S.selectedRows.clear();
+      else { S.selectedRows.clear(); S.selectedRows.add(ri); }
+    }
+    renderTable(); updateSelStats();
+  }
+
+  function toggleSelectAll() {
+    if (S.selectedRows.size === S.filteredIdxs.length) {
+      S.selectedRows.clear();
+    } else {
+      S.filteredIdxs.forEach(i => S.selectedRows.add(i));
+    }
+    renderTable(); updateSelStats();
+  }
+
+  // ─── CONTEXT MENU ────────────────────────────────────────────────────────────
+  function showCtxMenu(e, ri, ci) {
+    e.preventDefault();
+    S.ctxRow = ri; S.ctxCol = ci;
+    const m = $('ctx-menu');
+    m.style.display = 'block';
+    m.style.left = Math.min(e.clientX, window.innerWidth - 200) + 'px';
+    m.style.top = Math.min(e.clientY, window.innerHeight - 280) + 'px';
+  }
+  document.addEventListener('click', () => $('ctx-menu').style.display = 'none');
+
+  $('ctx-copy-row').onclick = () => { S.copiedRow = [...S.rows[S.ctxRow]]; toast('Row copied', 'info'); };
+  $('ctx-paste-below').onclick = () => {
+    if (!S.copiedRow) { toast('Nothing copied', 'error'); return; }
+    snapshot(); S.rows.splice(S.ctxRow+1, 0, [...S.copiedRow]); applyFilter(); toast('Pasted', 'success');
+  };
+  $('ctx-dup-row').onclick = () => dupRow(S.ctxRow);
+  $('ctx-insert-above').onclick = () => insertRowAt(S.ctxRow, true);
+  $('ctx-insert-below').onclick = () => insertRowAt(S.ctxRow, false);
+  $('ctx-del-row').onclick = () => deleteRow(S.ctxRow);
+  $('ctx-del-col').onclick = () => { if (S.ctxCol >= 0) deleteColumn(S.ctxCol); };
+  $('ctx-analyze-col').onclick = () => { if (S.ctxCol >= 0) analyzeCol(S.ctxCol, true); };
+
+  // ─── COLUMN ANALYSIS ─────────────────────────────────────────────────────────
+  function analyzeCol(ci, forceShow = false) {
+    const bar = $('analysis-bar');
+    if (!S.headers.length || ci < 0) { bar.classList.remove('visible'); return; }
+    const vals = S.filteredIdxs.map(i => S.rows[i][ci]);
+    const nonEmpty = vals.filter(v => v !== '' && v != null);
+    const unique = new Set(nonEmpty).size;
+    const empty = vals.length - nonEmpty.length;
+    const nums = nonEmpty.map(Number).filter(v => !isNaN(v));
+
+    $('an-col').textContent = S.headers[ci];
+    $('an-count').textContent = nonEmpty.length;
+    $('an-unique').textContent = unique;
+    $('an-empty').textContent = empty;
+
+    if (nums.length > 0 && nums.length === nonEmpty.length) {
+      const sum = nums.reduce((a,b)=>a+b,0);
+      $('an-sum').textContent = fmt(sum);
+      $('an-avg').textContent = fmt(sum/nums.length);
+      $('an-min').textContent = fmt(Math.min(...nums));
+      $('an-max').textContent = fmt(Math.max(...nums));
+      ['an-num-wrap','an-avg-wrap','an-min-wrap','an-max-wrap'].forEach(id => $(id).style.display='flex');
+    } else {
+      ['an-num-wrap','an-avg-wrap','an-min-wrap','an-max-wrap'].forEach(id => $(id).style.display='none');
+    }
+    if (forceShow || bar.classList.contains('visible')) bar.classList.add('visible');
+  }
+  $('an-close').onclick = () => $('analysis-bar').classList.remove('visible');
+
+  // ─── TOOLBAR ACTIONS ─────────────────────────────────────────────────────────
+  function getActiveCol() {
+    if (S.activeCell) return S.activeCell.ci;
+    if (S.sort.col >= 0) return S.sort.col;
+    return 0;
+  }
+
+  $('tb-sort-asc').onclick = () => { const c = getActiveCol(); sortByColNoRender(c,'asc'); applyFilter(); };
+  $('tb-sort-desc').onclick = () => { const c = getActiveCol(); sortByColNoRender(c,'desc'); applyFilter(); };
+
+  $('tb-trim-col').onclick = () => {
+    const ci = getActiveCol(); snapshot();
+    S.rows.forEach(r => r[ci] = String(r[ci] ?? '').trim());
+    renderTable(); toast('Trimmed whitespace', 'success');
+  };
+
+  $('tb-del-dupes').onclick = () => {
+    snapshot();
+    const seen = new Set();
+    const before = S.rows.length;
+    S.rows = S.rows.filter(row => {
+      const key = row.join('\x00');
+      if (seen.has(key)) return false;
+      seen.add(key); return true;
+    });
+    const removed = before - S.rows.length;
+    applyFilter(); toast(`Removed ${removed} duplicate rows`, removed ? 'success' : 'info');
+  };
+
+  $('tb-del-empty').onclick = () => {
+    snapshot();
+    const before = S.rows.length;
+    S.rows = S.rows.filter(row => row.some(v => String(v ?? '').trim() !== ''));
+    const removed = before - S.rows.length;
+    applyFilter(); toast(`Removed ${removed} empty rows`, removed ? 'success' : 'info');
+  };
+
+  // ─── FIND & REPLACE ───────────────────────────────────────────────────────────
+  $('btn-fnr').onclick = () => $('modal-fnr').classList.add('open');
+  $('fnr-cancel').onclick = () => $('modal-fnr').classList.remove('open');
+
+  $('fnr-find-all').onclick = () => {
+    const find = $('fnr-find').value;
+    if (!find) return;
+    let count = 0;
+    const caseSen = $('fnr-case').checked;
+    S.rows.forEach(row => row.forEach(cell => {
+      const c = String(cell ?? '');
+      const m = caseSen ? c.includes(find) : c.toLowerCase().includes(find.toLowerCase());
+      if (m) count++;
+    }));
+    $('fnr-result').textContent = `Found ${count} cell(s) containing "${find}"`;
+  };
+
+  $('fnr-replace-btn').onclick = () => {
+    const find = $('fnr-find').value;
+    const replace = $('fnr-replace').value;
+    if (!find) return;
+    snapshot();
+    let count = 0;
+    const caseSen = $('fnr-case').checked;
+    const whole = $('fnr-whole').checked;
+    S.rows.forEach(row => {
+      row.forEach((cell, ci) => {
+        const c = String(cell ?? '');
+        const flags = caseSen ? 'g' : 'gi';
+        const pattern = whole ? new RegExp(`\\b${escapeRegex(find)}\\b`, flags) : new RegExp(escapeRegex(find), flags);
+        const newVal = c.replace(pattern, replace);
+        if (newVal !== c) { row[ci] = newVal; count++; }
+      });
+    });
+    applyFilter();
+    $('fnr-result').textContent = `Replaced ${count} cell(s)`;
+    toast(`Replaced ${count} cell(s)`, count ? 'success' : 'info');
+  };
+
+  function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+  // ─── COLUMN OPTIONS MODAL ────────────────────────────────────────────────────
+  $('col-opt-cancel').onclick = () => $('modal-col').classList.remove('open');
+  $('col-opt-save').onclick = () => {
+    if (activeColModal < 0) return;
+    renameHeader(activeColModal, $('col-opt-name').value);
+    $('modal-col').classList.remove('open');
+  };
+  $('col-move-left').onclick = () => {
+    const ci = activeColModal;
+    if (ci <= 0) return;
+    snapshot();
+    [S.headers[ci], S.headers[ci-1]] = [S.headers[ci-1], S.headers[ci]];
+    S.rows.forEach(r => { [r[ci], r[ci-1]] = [r[ci-1], r[ci]]; });
+    activeColModal = ci - 1;
+    renderTable(); updateColSelects();
+  };
+  $('col-move-right').onclick = () => {
+    const ci = activeColModal;
+    if (ci >= S.headers.length - 1) return;
+    snapshot();
+    [S.headers[ci], S.headers[ci+1]] = [S.headers[ci+1], S.headers[ci]];
+    S.rows.forEach(r => { [r[ci], r[ci+1]] = [r[ci+1], r[ci]]; });
+    activeColModal = ci + 1;
+    renderTable(); updateColSelects();
+  };
+
+  // ─── COLUMN RESIZE ────────────────────────────────────────────────────────────
+  let resizing = null;
+  function initColResize(e) {
+    e.preventDefault();
+    const ci = parseInt(e.target.dataset.col);
+    const th = e.target.parentElement;
+    const startX = e.clientX;
+    const startW = th.offsetWidth;
+    resizing = { ci, startX, startW };
+    document.addEventListener('mousemove', doColResize);
+    document.addEventListener('mouseup', endColResize);
+  }
+  function doColResize(e) {
+    if (!resizing) return;
+    const w = Math.max(60, resizing.startW + e.clientX - resizing.startX);
+    S.colWidths[resizing.ci] = w;
+    const ths = table.querySelectorAll(`th[data-col="${resizing.ci}"]`);
+    ths.forEach(th => th.style.width = w + 'px');
+  }
+  function endColResize() {
+    resizing = null;
+    document.removeEventListener('mousemove', doColResize);
+    document.removeEventListener('mouseup', endColResize);
+  }
+
+  // ─── EXPORT ──────────────────────────────────────────────────────────────────
+  function dl(content, name, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  }
+
+  function baseName() { return (S.fileName || 'data').replace(/\.[^.]+$/, ''); }
+
+  $('btn-export-csv').onclick = () => {
+    if (!S.headers.length) { toast('No data to export', 'error'); return; }
+    const delim = $('delimiter-select').value;
+    dl(generateCsv(delim), baseName() + '.csv', 'text/csv;charset=utf-8');
+    toast('CSV exported', 'success');
+    S.modified = false; updateModifiedBadge();
+  };
+
+  $('btn-export-json').onclick = () => {
+    if (!S.headers.length) { toast('No data to export', 'error'); return; }
+    const data = S.rows.map(r => Object.fromEntries(S.headers.map((h,i) => [h, r[i]??''])));
+    dl(JSON.stringify(data, null, 2), baseName() + '.json', 'application/json');
+    toast('JSON exported', 'success');
+  };
+
+  $('btn-export-tsv').onclick = () => {
+    if (!S.headers.length) { toast('No data to export', 'error'); return; }
+    dl(generateCsv('\t'), baseName() + '.tsv', 'text/tab-separated-values');
+    toast('TSV exported', 'success');
+  };
+
+  $('btn-export-xlsx').onclick = () => {
+    // Basic XLSX via SpreadsheetML (simple XML-based Excel format)
+    if (!S.headers.length) { toast('No data to export', 'error'); return; }
+    const rows = [S.headers, ...S.rows];
+    const xmlRows = rows.map(row =>
+      `<Row>${row.map(cell => {
+        const v = String(cell ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const isNum = !isNaN(parseFloat(v)) && isFinite(v) && v.trim() !== '';
+        return isNum ? `<Cell><Data ss:Type="Number">${v}</Data></Cell>` : `<Cell><Data ss:Type="String">${v}</Data></Cell>`;
+      }).join('')}</Row>`
+    ).join('\n');
+    const xml = `<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="Sheet1"><Table>${xmlRows}</Table></Worksheet></Workbook>`;
+    dl(xml, baseName() + '.xls', 'application/vnd.ms-excel');
+    toast('Excel file exported', 'success');
+  };
+
+  $('btn-copy-csv').onclick = async () => {
+    if (!S.headers.length) { toast('No data', 'error'); return; }
+    try { await navigator.clipboard.writeText(generateCsv()); toast('Copied to clipboard!', 'success'); }
+    catch { toast('Copy failed', 'error'); }
+  };
+
+  // ─── IMPORT ───────────────────────────────────────────────────────────────────
+  function handleFile(file) {
+    if (!file) return;
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    const reader = new FileReader();
+    reader.onerror = () => toast('Could not read file', 'error');
+    reader.onload = e => {
+      const text = e.target.result;
+      if (!text || !text.trim()) { toast('File is empty', 'error'); return; }
+      const autoDelim = ext === 'tsv' ? '\t' : detectDelimiter(text);
+      const sel = $('delimiter-select');
+      for (let i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === autoDelim) { sel.selectedIndex = i; break; }
+      }
+      const data = parseCsv(text, autoDelim);
+      if (!data.length || data[0].length === 0) { toast('No data found in file', 'error'); return; }
+      const [headers, ...rows] = data;
+      setData(headers, rows, file.name);
+      toast(`Loaded ${rows.length} rows · ${headers.length} cols`, 'success');
+    };
+    reader.readAsText(file, 'UTF-8');
+  }
+
+  function detectDelimiter(text) {
+    const sample = text.slice(0, 1000);
+    const counts = { ',': 0, ';': 0, '\t': 0, '|': 0 };
+    for (const c of sample) if (c in counts) counts[c]++;
+    return Object.entries(counts).sort((a,b) => b[1]-a[1])[0][0];
+  }
+
+  $('file-input').onchange = e => { handleFile(e.target.files[0]); e.target.value = ''; };
+
+  const dz = $('drop-zone');
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('over'); }));
+  dz.addEventListener('drop', e => { handleFile(e.dataTransfer.files[0]); });
+
+  document.addEventListener('dragover', e => e.preventDefault());
+  document.addEventListener('drop', e => {
+    e.preventDefault();
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+
+  // ─── SIDEBAR CONTROLS ────────────────────────────────────────────────────────
+  $('btn-new-sheet').onclick = () => createBlank(parseInt($('new-rows').value)||10, parseInt($('new-cols').value)||5);
+  $('btn-add-col').onclick = () => { addColumn($('new-col-name').value); $('new-col-name').value = ''; };
+  $('btn-add-row').onclick = addRow;
+  $('btn-dup-row').onclick = () => { if (S.rows.length) dupRow(S.rows.length - 1); };
+  $('btn-del-sel-rows').onclick = deleteSelectedRows;
+  $('btn-clear').onclick = () => {
+    if (confirm('Clear all data?')) {
+      S.headers = []; S.rows = []; S.filteredIdxs = []; S.selectedRows.clear();
+      $('file-name').textContent = 'No file loaded';
+      $('file-pill').classList.remove('loaded');
+      renderTable(); updateStats(); updateColSelects();
+      S.modified = false; updateModifiedBadge();
+    }
+  };
+
+  // ─── SEARCH / FILTER ─────────────────────────────────────────────────────────
+  $('search-input').oninput = e => { S.search = e.target.value.trim(); applyFilter(); };
+  $('col-search-select').onchange = e => { S.searchCol = e.target.value === '' ? -1 : parseInt(e.target.value); applyFilter(); };
+  $('filter-col-select').onchange = e => { S.filterCol = e.target.value === '' ? -1 : parseInt(e.target.value); applyFilter(); };
+  $('filter-val-input').oninput = e => { S.filterVal = e.target.value; applyFilter(); };
+
+  // ─── SIDEBAR TOGGLE ──────────────────────────────────────────────────────────
+  let sidebarOpen = true;
+  $('btn-sidebar-toggle').onclick = () => {
+    sidebarOpen = !sidebarOpen;
+    $('sidebar').classList.toggle('collapsed', !sidebarOpen);
+    $('btn-sidebar-toggle').classList.toggle('active', !sidebarOpen);
+  };
+
+  // ─── KEYBOARD SHORTCUTS ──────────────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey)) {
+      if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+      else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redo(); }
+      else if (e.key === 'h') { e.preventDefault(); $('modal-fnr').classList.add('open'); $('fnr-find').focus(); }
+      else if (e.key === 's') { e.preventDefault(); $('btn-export-csv').click(); }
+      else if (e.key === 'a' && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); toggleSelectAll(); }
+    }
+    if (e.key === 'Escape') {
+      $('modal-fnr').classList.remove('open');
+      $('modal-col').classList.remove('open');
+      S.selectedRows.clear(); renderTable(); updateSelStats();
+    }
+    if ((e.key === 'Delete' || e.key === 'Backspace') && S.selectedRows.size > 0 && document.activeElement.tagName !== 'INPUT') {
+      e.preventDefault(); deleteSelectedRows();
+    }
+  });
+
+  // ─── EMPTY STATE BUTTONS ─────────────────────────────────────────────────────
+  $('empty-upload-btn').onclick = () => $('file-input').click();
+  $('empty-new-btn').onclick = () => createBlank(10, 5);
+
+  // ─── PASTE CSV FROM CLIPBOARD ────────────────────────────────────────────────
+  document.addEventListener('paste', async e => {
+    if (document.activeElement.tagName === 'INPUT') return; 
+    const text = e.clipboardData.getData('text');
+    if (!text || !text.includes('\n')) return;
+    e.preventDefault();
+    try {
+      const delim = detectDelimiter(text);
+      const data = parseCsv(text, delim);
+      if (data.length < 2) return;
+      const [headers, ...rows] = data;
+      setData(headers, rows, 'Pasted Data');
+      toast(`Pasted ${rows.length} rows from clipboard`, 'success');
+    } catch { toast('Could not parse pasted data', 'error'); }
+  });
+
+  // ─── TOAST ───────────────────────────────────────────────────────────────────
+  function toast(msg, type = 'info') {
+    const el = document.createElement('div');
+    el.className = `toast toast-${type}`;
+    const icons = { success: '✓', error: '✕', info: 'ℹ' };
+    el.innerHTML = `<span>${icons[type]}</span>${msg}`;
+    $('toast-container').appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(20px)'; el.style.transition = 'all .3s'; setTimeout(() => el.remove(), 300); }, 2200);
+  }
+
+  // ─── UTILS ───────────────────────────────────────────────────────────────────
+  function escH(v) { return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  // Expose globals needed by inline handlers
+  window.renameHeader = renameHeader;
+  window.sortByCol = sortByCol;
+  window.deleteRow = deleteRow;
+  window.deleteColumn = deleteColumn;
+  window.updateCell = updateCell;
+  window.onCellFocus = onCellFocus;
+  window.onCellKey = onCellKey;
+  window.showCtxMenu = showCtxMenu;
+  window.toggleRowSelect = toggleRowSelect;
+  window.openColOptions = openColOptions;
+
+</script>
+</body>
+</html>
