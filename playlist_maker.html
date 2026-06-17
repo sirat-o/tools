@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>M3U Playlist Maker</title>
+  
+  <!-- Inter & JetBrains Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons for premium visual cues -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f5f7ff',
+              100: '#ebf0ff',
+              200: '#d6e0ff',
+              300: '#b3c7ff',
+              400: '#85a3ff',
+              500: '#5c78ff',
+              600: '#3d51f5',
+              700: '#2b39db',
+              800: '#222db2',
+              900: '#1b248a',
+              950: '#0e124a',
+            },
+            surface: {
+              50: '#fafafa',
+              100: '#f4f4f5',
+              200: '#e4e4e7',
+              300: '#d4d4d8',
+              400: '#a1a1aa',
+              500: '#71717a',
+              600: '#52525b',
+              700: '#3f3f46',
+              800: '#27272a',
+              900: '#18181b',
+              950: '#09090b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom premium scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(9, 9, 11, 0.4);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(82, 82, 91, 0.5);
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(113, 113, 122, 0.7);
+    }
+    
+    /* Elegant smooth active tabs border animation helper */
+    .tab-active {
+      color: #5c78ff !important;
+      background: rgba(92, 120, 255, 0.08) !important;
+      border-left: 3px solid #5c78ff;
+    }
+    
+    /* Shimmer effect for loaders */
+    .shimmer {
+      background: linear-gradient(90deg, #18181b 25%, #27272a 50%, #18181b 75%);
+      background-size: 200% 100%;
+      animation: loading-shimmer 1.5s infinite;
+    }
+    @keyframes loading-shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
+</head>
+<body class="bg-surface-950 text-surface-50 antialiased font-sans min-h-screen selection:bg-brand-500/30 selection:text-brand-200">
+
+  <!-- Main Container Layout -->
+  <div class="flex flex-col lg:flex-row min-h-screen">
+    
+    <!-- Sidebar / Topbar Navigation -->
+    <aside class="w-full lg:w-80 bg-surface-900 border-b lg:border-b-0 lg:border-r border-surface-800 flex flex-col justify-between shrink-0 z-30 lg:h-screen lg:sticky lg:top-0">
+      <div>
+        <!-- Logo Header -->
+        <div class="p-6 border-b border-surface-800 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-brand-600 via-brand-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-brand-500/20 text-white font-extrabold text-lg tracking-wide">
+              M3U
+            </div>
+            <div>
+              <h1 class="text-base font-bold tracking-tight bg-gradient-to-r from-white via-surface-100 to-surface-300 bg-clip-text text-transparent">IPTV Architect</h1>
+              <span class="text-xs text-surface-400 font-medium tracking-wider uppercase">M3U Console</span>
+            </div>
+          </div>
+          <!-- Mobile menu indicator or mini info -->
+          <div class="lg:hidden flex items-center">
+            <span class="px-2.5 py-1 text-xs bg-brand-500/10 text-brand-400 border border-brand-500/20 rounded-full font-mono font-semibold" id="mobileCountStat">0 CH</span>
+          </div>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="px-4 mt-6 space-y-1">
+          <button class="nav-btn tab-active w-full flex items-center gap-3 text-surface-400 hover:text-surface-100 px-4 py-3 rounded-lg text-sm font-semibold transition text-left" data-tab="builder">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            <span>Channel Builder</span>
+          </button>
+          <button class="nav-btn w-full flex items-center gap-3 text-surface-400 hover:text-surface-100 px-4 py-3 rounded-lg text-sm font-semibold transition text-left" data-tab="importer">
+            <i data-lucide="download-cloud" class="w-4 h-4"></i>
+            <span>Import & Parse M3U</span>
+          </button>
+          <button class="nav-btn w-full flex items-center gap-3 text-surface-400 hover:text-surface-100 px-4 py-3 rounded-lg text-sm font-semibold transition text-left" data-tab="exporter">
+            <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+            <span>Export & Output</span>
+          </button>
+          <button class="nav-btn w-full flex items-center gap-3 text-surface-400 hover:text-surface-100 px-4 py-3 rounded-lg text-sm font-semibold transition text-left" data-tab="settings">
+            <i data-lucide="sliders" class="w-4 h-4"></i>
+            <span>Global Settings</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Sidebar Footer Stats -->
+      <div class="p-4 m-4 bg-surface-950/60 border border-surface-800 rounded-xl">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-semibold text-surface-400 uppercase tracking-wider">Active Inventory</span>
+          <span class="text-xs px-2 py-0.5 bg-brand-500/10 text-brand-400 border border-brand-500/20 rounded font-mono" id="statsPercentage">0%</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 mb-3">
+          <div class="p-2.5 bg-surface-900 border border-surface-800 rounded-lg">
+            <small class="text-[10px] text-surface-400 block uppercase font-bold">Channels</small>
+            <span class="text-xl font-black font-mono text-brand-400" id="countStat">0</span>
+          </div>
+          <div class="p-2.5 bg-surface-900 border border-surface-800 rounded-lg">
+            <small class="text-[10px] text-surface-400 block uppercase font-bold">Groups</small>
+            <span class="text-xl font-black font-mono text-emerald-400" id="groupStat">0</span>
+          </div>
+        </div>
+        <!-- Simple visually pleasing visual progress indicator -->
+        <div class="w-full bg-surface-800 h-1.5 rounded-full overflow-hidden">
+          <div class="bg-gradient-to-r from-brand-500 to-emerald-400 h-full w-0 transition-all duration-500" id="statsProgressBar"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="flex-1 flex flex-col min-w-0">
+      
+      <!-- Top header / utility panel -->
+      <header class="border-b border-surface-800 bg-surface-900/40 backdrop-blur-md px-6 lg:px-8 py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 sticky top-0 z-20">
+        <div>
+          <h2 class="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
+            <i data-lucide="layers" class="w-5.5 h-5.5 text-brand-500"></i>
+            IPTV Architect Workspace
+          </h2>
+          <p class="text-xs text-surface-400 mt-1">Configure premium, player-optimized M3U IPTV configurations with custom headers, catchup profiles, and metadata presets.</p>
+        </div>
+      </header>
+
+      <!-- Main Layout Body -->
+      <div class="p-6 lg:p-8 space-y-8 flex-1">
+        
+        <!-- Tab Content Cards -->
+        <div class="bg-surface-900 border border-surface-800 rounded-2xl shadow-2xl relative overflow-hidden">
+          
+          <!-- Builder Tab Page -->
+          <div id="builderTab" class="tab-page p-6 lg:p-8">
+            <form id="channelForm" class="space-y-8">
+              <input type="hidden" id="editIndex" value="" />
+
+              <div class="flex items-center justify-between border-b border-surface-800 pb-4">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-8 h-8 rounded-lg bg-brand-500/10 text-brand-400 flex items-center justify-center">
+                    <i data-lucide="plus" class="w-4.5 h-4.5"></i>
+                  </span>
+                  <div>
+                    <h3 class="text-md font-bold text-white">Create / Edit Channel</h3>
+                    <p class="text-xs text-surface-400">Fill in the streaming characteristics below.</p>
+                  </div>
+                </div>
+                <div class="text-xs text-surface-400 font-medium">
+                  Fields marked with <span class="text-rose-500 font-bold">*</span> are mandatory.
+                </div>
+              </div>
+
+              <!-- Category Section: Basic Info -->
+              <div class="space-y-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-brand-400 tracking-wider uppercase">01. Basic Channel Parameters</span>
+                  <div class="h-px bg-surface-850 flex-1"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Channel Name <span class="text-rose-500">*</span></label>
+                    <div class="relative">
+                      <input id="name" type="text" placeholder="e.g. Premium Sports Action UHD" required class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                    </div>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Stream Destination URL <span class="text-rose-500">*</span></label>
+                    <input id="url" type="url" placeholder="e.g. https://domain.com/live/sports.m3u8" required class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Logo Thumbnail URL</label>
+                    <input id="logo" type="url" placeholder="e.g. https://logo.com/icon.png" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Group / Category</label>
+                    <input id="group" type="text" placeholder="e.g. Sports, Movies, UK News" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">EPG TVG-ID Link</label>
+                    <input id="tvgId" type="text" placeholder="e.g. sky.sports.premier" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">EPG TVG-Name Match</label>
+                    <input id="tvgName" type="text" placeholder="e.g. Sky Sports Premier" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Primary Broadcast Language</label>
+                    <input id="language" type="text" placeholder="e.g. English, Español" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Origin Region / Country Code</label>
+                    <input id="country" type="text" placeholder="e.g. US, UK, ES" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Category Section: Connection Headers & Referrers -->
+              <div class="space-y-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-amber-400 tracking-wider uppercase">02. HTTP Headers & User-Agent (Anti-blocking properties)</span>
+                  <div class="h-px bg-surface-850 flex-1"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Referer Header</label>
+                    <input id="referer" type="text" placeholder="e.g. https://portal.livesports.org/" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">User-Agent Bypass Signature</label>
+                    <input id="userAgent" type="text" placeholder="e.g. AppleCoreMedia/1.0.0.16C101" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Access-Control-Allow-Origin Bypass</label>
+                    <input id="origin" type="text" placeholder="e.g. https://portal.livesports.org" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Authorization Cookie Payload</label>
+                    <input id="cookie" type="text" placeholder="e.g. phpsessid=xyz; authkey=123" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="md:col-span-2 space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Custom Dynamic Headers (one entry per line)</label>
+                    <textarea id="headers" placeholder="X-Auth-Token: 9ae24300bfb7b8a8b13c&#10;X-Custom-Client: IPTV_Kodi_VLC" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition font-mono h-24 resize-y"></textarea>
+                    <div class="text-[11px] text-surface-500 italic mt-1">This tool dynamically builds dual-format layouts supporting EXTVLCOPT headers or standard piped (URL|Header=value) formats.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Category Section: DRM & License Keys -->
+              <div class="space-y-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-purple-400 tracking-wider uppercase">03. DRM Adaptive Decryption & Catchup Profiles</span>
+                  <div class="h-px bg-surface-850 flex-1"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Adaptive DRM Protocol</label>
+                    <select id="drmType" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white w-full outline-none transition">
+                      <option value="">None / Clearkey Unencrypted</option>
+                      <option value="clearkey">ClearKey Decryption</option>
+                      <option value="widevine">Widevine Modular DRM</option>
+                      <option value="playready">PlayReady DRM</option>
+                    </select>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">License Key String (or Key ID pairing)</label>
+                    <input id="licenseKey" type="text" placeholder="e.g. a1b2c3d4e5f6g7h8:1234567890abcdef" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition font-mono" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Widevine/PlayReady License Server URL</label>
+                    <input id="licenseUrl" type="url" placeholder="e.g. https://license.sports.org/playready/" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Catchup Service Type</label>
+                    <input id="catchup" type="text" placeholder="e.g. append, flussonic, xc" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Catchup Query Parameters</label>
+                    <input id="catchupSource" type="text" placeholder="e.g. ?utc=${start}&lutc=${timestamp}" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Catchup Buffer / Timeshift Range (Days)</label>
+                    <input id="timeshift" type="number" placeholder="e.g. 7" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Category Section: Display & Extra Attributes -->
+              <div class="space-y-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-emerald-400 tracking-wider uppercase">04. Video Resolution & Metadata Extra Attributes</span>
+                  <div class="h-px bg-surface-850 flex-1"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Aspect Ratio Limit</label>
+                    <input id="aspectRatio" type="text" placeholder="e.g. 16:9, 4:3, 21:9" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Resolution Signature</label>
+                    <input id="resolution" type="text" placeholder="e.g. 1920x1080, 3840x2160" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Index / LCN Number</label>
+                    <input id="channelNumber" type="number" placeholder="e.g. 101" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Fallback Audio Track Code</label>
+                    <input id="audioTrack" type="text" placeholder="e.g. eng, spa" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Subtitle Track (VTT/SRT link)</label>
+                    <input id="subtitles" type="url" placeholder="e.g. https://subtitles.com/en.vtt" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Raw Extra EXTINF Attributes (Unparsed)</label>
+                    <input id="extraAttrs" type="text" placeholder="e.g. tvg-shift=&quot;0&quot; radio=&quot;false&quot;" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                  <div class="md:col-span-3 space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Personal Stream Notes / Comments (Embedded in export)</label>
+                    <input id="notes" type="text" placeholder="e.g. High bit-rate mirror backup node 1" class="bg-surface-950/80 hover:bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Form CTA Actions -->
+              <div class="flex flex-wrap items-center gap-3 pt-6 border-t border-surface-800">
+                <button type="submit" id="saveBtn" class="flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-500 active:scale-95 text-white rounded-xl text-sm font-bold shadow-lg shadow-brand-500/10 transition">
+                  <i data-lucide="check-circle" class="w-4 h-4"></i>
+                  <span>Add Channel</span>
+                </button>
+                <button type="button" id="resetBtn" class="flex items-center gap-2 px-5 py-3 bg-surface-800 hover:bg-surface-750 active:scale-95 text-surface-200 rounded-xl text-sm font-bold transition">
+                  <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                  <span>Reset Form</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Importer Tab Page -->
+          <div id="importerTab" class="tab-page p-6 lg:p-8 hidden space-y-6">
+            <div class="flex items-center gap-2.5 border-b border-surface-800 pb-4">
+              <span class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                <i data-lucide="download-cloud" class="w-4.5 h-4.5"></i>
+              </span>
+              <div>
+                <h3 class="text-md font-bold text-white">Import & Parse Existing Playlists</h3>
+                <p class="text-xs text-surface-400">Load existing M3U text files, remote links, or raw content directly.</p>
+              </div>
+            </div>
+
+            <!-- Drag-and-drop Area -->
+            <div id="dropZone" class="border-2 border-dashed border-surface-800 hover:border-brand-500/50 bg-surface-950/50 hover:bg-surface-950/80 rounded-2xl p-8 text-center transition cursor-pointer relative group">
+              <input type="file" id="m3uFileInput" accept=".m3u,.m3u8,.txt" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
+              <div class="flex flex-col items-center justify-center pointer-events-none">
+                <div class="w-12 h-12 rounded-full bg-brand-500/10 text-brand-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                  <i data-lucide="upload" class="w-6 h-6"></i>
+                </div>
+                <h4 class="text-sm font-bold text-white mb-1">Click to Upload or Drag and Drop M3U File</h4>
+                <p class="text-xs text-surface-400">Accepts .m3u, .m3u8, or plain text configurations</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Pasting Text Area -->
+              <div class="space-y-1.5 md:col-span-2">
+                <label class="text-xs font-bold text-surface-300 block">Raw Paste M3U Content</label>
+                <textarea id="importText" placeholder="#EXTM3U&#10;#EXTINF:-1 tvg-logo=&quot;logo.png&quot; group-title=&quot;News&quot;,Sample News Live&#10;#EXTVLCOPT:http-referrer=https://example.com/&#10;https://live.news.example.com/stream.m3u8" class="bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-3 px-4 text-xs text-surface-200 placeholder-surface-500 w-full outline-none transition font-mono h-48 resize-y"></textarea>
+              </div>
+            </div>
+
+            <div class="border-t border-surface-800 pt-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <!-- Remote URL Importer -->
+              <div class="flex items-center gap-2 max-w-lg w-full">
+                <input id="remoteUrl" type="url" placeholder="Paste Remote raw URL (e.g. https://domain.com/tv.m3u)" class="bg-surface-950 border border-surface-850 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 rounded-xl py-2 px-3 text-sm text-white placeholder-surface-500 w-full outline-none transition" />
+                <button id="loadUrlBtn" class="flex items-center gap-1.5 px-4 py-2.5 bg-brand-500 hover:bg-brand-600 active:scale-95 text-white rounded-xl text-xs font-bold transition shrink-0">
+                  <i data-lucide="globe" class="w-3.5 h-3.5"></i> Load URL
+                </button>
+              </div>
+
+              <!-- Action buttons -->
+              <div class="flex items-center gap-2.5">
+                <button id="parseBtn" class="flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-emerald-500/10">
+                  <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Append Channels
+                </button>
+                <button id="replaceBtn" class="flex items-center gap-1.5 px-4 py-2.5 bg-rose-600/20 hover:bg-rose-600/30 active:scale-95 text-rose-300 rounded-xl text-xs font-bold transition">
+                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Replace Current
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Exporter Tab Page -->
+          <div id="exporterTab" class="tab-page p-6 lg:p-8 hidden space-y-6">
+            <div class="flex items-center justify-between border-b border-surface-800 pb-4">
+              <div class="flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+                  <i data-lucide="upload-cloud" class="w-4.5 h-4.5"></i>
+                </span>
+                <div>
+                  <h3 class="text-md font-bold text-white">Generated M3U Playlist Source</h3>
+                  <p class="text-xs text-surface-400">Instantly generated and compiled M3U structure.</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button id="copyBtn" class="flex items-center gap-1.5 px-3.5 py-2 bg-surface-800 hover:bg-surface-750 active:scale-95 text-surface-100 rounded-xl text-xs font-bold transition">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Output
+                </button>
+                <button id="downloadBtn" class="flex items-center gap-1.5 px-4 py-2 bg-brand-500 hover:bg-brand-600 active:scale-95 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-brand-500/20">
+                  <i data-lucide="download" class="w-3.5 h-3.5"></i> Download File
+                </button>
+              </div>
+            </div>
+
+            <div class="relative rounded-xl overflow-hidden border border-surface-850">
+              <div class="absolute top-3 right-3 bg-surface-900/80 px-2 py-1 rounded text-[10px] font-mono text-brand-400 font-bold tracking-widest uppercase">
+                M3U / PLS FORMAT
+              </div>
+              <textarea id="m3uOutput" readonly class="bg-surface-950 text-surface-100 placeholder-surface-600 w-full outline-none p-5 text-xs font-mono h-96 resize-none block leading-relaxed"></textarea>
+            </div>
+          </div>
+
+          <!-- Settings Tab Page -->
+          <div id="settingsTab" class="tab-page p-6 lg:p-8 hidden space-y-6">
+            <div class="flex items-center justify-between border-b border-surface-800 pb-4">
+              <div class="flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                  <i data-lucide="sliders" class="w-4.5 h-4.5"></i>
+                </span>
+                <div>
+                  <h3 class="text-md font-bold text-white">Playlist Configuration & Exporter Options</h3>
+                  <p class="text-xs text-surface-400">Set EPG targets, default headers and metadata modes.</p>
+                </div>
+              </div>
+              <button id="saveSettingsBtn" class="flex items-center gap-1.5 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-bold transition">
+                <i data-lucide="save" class="w-3.5 h-3.5"></i> Apply Settings
+              </button>
+            </div>
+
+            <!-- Settings layout sections -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Block: EPG / Title Setup -->
+              <div class="bg-surface-950/60 p-5 border border-surface-850 rounded-xl space-y-4">
+                <h4 class="text-xs font-bold text-brand-400 tracking-wider uppercase flex items-center gap-2">
+                  <i data-lucide="radio" class="w-4 h-4"></i> Playlist Metadata Headers
+                </h4>
+                <div class="space-y-4">
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Playlist Header Title</label>
+                    <input id="playlistTitle" type="text" value="My IPTV Playlist" class="bg-surface-950 border border-surface-800 focus:border-brand-500 focus:ring-1 focus:ring-brand-500/10 rounded-xl py-2.5 px-3.5 text-sm text-white w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Default EPG TVG URL (x-tvg-url)</label>
+                    <input id="xTvgUrl" type="url" placeholder="e.g. http://xmltv.xmltv.se/epg.xml.gz" class="bg-surface-950 border border-surface-800 focus:border-brand-500 focus:ring-1 focus:ring-brand-500/10 rounded-xl py-2.5 px-3.5 text-sm text-white w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Backup / Default Category Group</label>
+                    <input id="defaultGroup" type="text" value="General" class="bg-surface-950 border border-surface-800 focus:border-brand-500 focus:ring-1 focus:ring-brand-500/10 rounded-xl py-2.5 px-3.5 text-sm text-white w-full outline-none transition" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-surface-300 block">Default Output Filename</label>
+                    <input id="filename" type="text" value="playlist.m3u" class="bg-surface-950 border border-surface-800 focus:border-brand-500 focus:ring-1 focus:ring-brand-500/10 rounded-xl py-2.5 px-3.5 text-sm text-white w-full outline-none transition" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Block: Output Styling and Formatting -->
+              <div class="bg-surface-950/60 p-5 border border-surface-850 rounded-xl space-y-4 justify-between flex flex-col">
+                <div class="space-y-4">
+                  <h4 class="text-xs font-bold text-amber-400 tracking-wider uppercase flex items-center gap-2">
+                    <i data-lucide="cog" class="w-4 h-4"></i> Compilation Format Engines
+                  </h4>
+                  <div class="space-y-4">
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-bold text-surface-300 block">Target Client Styling (Format Options)</label>
+                      <select id="headerStyle" class="bg-surface-950 border border-surface-800 focus:border-brand-500 focus:ring-1 focus:ring-brand-500/10 rounded-xl py-2.5 px-3.5 text-sm text-white w-full outline-none transition">
+                        <option value="both">Standard Compatibility (EXTVLCOPT + URL Piped headers)</option>
+                        <option value="vlc">VLC Client Only (Strict #EXTVLCOPT style)</option>
+                        <option value="pipe">Pipe/Stalker Headers Only (Strict URL|Header=value style)</option>
+                      </select>
+                    </div>
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-bold text-surface-300 block">Render Private Comments/Notes into EXTM3U</label>
+                      <select id="includeNotes" class="bg-surface-950 border border-surface-800 focus:border-brand-500 focus:ring-1 focus:ring-brand-500/10 rounded-xl py-2.5 px-3.5 text-sm text-white w-full outline-none transition">
+                        <option value="no">Exclude Notes</option>
+                        <option value="yes">Include as # Comments in M3U</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="pt-6 border-t border-surface-800 space-y-2">
+                  <h5 class="text-xs font-bold text-rose-500 tracking-wider uppercase flex items-center gap-1.5">
+                    <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Danger Zone
+                  </h5>
+                  <button type="button" id="openClearModalBtn" class="flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-600/10 hover:bg-rose-600 hover:text-white text-rose-400 rounded-xl text-xs font-bold w-full transition">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear Active Inventory (Delete All)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Channel Library Section -->
+        <div class="bg-surface-900 border border-surface-800 rounded-2xl p-6 lg:p-8 space-y-6 shadow-xl">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-surface-800 pb-5">
+            <div>
+              <h3 class="text-lg font-extrabold text-white flex items-center gap-2">
+                <i data-lucide="database" class="text-emerald-400 w-5 h-5"></i>
+                Channel Registry & Inventory
+              </h3>
+              <p class="text-xs text-surface-400 mt-0.5">Filter, search, organize, sequence, and manage live IPTV nodes.</p>
+            </div>
+            
+            <!-- Quick Options toolbar buttons -->
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="dedupeBtn" class="flex items-center gap-1 px-3 py-1.5 bg-surface-800 hover:bg-surface-750 text-surface-100 rounded-lg text-xs font-semibold transition">
+                <i data-lucide="check-square" class="w-3.5 h-3.5"></i> Remove Duplicates
+              </button>
+              <button id="validateBtn" class="flex items-center gap-1 px-3 py-1.5 bg-surface-800 hover:bg-surface-750 text-surface-100 rounded-lg text-xs font-semibold transition">
+                <i data-lucide="activity" class="w-3.5 h-3.5"></i> Check URL Syntax
+              </button>
+              <div class="flex border border-surface-800 rounded-lg overflow-hidden shrink-0">
+                <button id="viewGridBtn" class="p-1.5 bg-surface-950 text-brand-400 border-r border-surface-800 hover:bg-surface-900 transition" title="Grid View">
+                  <i data-lucide="grid" class="w-4 h-4"></i>
+                </button>
+                <button id="viewListBtn" class="p-1.5 bg-surface-800 text-surface-450 hover:bg-surface-750 transition" title="Detailed List View">
+                  <i data-lucide="list" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter & Search Panel -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-surface-950 p-4 border border-surface-850 rounded-xl">
+            <!-- Search -->
+            <div class="relative col-span-1 sm:col-span-2">
+              <i data-lucide="search" class="w-4 h-4 text-surface-500 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input id="search" type="text" placeholder="Search by name, category, server or url..." class="bg-surface-900 border border-surface-800 focus:border-brand-500 focus:ring-1 focus:ring-brand-500/10 rounded-lg py-2 pl-10 pr-4 text-xs text-white placeholder-surface-500 w-full outline-none transition" />
+            </div>
+            <!-- Category Filter -->
+            <select id="groupFilter" class="bg-surface-900 border border-surface-800 focus:border-brand-500 focus:ring-1 focus:ring-brand-500/10 rounded-lg py-2 px-3 text-xs text-surface-300 outline-none transition">
+              <option value="all">All Category Groups</option>
+            </select>
+            <!-- Sort Filter: Added "Original structure" as default -->
+            <select id="sortBy" class="bg-surface-900 border border-surface-800 focus:border-brand-500 focus:ring-1 focus:ring-brand-500/10 rounded-lg py-2 px-3 text-xs text-surface-300 outline-none transition">
+              <option value="original">Original structure (as created)</option>
+              <option value="newest">Newly Created First</option>
+              <option value="name">Channel Name A-Z</option>
+              <option value="group">Category Group A-Z</option>
+            </select>
+          </div>
+
+          <!-- Channels list rendering target container -->
+          <div id="channelsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <!-- Dynamically populated card items -->
+          </div>
+
+          <!-- Empty State Area -->
+          <div id="emptyState" class="flex flex-col items-center justify-center p-12 border border-dashed border-surface-800 bg-surface-950/20 rounded-2xl text-center">
+            <div class="w-14 h-14 bg-surface-900 text-surface-500 rounded-full flex items-center justify-center mb-4">
+              <i data-lucide="alert-circle" class="w-7 h-7"></i>
+            </div>
+            <h4 class="text-sm font-bold text-white mb-1">No channels built yet</h4>
+            <p class="text-xs text-surface-450 max-w-sm">Start by manually constructing channels in the builder above or import an existing M3U list file to populate your dashboard.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Sleek Custom Toast Notifications -->
+  <div class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm pointer-events-none" id="toastContainer"></div>
+
+  <!-- Premium Sleek Safe Confirm Modal for Deletion / Clearing -->
+  <div id="confirmModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-surface-900 border border-surface-800 w-full max-w-md rounded-2xl shadow-2xl p-6 space-y-6 scale-95 transition-transform duration-300">
+      <div class="flex items-center gap-3.5 text-rose-500">
+        <div class="w-10 h-10 rounded-full bg-rose-500/10 flex items-center justify-center shrink-0">
+          <i data-lucide="alert-octagon" class="w-5.5 h-5.5"></i>
+        </div>
+        <div>
+          <h4 class="text-base font-bold text-white" id="confirmModalTitle">Are you absolutely sure?</h4>
+          <p class="text-xs text-surface-400 mt-0.5">This action cannot be undone.</p>
+        </div>
+      </div>
+      <p class="text-xs text-surface-300 leading-relaxed" id="confirmModalMessage">Executing this operation will permanently discard your existing channels inventory data.</p>
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button id="cancelConfirmBtn" class="px-4 py-2 bg-surface-800 hover:bg-surface-750 text-surface-200 rounded-xl text-xs font-semibold transition">Cancel</button>
+        <button id="acceptConfirmBtn" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-rose-600/10 transition">Discard & Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Helper helper selectors
+    const $ = (id) => document.getElementById(id);
+    const $$ = (sel) => document.querySelectorAll(sel);
+
+    // Dynamic State Store
+    let channels = [];
+    let activeViewMode = 'grid'; // Grid vs List visual view
+    let settings = {
+      playlistTitle: 'My IPTV Playlist',
+      xTvgUrl: '',
+      defaultGroup: 'General',
+      filename: 'playlist.m3u',
+      headerStyle: 'both',
+      includeNotes: 'no'
+    };
+    
+    let confirmCallback = null;
+
+    // Field lists for form bindings
+    const formFields = [
+      'name', 'url', 'logo', 'group', 'tvgId', 'tvgName', 'language', 'country',
+      'referer', 'userAgent', 'origin', 'cookie', 'headers',
+      'drmType', 'licenseKey', 'licenseUrl', 'catchup', 'catchupSource', 'timeshift',
+      'aspectRatio', 'resolution', 'channelNumber', 'audioTrack', 'subtitles', 'extraAttrs', 'notes'
+    ];
+
+    // Initialize Page
+    window.onload = function() {
+      initSettingsUI();
+      renderChannels();
+      initializeIcons();
+      setupFileDropZone();
+    };
+
+    function initializeIcons() {
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    }
+
+    // Visual Toast Alerts Implementation (Success, Error, Warn, Info)
+    function showToast(message, type = 'success') {
+      const container = $('toastContainer');
+      const toast = document.createElement('div');
+      
+      const config = {
+        success: { bg: 'bg-surface-900 border-emerald-500/30', text: 'text-emerald-400', icon: 'check-circle' },
+        error: { bg: 'bg-surface-900 border-rose-500/30', text: 'text-rose-400', icon: 'x-circle' },
+        warning: { bg: 'bg-surface-900 border-amber-500/30', text: 'text-amber-400', icon: 'alert-triangle' },
+        info: { bg: 'bg-surface-900 border-brand-500/30', text: 'text-brand-400', icon: 'info' }
+      }[type];
+
+      toast.className = `flex items-center gap-3 p-4 rounded-xl border ${config.bg} shadow-2xl pointer-events-auto transition-all duration-350 translate-x-12 opacity-0 transform`;
+      toast.innerHTML = `
+        <div class="${config.text}">
+          <i data-lucide="${config.icon}" class="w-5 h-5"></i>
+        </div>
+        <div class="text-xs font-semibold text-white leading-tight">${message}</div>
+      `;
+      
+      container.appendChild(toast);
+      initializeIcons();
+
+      // Trigger transition frame
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-x-12', 'opacity-0');
+      });
+
+      // Automatic teardown
+      setTimeout(() => {
+        toast.classList.add('translate-x-12', 'opacity-0');
+        setTimeout(() => toast.remove(), 400);
+      }, 3500);
+    }
+
+    // Custom Confirmation Dialogs Modal Trigger
+    function openConfirmModal(title, msg, onAccept) {
+      const modal = $('confirmModal');
+      const child = modal.firstElementChild;
+      $('confirmModalTitle').textContent = title;
+      $('confirmModalMessage').textContent = msg;
+      
+      modal.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        modal.classList.remove('opacity-0');
+        child.classList.remove('scale-95');
+      });
+      
+      confirmCallback = () => {
+        closeConfirmModal();
+        onAccept();
+      };
+    }
+
+    function closeConfirmModal() {
+      const modal = $('confirmModal');
+      const child = modal.firstElementChild;
+      modal.classList.add('opacity-0');
+      child.classList.add('scale-95');
+      setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+
+    $('cancelConfirmBtn').addEventListener('click', closeConfirmModal);
+    $('acceptConfirmBtn').addEventListener('click', () => {
+      if (confirmCallback) confirmCallback();
+    });
+
+    function setupFileDropZone() {
+      const zone = $('dropZone');
+      const input = $('m3uFileInput');
+
+      zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        zone.classList.add('border-brand-500', 'bg-brand-500/5');
+      });
+
+      zone.addEventListener('dragleave', () => {
+        zone.classList.remove('border-brand-500', 'bg-brand-500/5');
+      });
+
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('border-brand-500', 'bg-brand-500/5');
+        const files = e.dataTransfer.files;
+        if (files.length) {
+          handleImportFile(files[0]);
+        }
+      });
+
+      input.addEventListener('change', () => {
+        if (input.files.length) {
+          handleImportFile(input.files[0]);
+        }
+      });
+    }
+
+    function handleImportFile(file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        $('importText').value = text;
+        showToast(`Loaded ${file.name} successfully`, 'info');
+      };
+      reader.readAsText(file);
+    }
+
+    // Parser for Custom Headers string input
+    function parseHeaders(text = '') {
+      return text
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(line => {
+          const idx = line.indexOf(':');
+          if (idx === -1) return null;
+          return {
+            key: line.slice(0, idx).trim(),
+            value: line.slice(idx + 1).trim()
+          };
+        })
+        .filter(item => item && item.key && item.value);
+    }
+
+    function stringifyHeaders(headers = []) {
+      return headers.map(h => `${h.key}: ${h.value}`).join('\n');
+    }
+
+    function getAllHeaders(ch) {
+      const headers = [];
+      if (ch.referer) headers.push({ key: 'Referer', value: ch.referer });
+      if (ch.userAgent) headers.push({ key: 'User-Agent', value: ch.userAgent });
+      if (ch.origin) headers.push({ key: 'Origin', value: ch.origin });
+      if (ch.cookie) headers.push({ key: 'Cookie', value: ch.cookie });
+      headers.push(...(ch.customHeaders || []));
+      return headers;
+    }
+
+    // Extract values from active form fields
+    function getChannelFromForm() {
+      const channel = {};
+      formFields.forEach(id => {
+        if (id === 'headers') return;
+        channel[id] = $(id).value.trim();
+      });
+      channel.group = channel.group || settings.defaultGroup;
+      channel.tvgName = channel.tvgName || channel.name;
+      channel.customHeaders = parseHeaders($('headers').value);
+      channel.createdAt = new Date().toISOString();
+      return channel;
+    }
+
+    // Set values onto form inputs
+    function setForm(channel = {}, index = '') {
+      formFields.forEach(id => {
+        if (id === 'headers') {
+          $('headers').value = stringifyHeaders(channel.customHeaders || []);
+        } else {
+          $(id).value = channel[id] || '';
+        }
+      });
+      $('editIndex').value = index;
+      $('saveBtn').innerHTML = index === '' ? '<i data-lucide="plus" class="w-4 h-4"></i> Add Channel' : '<i data-lucide="save" class="w-4 h-4"></i> Update Channel';
+      initializeIcons();
+    }
+
+    function resetForm() {
+      setForm({});
+    }
+
+    // Standard HTML sanitizers
+    function escapeAttr(val = '') {
+      return String(val).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    }
+
+    function escapeHTML(val = '') {
+      return String(val).replace(/[&<>'"]/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      }[char]));
+    }
+
+    // Dynamic View Grid Mode selectors
+    $('viewGridBtn').addEventListener('click', () => {
+      activeViewMode = 'grid';
+      $('viewGridBtn').className = "p-1.5 bg-surface-800 text-brand-400 border-r border-surface-800 transition";
+      $('viewListBtn').className = "p-1.5 bg-surface-950 text-surface-500 hover:bg-surface-900 transition";
+      renderChannels();
+    });
+
+    $('viewListBtn').addEventListener('click', () => {
+      activeViewMode = 'list';
+      $('viewGridBtn').className = "p-1.5 bg-surface-950 text-surface-500 border-r border-surface-800 transition";
+      $('viewListBtn').className = "p-1.5 bg-surface-800 text-brand-400 hover:bg-surface-900 transition";
+      renderChannels();
+    });
+
+    function m3uEscape(val = '') {
+      return String(val).replaceAll('"', '&quot;');
+    }
+
+    function isValidUrl(val) {
+      try {
+        const u = new URL(val);
+        return ['http:', 'https:', 'rtmp:', 'rtsp:'].includes(u.protocol);
+      } catch {
+        return false;
+      }
+    }
+
+    // Builders for M3U structures
+    function buildExtinfAttrs(ch) {
+      const attrs = {
+        'tvg-id': ch.tvgId,
+        'tvg-name': ch.tvgName || ch.name,
+        'tvg-logo': ch.logo,
+        'group-title': ch.group || settings.defaultGroup,
+        'audio-track': ch.audioTrack || ch.language,
+        'tvg-country': ch.country,
+        'catchup': ch.catchup,
+        'catchup-source': ch.catchupSource,
+        'timeshift': ch.timeshift,
+        'aspect-ratio': ch.aspectRatio,
+        'resolution': ch.resolution,
+        'channel-number': ch.channelNumber,
+        'subtitles': ch.subtitles
+      };
+
+      let result = Object.entries(attrs)
+        .filter(([, value]) => value)
+        .map(([key, value]) => `${key}="${m3uEscape(value)}"`)
+        .join(' ');
+
+      if (ch.extraAttrs) result += ` ${ch.extraAttrs}`;
+      return result.trim();
+    }
+
+    function buildVlcOptions(ch) {
+      const lines = [];
+      if (ch.referer) lines.push(`#EXTVLCOPT:http-referrer=${ch.referer}`);
+      if (ch.userAgent) lines.push(`#EXTVLCOPT:http-user-agent=${ch.userAgent}`);
+      if (ch.origin) lines.push(`#EXTVLCOPT:http-origin=${ch.origin}`);
+      if (ch.cookie) lines.push(`#EXTVLCOPT:http-cookie=${ch.cookie}`);
+      (ch.customHeaders || []).forEach(h => lines.push(`#EXTVLCOPT:http-header=${h.key}: ${h.value}`));
+      return lines;
+    }
+
+    function buildKodiProperties(ch) {
+      const lines = [];
+      if (ch.drmType) lines.push(`#KODIPROP:inputstream.adaptive.license_type=${ch.drmType}`);
+      if (ch.licenseKey) lines.push(`#KODIPROP:inputstream.adaptive.license_key=${ch.licenseKey}`);
+      if (ch.licenseUrl) lines.push(`#KODIPROP:inputstream.adaptive.license_url=${ch.licenseUrl}`);
+      if (ch.userAgent) lines.push(`#KODIPROP:inputstream.adaptive.stream_headers=User-Agent=${encodeURIComponent(ch.userAgent)}`);
+      return lines;
+    }
+
+    function buildPipeUrl(ch) {
+      const headers = getAllHeaders(ch);
+      if (!headers.length || settings.headerStyle === 'vlc') return ch.url;
+      const pipe = headers
+        .map(h => `${encodeURIComponent(h.key)}=${encodeURIComponent(h.value)}`)
+        .join('&');
+      return `${ch.url}|${pipe}`;
+    }
+
+    function createM3U() {
+      const headerParts = ['#EXTM3U'];
+      if (settings.xTvgUrl) headerParts.push(`x-tvg-url="${m3uEscape(settings.xTvgUrl)}"`);
+
+      let output = `${headerParts.join(' ')}\n#PLAYLIST:${settings.playlistTitle || 'Playlist'}\n`;
+
+      channels.forEach(ch => {
+        if (settings.includeNotes === 'yes' && ch.notes) output += `# ${ch.notes}\n`;
+        output += `#EXTINF:-1 ${buildExtinfAttrs(ch)},${ch.name}\n`;
+
+        if (settings.headerStyle === 'vlc' || settings.headerStyle === 'both') {
+          const vlc = buildVlcOptions(ch);
+          if (vlc.length) output += vlc.join('\n') + '\n';
+        }
+
+        const kodi = buildKodiProperties(ch);
+        if (kodi.length) output += kodi.join('\n') + '\n';
+
+        output += `${buildPipeUrl(ch)}\n`;
+      });
+
+      return output;
+    }
+
+    // Parse EXTM3U Attributes and keys
+    function getAttr(line, attr) {
+      const re = new RegExp(`${attr}="([^"]*)"`, 'i');
+      const match = line.match(re);
+      return match ? match[1] : '';
+    }
+
+    function parsePipeHeaders(url = '') {
+      const [cleanUrl, pipe] = url.split('|');
+      const parsed = { url: cleanUrl, headers: [] };
+      if (!pipe) return parsed;
+
+      pipe.split('&').forEach(pair => {
+        const [key, value] = pair.split('=');
+        if (!key || !value) return;
+        parsed.headers.push({ key: decodeURIComponent(key), value: decodeURIComponent(value) });
+      });
+      return parsed;
+    }
+
+    function parseM3U(text) {
+      const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+      const parsed = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.startsWith('#EXTINF')) continue;
+
+        const nameMatch = line.match(/,(.*)$/);
+        const channel = {
+          name: (nameMatch && nameMatch[1].trim()) || getAttr(line, 'tvg-name') || 'Unnamed Channel',
+          tvgId: getAttr(line, 'tvg-id'),
+          tvgName: getAttr(line, 'tvg-name'),
+          logo: getAttr(line, 'tvg-logo'),
+          group: getAttr(line, 'group-title') || settings.defaultGroup,
+          audioTrack: getAttr(line, 'audio-track'),
+          country: getAttr(line, 'tvg-country'),
+          catchup: getAttr(line, 'catchup'),
+          catchupSource: getAttr(line, 'catchup-source'),
+          timeshift: getAttr(line, 'timeshift'),
+          aspectRatio: getAttr(line, 'aspect-ratio'),
+          resolution: getAttr(line, 'resolution'),
+          channelNumber: getAttr(line, 'channel-number'),
+          subtitles: getAttr(line, 'subtitles'),
+          language: '',
+          notes: 'Imported from M3U',
+          referer: '',
+          userAgent: '',
+          origin: '',
+          cookie: '',
+          drmType: '',
+          licenseKey: '',
+          licenseUrl: '',
+          extraAttrs: '',
+          customHeaders: [],
+          createdAt: new Date().toISOString()
+        };
+
+        let j = i + 1;
+        for (; j < lines.length; j++) {
+          const next = lines[j];
+
+          if (next.startsWith('#EXTINF')) {
+            j--;
+            break;
+          }
+
+          if (next.startsWith('#EXTVLCOPT:http-referrer=')) channel.referer = next.replace('#EXTVLCOPT:http-referrer=', '');
+          else if (next.startsWith('#EXTVLCOPT:http-user-agent=')) channel.userAgent = next.replace('#EXTVLCOPT:http-user-agent=', '');
+          else if (next.startsWith('#EXTVLCOPT:http-origin=')) channel.origin = next.replace('#EXTVLCOPT:http-origin=', '');
+          else if (next.startsWith('#EXTVLCOPT:http-cookie=')) channel.cookie = next.replace('#EXTVLCOPT:http-cookie=', '');
+          else if (next.startsWith('#EXTVLCOPT:http-header=')) {
+            const raw = next.replace('#EXTVLCOPT:http-header=', '');
+            const index = raw.indexOf(':');
+            if (index !== -1) channel.customHeaders.push({ key: raw.slice(0, index).trim(), value: raw.slice(index + 1).trim() });
+          }
+          else if (next.startsWith('#KODIPROP:inputstream.adaptive.license_type=')) channel.drmType = next.replace('#KODIPROP:inputstream.adaptive.license_type=', '');
+          else if (next.startsWith('#KODIPROP:inputstream.adaptive.license_key=')) channel.licenseKey = next.replace('#KODIPROP:inputstream.adaptive.license_key=', '');
+          else if (next.startsWith('#KODIPROP:inputstream.adaptive.license_url=')) channel.licenseUrl = next.replace('#KODIPROP:inputstream.adaptive.license_url=', '');
+          else if (!next.startsWith('#')) {
+            const pipeParsed = parsePipeHeaders(next);
+            channel.url = pipeParsed.url;
+            channel.customHeaders.push(...pipeParsed.headers);
+            break;
+          }
+        }
+
+        if (channel.url) parsed.push(channel);
+        i = j;
+      }
+
+      return parsed;
+    }
+
+    // Filter selectors options builder
+    function renderGroupFilter() {
+      const current = $('groupFilter').value;
+      const groups = [...new Set(channels.map(c => c.group || settings.defaultGroup))].sort();
+      $('groupFilter').innerHTML = '<option value="all">All Category Groups</option>' + groups.map(g => `<option value="${escapeAttr(g)}">${escapeHTML(g)}</option>`).join('');
+      $('groupFilter').value = groups.includes(current) ? current : 'all';
+    }
+
+    function renderStats() {
+      const len = channels.length;
+      $('countStat').textContent = len;
+      $('mobileCountStat').textContent = `${len} CH`;
+      
+      const groups = new Set(channels.map(c => c.group || settings.defaultGroup));
+      $('groupStat').textContent = groups.size;
+
+      const percentage = len > 0 ? Math.min(Math.round((len / 100) * 100), 100) : 0;
+      $('statsPercentage').textContent = `${percentage}%`;
+      $('statsProgressBar').style.width = `${percentage}%`;
+    }
+
+    function getVisibleChannels() {
+      const query = $('search').value.toLowerCase().trim();
+      const group = $('groupFilter').value;
+      const sortBy = $('sortBy').value; // 'original' is the default
+
+      // Keep original order as stored in 'channels' array
+      let visible = channels.map((ch, index) => ({ ...ch, index }));
+
+      if (query) {
+        visible = visible.filter(ch => [
+          ch.name, ch.url, ch.group, ch.tvgId, ch.tvgName, ch.language, ch.country,
+          ch.referer, ch.userAgent, ch.drmType, ch.licenseKey
+        ].join(' ').toLowerCase().includes(query));
+      }
+
+      if (group !== 'all') visible = visible.filter(ch => (ch.group || settings.defaultGroup) === group);
+      
+      // Apply sorting: 'original' keeps the array order (no sorting)
+      if (sortBy === 'name') visible.sort((a, b) => a.name.localeCompare(b.name));
+      else if (sortBy === 'group') visible.sort((a, b) => (a.group || '').localeCompare(b.group || ''));
+      else if (sortBy === 'newest') visible.sort((a, b) => b.index - a.index);
+
+      return visible;
+    }
+
+    function renderChannels() {
+      renderGroupFilter();
+      renderStats();
+      
+      // Auto-recompile output area
+      $('m3uOutput').value = createM3U();
+
+      const visible = getVisibleChannels();
+      $('emptyState').classList.toggle('hidden', visible.length !== 0);
+      
+      const gridClasses = "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4";
+      const listClasses = "flex flex-col gap-3";
+      
+      const container = $('channelsContainer');
+      container.className = activeViewMode === 'grid' ? gridClasses : listClasses;
+
+      container.innerHTML = visible.map(ch => {
+        const logo = ch.logo || `https://placehold.co/120x120/18181b/ffffff?text=${encodeURIComponent(ch.name.slice(0, 2).toUpperCase())}`;
+        const valid = isValidUrl(ch.url);
+        const headersList = getAllHeaders(ch);
+        const headerCount = headersList.length;
+
+        if (activeViewMode === 'grid') {
+          return `
+            <article class="bg-surface-950/45 hover:bg-surface-950/90 border border-surface-850 hover:border-brand-500/40 rounded-xl p-5 flex flex-col justify-between transition group shadow-lg">
+              <div class="space-y-3.5">
+                <div class="flex items-start justify-between gap-3">
+                  <img src="${escapeAttr(logo)}" alt="${escapeAttr(ch.name)}" onerror="this.src='https://placehold.co/120x120/18181b/ffffff?text=IPTV'" class="w-12 h-12 rounded-lg bg-surface-900 border border-surface-800 object-contain p-1 shrink-0" />
+                  <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition shrink-0">
+                    <button onclick="editChannel(${ch.index})" class="p-1.5 bg-surface-800 hover:bg-brand-500 text-surface-200 hover:text-white rounded-lg transition" title="Modify Channel">
+                      <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                    </button>
+                    <button onclick="deleteChannel(${ch.index})" class="p-1.5 bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white rounded-lg transition" title="Remove Channel">
+                      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-white line-clamp-1 group-hover:text-brand-400 transition" title="${escapeAttr(ch.name)}">${escapeHTML(ch.name)}</h4>
+                  <p class="text-[11px] text-surface-450 font-mono mt-0.5 truncate">${escapeHTML(ch.url)}</p>
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <span class="px-2 py-0.5 bg-surface-900 border border-surface-800 rounded text-[10px] font-semibold text-surface-300">${escapeHTML(ch.group || settings.defaultGroup)}</span>
+                  ${ch.country ? `<span class="px-2 py-0.5 bg-surface-900 border border-surface-800 rounded text-[10px] font-semibold text-surface-300 font-mono">${escapeHTML(ch.country)}</span>` : ''}
+                  ${headerCount ? `<span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded text-[10px] font-semibold text-amber-400 flex items-center gap-1"><i data-lucide="shield-alert" class="w-2.5 h-2.5"></i> ${headerCount} Headers</span>` : ''}
+                  ${ch.drmType ? `<span class="px-2 py-0.5 bg-purple-500/10 border border-purple-500/20 rounded text-[10px] font-semibold text-purple-400 flex items-center gap-1"><i data-lucide="lock" class="w-2.5 h-2.5"></i> ${escapeHTML(ch.drmType)}</span>` : ''}
+                </div>
+              </div>
+              <div class="flex items-center justify-between border-t border-surface-850 pt-3 mt-3">
+                <span class="flex items-center gap-1 text-[10px] font-bold ${valid ? 'text-emerald-500' : 'text-rose-500'}">
+                  <span class="w-1.5 h-1.5 rounded-full ${valid ? 'bg-emerald-500' : 'bg-rose-500'}"></span>
+                  ${valid ? 'SYNTAX OK' : 'SYNTAX ERR'}
+                </span>
+                <div class="flex items-center gap-1">
+                  <button onclick="moveChannel(${ch.index}, -1)" class="p-1 text-surface-450 hover:text-white rounded transition" title="Move Up">
+                    <i data-lucide="chevron-up" class="w-4 h-4"></i>
+                  </button>
+                  <button onclick="moveChannel(${ch.index}, 1)" class="p-1 text-surface-450 hover:text-white rounded transition" title="Move Down">
+                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+            </article>
+          `;
+        } else {
+          // List View Render Mode
+          return `
+            <div class="bg-surface-950/40 hover:bg-surface-950/90 border border-surface-850 hover:border-brand-500/20 rounded-lg p-3 flex flex-col md:flex-row md:items-center justify-between gap-3 transition group">
+              <div class="flex items-center gap-3 min-w-0">
+                <img src="${escapeAttr(logo)}" alt="${escapeAttr(ch.name)}" onerror="this.src='https://placehold.co/120x120/18181b/ffffff?text=IPTV'" class="w-9 h-9 rounded bg-surface-900 border border-surface-800 object-contain p-1 shrink-0" />
+                <div class="min-w-0">
+                  <h4 class="text-xs font-bold text-white group-hover:text-brand-400 transition truncate">${escapeHTML(ch.name)}</h4>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span class="text-[10px] text-surface-450 truncate font-mono max-w-xs md:max-w-md">${escapeHTML(ch.url)}</span>
+                    <span class="px-1.5 py-0.5 bg-surface-900 border border-surface-800 rounded text-[9px] font-semibold text-surface-300 shrink-0">${escapeHTML(ch.group || settings.defaultGroup)}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 self-end md:self-auto">
+                <button onclick="editChannel(${ch.index})" class="p-1.5 bg-surface-800 hover:bg-surface-750 text-surface-300 hover:text-white rounded transition" title="Modify">
+                  <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                </button>
+                <button onclick="deleteChannel(${ch.index})" class="p-1.5 bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white rounded transition" title="Remove">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        }
+      }).join('');
+
+      initializeIcons();
+    }
+
+    function editChannel(index) {
+      setForm(channels[index], index);
+      switchTab('builder');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function deleteChannel(index) {
+      openConfirmModal(
+        'Delete Channel?',
+        `Are you sure you want to delete ${channels[index].name}?`,
+        () => {
+          channels.splice(index, 1);
+          renderChannels();
+          showToast('Channel removed successfully', 'error');
+        }
+      );
+    }
+
+    function moveChannel(index, dir) {
+      const target = index + dir;
+      if (target < 0 || target >= channels.length) return;
+      [channels[index], channels[target]] = [channels[target], channels[index]];
+      renderChannels();
+    }
+
+    // Tab Switch Controller
+    function switchTab(tab) {
+      $$('.nav-btn').forEach(btn => btn.classList.toggle('tab-active', btn.dataset.tab === tab));
+      $$('.tab-page').forEach(page => page.classList.add('hidden'));
+      $(`${tab}Tab`).classList.remove('hidden');
+      if (tab === 'exporter') {
+        $('m3uOutput').value = createM3U();
+      }
+    }
+
+    $$('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    // Form handlers
+    $('channelForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const channel = getChannelFromForm();
+      if (!channel.name || !channel.url) return showToast('Name and URL are mandatory values', 'error');
+
+      const editIndex = $('editIndex').value;
+      if (editIndex === '') {
+        channels.push(channel);
+        showToast('Channel added successfully', 'success');
+      } else {
+        channels[Number(editIndex)] = { ...channels[Number(editIndex)], ...channel };
+        showToast('Channel updated successfully', 'success');
+      }
+      resetForm();
+      renderChannels();
+    });
+
+    $('resetBtn').addEventListener('click', resetForm);
+
+    // Importer actions
+    $('parseBtn').addEventListener('click', () => {
+      const text = $('importText').value.trim();
+      if (!text) return showToast('Please paste or drag a valid M3U layout first', 'warning');
+      const parsed = parseM3U(text);
+      if (!parsed.length) return showToast('No valid channels detected in parsing input', 'error');
+      channels.push(...parsed);
+      renderChannels();
+      showToast(`Imported ${parsed.length} channels successfully`, 'success');
+    });
+
+    $('replaceBtn').addEventListener('click', () => {
+      const text = $('importText').value.trim();
+      if (!text) return showToast('Please paste or drag a valid M3U layout first', 'warning');
+      const parsed = parseM3U(text);
+      if (!parsed.length) return showToast('No valid channels detected in parsing input', 'error');
+      
+      openConfirmModal(
+        'Replace entire list?',
+        'This will replace your current channel list with the parsed channels.',
+        () => {
+          channels = parsed;
+          renderChannels();
+          showToast(`Replaced playlist with ${parsed.length} channels`, 'success');
+        }
+      );
+    });
+
+    $('loadUrlBtn').addEventListener('click', async () => {
+      const url = $('remoteUrl').value.trim();
+      if (!url) return showToast('Please input a remote raw M3U URL first', 'warning');
+      
+      showToast('Fetching playlist...', 'info');
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Fetch failed');
+        const text = await response.text();
+        $('importText').value = text;
+        const parsed = parseM3U(text);
+        channels.push(...parsed);
+        renderChannels();
+        showToast(`Loaded ${parsed.length} channels from Remote URL`, 'success');
+      } catch (err) {
+        showToast('Fetch failed. Check URL syntax or CORS availability.', 'error');
+      }
+    });
+
+    // Exporter buttons
+    $('copyBtn').addEventListener('click', () => {
+      const output = createM3U();
+      const el = document.createElement('textarea');
+      el.value = output;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      showToast('M3U structure copied to clipboard', 'success');
+    });
+
+    $('downloadBtn').addEventListener('click', () => {
+      const output = createM3U();
+      const fn = settings.filename.endsWith('.m3u') ? settings.filename : `${settings.filename}.m3u`;
+      const blob = new Blob([output], { type: 'audio/x-mpegurl;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fn;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('File download started', 'success');
+    });
+
+    // Settings configuration page buttons
+    $('saveSettingsBtn').addEventListener('click', () => {
+      settings = {
+        playlistTitle: $('playlistTitle').value.trim() || 'My IPTV Playlist',
+        xTvgUrl: $('xTvgUrl').value.trim(),
+        defaultGroup: $('defaultGroup').value.trim() || 'General',
+        filename: $('filename').value.trim() || 'playlist.m3u',
+        headerStyle: $('headerStyle').value,
+        includeNotes: $('includeNotes').value
+      };
+      renderChannels();
+      showToast('Global settings updated successfully', 'success');
+    });
+
+    $('openClearModalBtn').addEventListener('click', () => {
+      openConfirmModal(
+        'Clear entire active inventory?',
+        'This will completely wipe out your channel configurations.',
+        () => {
+          channels = [];
+          renderChannels();
+          showToast('Channels database reset', 'error');
+        }
+      );
+    });
+
+    // Search and filters triggers
+    $('search').addEventListener('input', renderChannels);
+    $('groupFilter').addEventListener('change', renderChannels);
+    $('sortBy').addEventListener('change', renderChannels);
+
+    // Deduplicate inventory
+    $('dedupeBtn').addEventListener('click', () => {
+      const seen = new Set();
+      const count = channels.length;
+      channels = channels.filter(ch => {
+        const key = `${ch.name.toLowerCase()}|${ch.url}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      renderChannels();
+      showToast(`Removed ${count - channels.length} duplicate channel configs`, 'success');
+    });
+
+    // Verify Url inputs syntaxes
+    $('validateBtn').addEventListener('click', () => {
+      const invalid = channels.filter(ch => !isValidUrl(ch.url));
+      if (invalid.length) {
+        showToast(`Detected ${invalid.length} streams with irregular links`, 'warning');
+      } else {
+        showToast('All stream link syntaxes are valid', 'success');
+      }
+    });
+
+    function initSettingsUI() {
+      $('playlistTitle').value = settings.playlistTitle;
+      $('xTvgUrl').value = settings.xTvgUrl;
+      $('defaultGroup').value = settings.defaultGroup;
+      $('filename').value = settings.filename;
+      $('headerStyle').value = settings.headerStyle;
+      $('includeNotes').value = settings.includeNotes;
+    }
+
+    // Exporting helpers to window frame context scope
+    window.editChannel = editChannel;
+    window.deleteChannel = deleteChannel;
+    window.moveChannel = moveChannel;
+  </script>
+</body>
+</html>
