@@ -1,543 +1,528 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tools</title>
+    <title>tools/title>
+    
+    <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: {
+                            900: '#030712', // Deepest background
+                            800: '#0f172a', // Card background
+                            700: '#1e293b', // Borders & subtle hover
+                        },
+                        brand: {
+                            400: '#818cf8',
+                            500: '#6366f1', // Indigo primary
+                            600: '#4f46e5',
+                        }
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        :root {
-            --bg-dark: #080b10;
-            --bg-card: #121620;
-            --border-color: #212631;
-            --text-main: #f0f6fc;
-            --text-muted: #8b949e;
-            --accent-blue: #4f46e5;
-            --accent-glow: rgba(79, 70, 229, 0.15);
-            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        /* Custom utilities not easily handled by basic Tailwind */
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            padding: 2rem 1.5rem;
+            background-color: #030712;
+            color: #f8fafc;
+            overflow-x: hidden;
         }
 
-        /* Modern Gradient Background Glows */
-        body::before, body::after {
-            content: '';
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            border-radius: 50%;
-            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-            z-index: -1;
-            pointer-events: none;
-        }
-        body::before { top: -100px; right: -50px; }
-        body::after { bottom: -100px; left: -50px; }
-
-        .container {
-            width: 100%;
-            max-width: 1100px;
-            margin: 0 auto;
-            flex: 1;
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        /* Advanced Header & Search Controls */
-        .header-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            margin-bottom: 3.5rem;
-            gap: 1.5rem;
-        }
-
-        .logo-area h1 {
-            font-size: 2.75rem;
-            font-weight: 700;
-            letter-spacing: -0.04em;
-            background: linear-gradient(135deg, #fff 30%, var(--text-muted) 100%);
+        .text-gradient {
+            background: linear-gradient(to right, #818cf8, #c084fc);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
+            background-clip: text;
         }
 
-        .logo-area p {
-            color: var(--text-muted);
-            font-size: 1rem;
-        }
-
-        .search-box {
-            position: relative;
-            width: 100%;
-            max-width: 450px;
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 1rem;
-            transition: var(--transition);
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 0.8rem 1rem 0.8rem 2.8rem;
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            color: var(--text-main);
-            font-size: 0.95rem;
-            font-family: inherit;
-            outline: none;
-            transition: var(--transition);
-        }
-
-        .search-box input:focus {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
-        }
-
-        .search-box input:focus + i {
-            color: var(--text-main);
-        }
-
-        /* Dynamic Tools Grid */
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 1.5rem;
-        }
-
-        /* Tool Card Styles */
-        .tool-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 1.75rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .tool-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
-        }
-
-        .tool-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, transparent 50%);
-            opacity: 0;
-            transition: var(--transition);
-        }
-
-        .tool-card:hover::before {
-            opacity: 1;
-        }
-
-        .card-top {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            margin-bottom: 1.25rem;
-        }
-
-        .icon-box {
-            width: 48px;
-            height: 48px;
-            background-color: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-main);
-            font-size: 1.25rem;
-            transition: var(--transition);
-        }
-
-        .tool-card:hover .icon-box {
-            background-color: var(--accent-blue);
-            border-color: var(--accent-blue);
-            color: #fff;
-            transform: scale(1.05);
-        }
-
-        .badge {
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.25rem 0.6rem;
-            border-radius: 20px;
-            background-color: rgba(255, 255, 255, 0.05);
-            color: var(--text-muted);
-            border: 1px solid var(--border-color);
-        }
-
-        /* Custom Badges for specific states */
-        .badge.active {
-            background-color: rgba(34, 197, 94, 0.1);
-            color: #4ade80;
-            border-color: rgba(34, 197, 94, 0.2);
-        }
-
-        .card-body h2 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .card-body p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-        }
-
-        .card-footer {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            transition: var(--transition);
-        }
-
-        .tool-card:hover .card-footer {
-            color: var(--text-main);
-        }
-
-        .card-footer i {
-            transition: var(--transition);
-        }
-
-        .tool-card:hover .card-footer i {
-            transform: translateX(4px);
-        }
-
-        /* No Results Message */
-        .no-results {
-            display: none;
-            text-align: center;
-            color: var(--text-muted);
-            margin-top: 3rem;
-            font-size: 1.1rem;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: auto;
-            padding-top: 4rem;
-            font-size: 0.85rem;
-            color: var(--text-muted);
+        /* Staggered animation delays for cards */
+        .tool-card { opacity: 0; }
+        .tool-card:nth-child(1) { animation-delay: 0.1s; }
+        .tool-card:nth-child(2) { animation-delay: 0.15s; }
+        .tool-card:nth-child(3) { animation-delay: 0.2s; }
+        .tool-card:nth-child(4) { animation-delay: 0.25s; }
+        .tool-card:nth-child(5) { animation-delay: 0.3s; }
+        .tool-card:nth-child(6) { animation-delay: 0.35s; }
+        .tool-card:nth-child(7) { animation-delay: 0.4s; }
+        .tool-card:nth-child(8) { animation-delay: 0.45s; }
+        .tool-card:nth-child(9) { animation-delay: 0.5s; }
+        .tool-card:nth-child(10) { animation-delay: 0.55s; }
+        .tool-card:nth-child(11) { animation-delay: 0.6s; }
+        .tool-card:nth-child(12) { animation-delay: 0.65s; }
+        .tool-card:nth-child(13) { animation-delay: 0.7s; }
+        .tool-card:nth-child(14) { animation-delay: 0.75s; }
+        .tool-card:nth-child(15) { animation-delay: 0.8s; }
+        
+        /* Focus styles for accessibility */
+        *:focus-visible {
+            outline: 2px solid #818cf8;
+            outline-offset: 2px;
         }
     </style>
 </head>
-<body>
+<body class="antialiased min-h-screen relative selection:bg-brand-500 selection:text-white pb-20">
 
-    <div class="container">
-        <header class="header-section">
-            <div class="logo-area">
-                <h1>tools</h1>
-                <p>A collection of useful web utilities</p>
-            </div>
-            <div class="search-box">
-                <input type="text" id="search-input" placeholder="Search tools...">
-                <i class="fa-solid fa-magnifying-glass"></i>
+    <!-- Background Elements -->
+    <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-brand-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-70 animate-blob"></div>
+        <div class="absolute top-[20%] right-[-10%] w-96 h-96 bg-purple-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-70 animate-blob animation-delay-2000"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-[30rem] h-[30rem] bg-blue-600/20 rounded-full mix-blend-screen filter blur-[120px] opacity-60 animate-blob animation-delay-4000"></div>
+        
+        <!-- Subtle Grid Overlay -->
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+    </div>
+
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl pt-16 lg:pt-24">
+        
+        <!-- Header Section -->
+        <header class="flex flex-col items-center text-center mb-16 animate-fade-in-up">
+
+            
+            <h1 class="font-display text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-4">
+                <span class="text-gradient">tools</span>
+            </h1>
+            <p class="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+                A curated collection of client-side web utilities.
+            </p>
+
+            <!-- Search Bar -->
+            <div class="relative w-full max-w-xl group">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-brand-400 text-slate-500">
+                    <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                </div>
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    class="block w-full pl-12 pr-4 py-4 rounded-2xl bg-dark-800/60 border border-dark-700 backdrop-blur-md text-white placeholder-slate-500 focus:ring-2 focus:ring-brand-500/50 focus:border-brand-400 transition-all shadow-lg hover:bg-dark-800/80 text-lg"
+                    placeholder="Search tools (e.g., pdf, image, calendar)..."
+                    autocomplete="off"
+                >
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <kbd class="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-slate-500 bg-dark-900 border border-dark-700 rounded-md">
+                        <span class="text-[10px]">⌘</span>K
+                    </kbd>
+                </div>
             </div>
         </header>
 
         <main>
-            <div class="tools-grid" id="tools-container">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="tools-container">
                 
-                <a href="playlist_maker.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-name="playlist maker music curation audio template">
-                    <div class="card-top">
-                        <div class="icon-box">
-                            <i class="fa-solid fa-tv"></i>
+                <!-- Tool Card 1 -->
+                <a href="playlist_maker.html" target="_blank" rel="noopener noreferrer" class="tool-card animate-fade-in-up group glass-card rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-brand-500/30" data-name="playlist maker music curation audio template m3u m3u8">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="w-12 h-12 rounded-xl bg-dark-700/50 flex items-center justify-center text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-colors duration-300 shadow-inner">
+                            <i class="fa-solid fa-tv text-xl"></i>
                         </div>
-                        <span class="badge active">Live</span>
+                        <span class="px-2.5 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <h2>Playlist Maker</h2>
-                        <p>Generate, edit, and organize clean `.m3u` or `.m3u8` playlists with proper group tags and channel parameters</p>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-semibold text-white mb-2 font-display group-hover:text-brand-300 transition-colors">Playlist Maker</h2>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">Generate, edit, and organize clean `.m3u` or `.m3u8` playlists with proper group tags and channel parameters.</p>
                     </div>
-                    <div class="card-footer">
-                        Open tool <i class="fa-solid fa-arrow-right-long"></i>
+                    <div class="mt-auto flex items-center text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
+                        Launch Tool <i class="fa-solid fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
 
-                <a href="pdf2jpg.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-name="PDF to JPG converter.">
-                    <div class="card-top">
-                        <div class="icon-box">
-                            <i class="fa-regular fa-images"></i>
+                <!-- Tool Card 2: UPGRADED CONVERTER METAPHOR -->
+                <a href="pdf2jpg.html" target="_blank" rel="noopener noreferrer" class="tool-card animate-fade-in-up group glass-card rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-brand-500/30" data-name="pdf to jpg converter image document">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="h-12 w-auto px-3 min-w-[3rem] rounded-xl bg-dark-700/50 flex items-center justify-center text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-colors duration-300 shadow-inner gap-2">
+                            <i class="fa-solid fa-file-pdf text-lg"></i>
+                            <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 group-hover:text-white/80 transition-colors"></i>
+                            <i class="fa-regular fa-image text-lg"></i>
                         </div>
-                        <span class="badge active">Live</span>
+                        <span class="px-2.5 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <h2>PDF To JPG</h2>
-                        <p>Convert PDF documents to high-quality JPG images with customizable settings including DPI, quality, and output format options.</p>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-semibold text-white mb-2 font-display group-hover:text-brand-300 transition-colors">PDF To JPG</h2>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">Convert PDF documents to high-quality JPG images with customizable DPI, quality, and output options.</p>
                     </div>
-                    <div class="card-footer">
-                        Open tool <i class="fa-solid fa-arrow-right-long"></i>
+                    <div class="mt-auto flex items-center text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
+                        Launch Tool <i class="fa-solid fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="html_editor.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-name="HTML editor and preview.">
-                    <div class="card-top">
-                        <div class="icon-box">
-                            <i class="fas fa-code"></i>
+
+                <!-- Tool Card 3 -->
+                <a href="html_editor.html" target="_blank" rel="noopener noreferrer" class="tool-card animate-fade-in-up group glass-card rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-brand-500/30" data-name="html editor preview code web developer">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="w-12 h-12 rounded-xl bg-dark-700/50 flex items-center justify-center text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-colors duration-300 shadow-inner">
+                            <i class="fas fa-code text-xl"></i>
                         </div>
-                        <span class="badge active">Live</span>
+                        <span class="px-2.5 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <h2>HTML Editor</h2>
-                        <p>Real-time HTML editor with live preview, syntax highlighting, code completion and export options for your web projects.</p>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-semibold text-white mb-2 font-display group-hover:text-brand-300 transition-colors">HTML Editor</h2>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">Real-time HTML editor with live preview, syntax highlighting, code completion and export options.</p>
                     </div>
-                    <div class="card-footer">
-                        Open tool <i class="fa-solid fa-arrow-right-long"></i>
+                    <div class="mt-auto flex items-center text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
+                        Launch Tool <i class="fa-solid fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="color_picker.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-name="color picker from image">
-                    <div class="card-top">
-                        <div class="icon-box">
-                            <i class="fas fa-eye-dropper"></i>
+
+                <!-- Tool Card 4 -->
+                <a href="color_picker.html" target="_blank" rel="noopener noreferrer" class="tool-card animate-fade-in-up group glass-card rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-brand-500/30" data-name="color picker from image palette hex rgb hsl extract design">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="w-12 h-12 rounded-xl bg-dark-700/50 flex items-center justify-center text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-colors duration-300 shadow-inner">
+                            <i class="fas fa-eye-dropper text-xl"></i>
                         </div>
-                        <span class="badge active">Live</span>
+                        <span class="px-2.5 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <h2>Color Picker from Image.</h2>
-                        <p>Extract color palettes from any image with advanced color analysis, HEX/RGB/HSL codes, and palette export options.</p>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-semibold text-white mb-2 font-display group-hover:text-brand-300 transition-colors">Color Picker</h2>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">Extract color palettes from any image with advanced analysis, HEX/RGB codes, and export options.</p>
                     </div>
-                    <div class="card-footer">
-                        Open tool <i class="fa-solid fa-arrow-right-long"></i>
+                    <div class="mt-auto flex items-center text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
+                        Launch Tool <i class="fa-solid fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="image_converter.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-name="advance image converter">
-                    <div class="card-top">
-                        <div class="icon-box">
-                            <i class="fas fa-exchange-alt"></i>
+
+                <!-- Tool Card 5: UPGRADED CONVERTER METAPHOR -->
+                <a href="image_converter.html" target="_blank" rel="noopener noreferrer" class="tool-card animate-fade-in-up group glass-card rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-brand-500/30" data-name="advance image converter jpg png webp gif resize">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="h-12 w-auto px-3 min-w-[3rem] rounded-xl bg-dark-700/50 flex items-center justify-center text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-colors duration-300 shadow-inner gap-2">
+                            <i class="fa-solid fa-image text-lg"></i>
+                            <i class="fa-solid fa-arrow-right-arrow-left text-[10px] text-slate-500 group-hover:text-white/80 transition-colors"></i>
+                            <i class="fa-regular fa-image text-lg"></i>
                         </div>
-                        <span class="badge active">Live</span>
+                        <span class="px-2.5 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <h2>Image Converter</h2>
-                        <p>Convert between multiple image formats (JPG, PNG, WEBP, GIF, etc.) with quality control, batch processing, and resize options.</p>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-semibold text-white mb-2 font-display group-hover:text-brand-300 transition-colors">Image Converter</h2>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">Convert between multiple image formats with quality control, batch processing, and resize options.</p>
                     </div>
-                    <div class="card-footer">
-                        Open tool <i class="fa-solid fa-arrow-right-long"></i>
+                    <div class="mt-auto flex items-center text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
+                        Launch Tool <i class="fa-solid fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="countdown_timer.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-name="advance coutdown timer">
-                    <div class="card-top">
-                        <div class="icon-box">
-                            <i class="fas fa-clock"></i>
+
+                <!-- Tool Card 6 -->
+                <a href="countdown_timer.html" target="_blank" rel="noopener noreferrer" class="tool-card animate-fade-in-up group glass-card rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-brand-500/30" data-name="advance coutdown timer clock time alert">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="w-12 h-12 rounded-xl bg-dark-700/50 flex items-center justify-center text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-colors duration-300 shadow-inner">
+                            <i class="fas fa-clock text-xl"></i>
                         </div>
-                        <span class="badge active">Live</span>
+                        <span class="px-2.5 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <h2>Countdown Timer</h2>
-                        <p>Customizable countdown timer with multiple display options, alerts, fullscreen mode, and the ability to save presets.</p>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-semibold text-white mb-2 font-display group-hover:text-brand-300 transition-colors">Countdown Timer</h2>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">Customizable countdown timer with multiple display options, alerts, fullscreen mode, and presets.</p>
                     </div>
-                    <div class="card-footer">
-                        Open tool <i class="fa-solid fa-arrow-right-long"></i>
+                    <div class="mt-auto flex items-center text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
+                        Launch Tool <i class="fa-solid fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="video2image.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-name="video to image converter">
-                    <div class="card-top">
-                        <div class="icon-box">
-                            <i class="fas fa-film"></i>
+
+                <!-- Tool Card 7: UPGRADED CONVERTER METAPHOR -->
+                <a href="video2image.html" target="_blank" rel="noopener noreferrer" class="tool-card animate-fade-in-up group glass-card rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-brand-500/30" data-name="video to image converter extract frames batch">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="h-12 w-auto px-3 min-w-[3rem] rounded-xl bg-dark-700/50 flex items-center justify-center text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-colors duration-300 shadow-inner gap-2">
+                            <i class="fa-solid fa-film text-lg"></i>
+                            <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 group-hover:text-white/80 transition-colors"></i>
+                            <i class="fa-solid fa-images text-lg"></i>
                         </div>
-                        <span class="badge active">Live</span>
+                        <span class="px-2.5 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <h2>Video to Image</h2>
-                        <p>Extract frames from videos at custom intervals, with options for quality, format, and batch download of all frames.</p>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-semibold text-white mb-2 font-display group-hover:text-brand-300 transition-colors">Video to Image</h2>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">Extract frames from videos at custom intervals, with options for quality, format, and batch download.</p>
                     </div>
-                    <div class="card-footer">
-                        Open tool <i class="fa-solid fa-arrow-right-long"></i>
+                    <div class="mt-auto flex items-center text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
+                        Launch Tool <i class="fa-solid fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="md_editor.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-name="advance markdown editor">
-                    <div class="card-top">
-                        <div class="icon-box">
-                            <i class="fa-brands fa-markdown"></i>
+
+                <!-- Tool Card 8 -->
+                <a href="md_editor.html" target="_blank" rel="noopener noreferrer" class="tool-card animate-fade-in-up group glass-card rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-brand-500/30" data-name="advance markdown editor write text md preview">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="w-12 h-12 rounded-xl bg-dark-700/50 flex items-center justify-center text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-colors duration-300 shadow-inner">
+                            <i class="fa-brands fa-markdown text-xl"></i>
                         </div>
-                        <span class="badge active">Live</span>
+                        <span class="px-2.5 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <h2>Markdown Editor</h2>
-                        <p>Create and edit Markdown with live preview, syntax highlighting, and export to PDF, HTML, or image formats with custom styling.</p>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-semibold text-white mb-2 font-display group-hover:text-brand-300 transition-colors">Markdown Editor</h2>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">Edit Markdown with live preview, syntax highlighting, and export to PDF, HTML, or image.</p>
                     </div>
-                    <div class="card-footer">
-                        Open tool <i class="fa-solid fa-arrow-right-long"></i>
+                    <div class="mt-auto flex items-center text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
+                        Launch Tool <i class="fa-solid fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="cutmask.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-name="advance image section remover or highlighter.">
-                    <div class="card-top">
-                        <div class="icon-box">
-                            <i class="fa-solid fa-eye-slash"></i>
+
+                <!-- Tool Card 9 -->
+                <a href="cutmask.html" target="_blank" rel="noopener noreferrer" class="tool-card animate-fade-in-up group glass-card rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-brand-500/30" data-name="advance image section remover or highlighter cut mask blur edit photo">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="w-12 h-12 rounded-xl bg-dark-700/50 flex items-center justify-center text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-colors duration-300 shadow-inner">
+                            <i class="fa-solid fa-eye-slash text-xl"></i>
                         </div>
-                        <span class="badge active">Live</span>
+                        <span class="px-2.5 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <h2>CutMask</h2>
-                        <p>Remove unwanted sections or black-out areas in your image with precision tools, blur effects, and multiple masking options or highlights image's section</p>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-semibold text-white mb-2 font-display group-hover:text-brand-300 transition-colors">CutMask</h2>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">Remove unwanted sections, apply black-out areas, or highlight specific parts of images with precision.</p>
                     </div>
-                    <div class="card-footer">
-                        Open tool <i class="fa-solid fa-arrow-right-long"></i>
+                    <div class="mt-auto flex items-center text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
+                        Launch Tool <i class="fa-solid fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="images2pdf.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-name="images to pdf converter">
-                    <div class="card-top">
-                        <div class="icon-box">
-                            <i class="fa-solid fa-file-pdf"></i>
+
+                <!-- Tool Card 10: UPGRADED CONVERTER METAPHOR -->
+                <a href="images2pdf.html" target="_blank" rel="noopener noreferrer" class="tool-card animate-fade-in-up group glass-card rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-brand-500/30" data-name="images to pdf converter document batch merge">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="h-12 w-auto px-3 min-w-[3rem] rounded-xl bg-dark-700/50 flex items-center justify-center text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-colors duration-300 shadow-inner gap-2">
+                            <i class="fa-solid fa-images text-lg"></i>
+                            <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 group-hover:text-white/80 transition-colors"></i>
+                            <i class="fa-solid fa-file-pdf text-lg"></i>
                         </div>
-                        <span class="badge active">Live</span>
+                        <span class="px-2.5 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <h2>Images to PDF</h2>
-                        <p>Convert multiple images to high-quality PDF with customizable page size, orientation, margins, and compression settings.</p>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-semibold text-white mb-2 font-display group-hover:text-brand-300 transition-colors">Images to PDF</h2>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">Convert multiple images into a single, high-quality PDF document with customizable layout options.</p>
                     </div>
-                    <div class="card-footer">
-                        Open tool <i class="fa-solid fa-arrow-right-long"></i>
+                    <div class="mt-auto flex items-center text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
+                        Launch Tool <i class="fa-solid fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="image_processor.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-name="process multiple images">
-                    <div class="card-top">
-                        <div class="icon-box">
-                            <i class="fas fa-image"></i>
+
+                <!-- Tool Card 11 -->
+                <a href="image_processor.html" target="_blank" rel="noopener noreferrer" class="tool-card animate-fade-in-up group glass-card rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-brand-500/30" data-name="process multiple images batch compress optimize resize">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="w-12 h-12 rounded-xl bg-dark-700/50 flex items-center justify-center text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-colors duration-300 shadow-inner">
+                            <i class="fas fa-image text-xl"></i>
                         </div>
-                        <span class="badge active">Live</span>
+                        <span class="px-2.5 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <h2>Image Processor</h2>
-                        <p>Resize, compress, and optimize multiple images with full control over dimensions, quality, and batch processing options.</p>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-semibold text-white mb-2 font-display group-hover:text-brand-300 transition-colors">Image Processor</h2>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">Batch resize, compress, and optimize multiple images simultaneously to save space and bandwidth.</p>
                     </div>
-                    <div class="card-footer">
-                        Open tool <i class="fa-solid fa-arrow-right-long"></i>
+                    <div class="mt-auto flex items-center text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
+                        Launch Tool <i class="fa-solid fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="file_locker.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-name="secured file encryptor and decryptor">
-                    <div class="card-top">
-                        <div class="icon-box">
-                                      <i class="fa-solid fa-lock"></i>&nbsp;
-          <i class="fas fa-unlock"></i>
+
+                <!-- Tool Card 12: ALSO UPGRADED TO PILL METAPHOR FOR CONSISTENCY -->
+                <a href="file_locker.html" target="_blank" rel="noopener noreferrer" class="tool-card animate-fade-in-up group glass-card rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-brand-500/30" data-name="secured file encryptor and decryptor lock password protection secure safe">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="h-12 w-auto px-3 min-w-[3rem] rounded-xl bg-dark-700/50 flex items-center justify-center text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-colors duration-300 shadow-inner gap-2">
+                            <i class="fa-solid fa-lock text-lg"></i>
+                            <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 group-hover:text-white/80 transition-colors"></i>
+                            <i class="fa-solid fa-unlock text-lg opacity-80"></i>
                         </div>
-                        <span class="badge active">Live</span>
+                        <span class="px-2.5 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <h2>Secure File Encryptor & Decryptor</h2>
-                        <p>Protect your files with strong encryption – upload, encrypt, and decrypt in seconds</p>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-semibold text-white mb-2 font-display group-hover:text-brand-300 transition-colors">File Locker</h2>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">Client-side encryption. Secure your sensitive files with strong passwords before sharing or storing.</p>
                     </div>
-                    <div class="card-footer">
-                        Open tool <i class="fa-solid fa-arrow-right-long"></i>
+                    <div class="mt-auto flex items-center text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
+                        Launch Tool <i class="fa-solid fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="calender.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-name="advance calendar">
-                    <div class="card-top">
-                        <div class="icon-box">
-                            <i class="fa-solid fa-calendar-days"></i>
+
+                <!-- Tool Card 13 -->
+                <a href="calender.html" target="_blank" rel="noopener noreferrer" class="tool-card animate-fade-in-up group glass-card rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-brand-500/30" data-name="advance calendar events dates schedule plan">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="w-12 h-12 rounded-xl bg-dark-700/50 flex items-center justify-center text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-colors duration-300 shadow-inner">
+                            <i class="fa-solid fa-calendar-days text-xl"></i>
                         </div>
-                        <span class="badge active">Live</span>
+                        <span class="px-2.5 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <h2>Calendar</h2>
-                        <p>Modern Calendar for event,remindar and task management</p>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-semibold text-white mb-2 font-display group-hover:text-brand-300 transition-colors">Calendar Pro</h2>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">Interactive calendar application for managing events, setting reminders, and organizing your schedule.</p>
                     </div>
-                    <div class="card-footer">
-                        Open tool <i class="fa-solid fa-arrow-right-long"></i>
+                    <div class="mt-auto flex items-center text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
+                        Launch Tool <i class="fa-solid fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="csv_studio.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-name="advance csv editor">
-                    <div class="card-top">
-                        <div class="icon-box">
-                            <i class="fa-solid fa-file-csv"></i>
+
+                <!-- Tool Card 14 -->
+                <a href="csv_studio.html" target="_blank" rel="noopener noreferrer" class="tool-card animate-fade-in-up group glass-card rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-brand-500/30" data-name="advance csv editor excel spreadsheet data table">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="w-12 h-12 rounded-xl bg-dark-700/50 flex items-center justify-center text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-colors duration-300 shadow-inner">
+                            <i class="fa-solid fa-file-csv text-xl"></i>
                         </div>
-                        <span class="badge active">Live</span>
+                        <span class="px-2.5 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <h2>CSV Editor</h2>
-                        <p>Modern CSV Editor like Excel</p>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-semibold text-white mb-2 font-display group-hover:text-brand-300 transition-colors">CSV Studio</h2>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">A powerful, browser-based spreadsheet editor for viewing, modifying, and analyzing CSV data files.</p>
                     </div>
-                    <div class="card-footer">
-                        Open tool <i class="fa-solid fa-arrow-right-long"></i>
+                    <div class="mt-auto flex items-center text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
+                        Launch Tool <i class="fa-solid fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="temp_note.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-name="temporary note taker">
-                    <div class="card-top">
-                        <div class="icon-box">
-                            <i class="fa-solid fa-note-sticky"></i>
+
+                <!-- Tool Card 15 -->
+                <a href="temp_note.html" target="_blank" rel="noopener noreferrer" class="tool-card animate-fade-in-up group glass-card rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-brand-500/30" data-name="temporary note taker clipboard text pad write scratchpad">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="w-12 h-12 rounded-xl bg-dark-700/50 flex items-center justify-center text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-colors duration-300 shadow-inner">
+                            <i class="fa-solid fa-note-sticky text-xl"></i>
                         </div>
-                        <span class="badge active">Live</span>
+                        <span class="px-2.5 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <h2>Temporary Note Taker</h2>
-                        <p>Simple temporary note taker.</p>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-semibold text-white mb-2 font-display group-hover:text-brand-300 transition-colors">Quick Notes</h2>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">A fast, distraction-free scratchpad for jotting down temporary thoughts, clipboard text, or quick tasks.</p>
                     </div>
-                    <div class="card-footer">
-                        Open tool <i class="fa-solid fa-arrow-right-long"></i>
+                    <div class="mt-auto flex items-center text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
+                        Launch Tool <i class="fa-solid fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
 
             </div>
 
-            <div class="no-results" id="no-results-message">
-                <i class="fa-solid fa-face-frown" style="margin-bottom: 0.5rem; font-size: 1.5rem;"></i>
-                <p>No tools match your query.</p>
+            <!-- Empty State / No Results -->
+            <div id="no-results-message" class="hidden flex-col items-center justify-center py-20 text-center animate-fade-in-up">
+                <div class="w-24 h-24 rounded-full bg-dark-800 flex items-center justify-center mb-6 border border-dark-700">
+                    <i class="fa-solid fa-magnifying-glass-minus text-4xl text-slate-600"></i>
+                </div>
+                <h3 class="text-2xl font-semibold text-white mb-2 font-display">No tools found</h3>
+                <p class="text-slate-400 max-w-md mx-auto">We couldn't find any tools matching your search. Try checking for typos or using broader keywords.</p>
+                <button onclick="document.getElementById('search-input').value=''; document.getElementById('search-input').dispatchEvent(new Event('input'));" class="mt-6 px-6 py-2.5 bg-dark-800 hover:bg-dark-700 text-white rounded-lg border border-dark-700 transition-colors text-sm font-medium">
+                    Clear Search
+                </button>
             </div>
         </main>
+        
+        <!-- Footer -->
+        <footer class="mt-24 border-t border-dark-800 pt-8 pb-12 text-center text-sm text-slate-500">
+            <p>All tools run locally in your browser. No data is uploaded to our servers.</p>
+        </footer>
 
     </div>
 
     <script>
-        const searchInput = document.getElementById('search-input');
-        const cards = document.querySelectorAll('.tool-card');
-        const noResults = document.getElementById('no-results-message');
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('search-input');
+            const cards = document.querySelectorAll('.tool-card');
+            const noResults = document.getElementById('no-results-message');
+            const toolsContainer = document.getElementById('tools-container');
 
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase().trim();
-            let hasVisibleCards = false;
-
-            cards.forEach(card => {
-                const searchKeywords = card.getAttribute('data-name');
-                if (searchKeywords.includes(query)) {
-                    card.style.display = 'flex';
-                    hasVisibleCards = true;
-                } else {
-                    card.style.display = 'none';
+            // Keyboard shortcut (Cmd/Ctrl + K) to focus search
+            document.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                    e.preventDefault();
+                    searchInput.focus();
                 }
             });
 
-            noResults.style.display = hasVisibleCards ? 'none' : 'block';
+            // Search logic with smooth transitions
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                let hasVisibleCards = false;
+
+                cards.forEach(card => {
+                    const searchKeywords = card.getAttribute('data-name');
+                    // Add Title and Description to searchable text for better results
+                    const textContent = card.innerText.toLowerCase(); 
+                    
+                    if (searchKeywords.includes(query) || textContent.includes(query)) {
+                        card.style.display = 'flex';
+                        // Add a tiny delay to re-trigger animation if needed
+                        requestAnimationFrame(() => {
+                            card.style.opacity = '1';
+                            card.style.transform = 'translateY(0)';
+                        });
+                        hasVisibleCards = true;
+                    } else {
+                        card.style.display = 'none';
+                        card.style.opacity = '0';
+                    }
+                });
+
+                if (hasVisibleCards) {
+                    noResults.classList.add('hidden');
+                    noResults.classList.remove('flex');
+                    toolsContainer.style.display = 'grid';
+                } else {
+                    noResults.classList.remove('hidden');
+                    noResults.classList.add('flex');
+                    toolsContainer.style.display = 'none';
+                }
+            });
+            
+            // Focus search on load for desktop
+            if (window.innerWidth > 768) {
+                setTimeout(() => searchInput.focus(), 500);
+            }
         });
     </script>
-
 </body>
 </html>
