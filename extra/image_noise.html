@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Image Noise Adder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Modern 2025 Color Palette */
+      --primary: #00ff9d;
+      --primary-dark: #00cc7a;
+      --secondary: #6366f1;
+      --secondary-dark: #4f46e5;
+      --accent: #f59e0b;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      
+      /* Sophisticated neutral palette */
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #1a1a1a;
+      --bg-tertiary: #2a2a2a;
+      --bg-glass: rgba(255, 255, 255, 0.03);
+      --bg-glass-hover: rgba(255, 255, 255, 0.08);
+      
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.8);
+      --text-muted: rgba(255, 255, 255, 0.6);
+      
+      --border-primary: rgba(255, 255, 255, 0.1);
+      --border-secondary: rgba(255, 255, 255, 0.05);
+      --border-accent: rgba(0, 255, 157, 0.3);
+      
+      /* Shadows and effects */
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.2);
+      --shadow-lg: 0 16px 64px rgba(0, 0, 0, 0.3);
+      --shadow-glow: 0 0 32px rgba(0, 255, 157, 0.2);
+      --shadow-glow-hover: 0 0 48px rgba(0, 255, 157, 0.3);
+      
+      /* Spacing */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 0.5rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2rem;
+      --space-2xl: 3rem;
+      
+      /* Border radius */
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+    }
+    
+    * { 
+      box-sizing: border-box; 
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: var(--space-xl);
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    /* Animated background elements */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 25% 25%, rgba(0, 255, 157, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(0, 184, 255, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: -1;
+      animation: backgroundShift 20s ease-in-out infinite;
+    }
+    
+    @keyframes backgroundShift {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+    }
+    
+    .converter-box {
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      border-radius: var(--radius-xl);
+      padding: var(--space-2xl);
+      width: 100%;
+      max-width: 900px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-primary);
+      animation: fadeIn 0.8s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .converter-box::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(0, 255, 157, 0.1) 0%, transparent 70%);
+      z-index: -1;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: var(--space-xl);
+      position: relative;
+      padding-bottom: var(--space-md);
+    }
+    
+    .header h1 {
+      font-size: clamp(1.875rem, 5vw, 3rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: var(--space-sm);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      position: relative;
+      animation: titleGlow 3s ease-in-out infinite;
+    }
+    
+    @keyframes titleGlow {
+      0%, 100% { filter: drop-shadow(0 0 20px rgba(0, 255, 157, 0.3)); }
+      50% { filter: drop-shadow(0 0 30px rgba(0, 255, 157, 0.5)); }
+    }
+    
+    .header p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      border-radius: var(--radius-full);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .upload-section {
+      position: relative;
+      width: 50%;
+      max-width: 100%;
+      height: 170px;
+      border: 2px dashed var(--border-primary);
+      border-radius: var(--radius-xl);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-xl);
+      text-align: center;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      margin: 0 auto var(--space-xl);
+      cursor: pointer;
+    }
+    
+    .upload-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(0, 255, 157, 0.1), rgba(99, 102, 241, 0.1));
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      border-radius: var(--radius-xl);
+    }
+    
+    .upload-section:hover::before,
+    .upload-section.drag-over::before {
+      opacity: 1;
+    }
+    
+    .upload-section:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg), var(--shadow-glow);
+    }
+    
+    .upload-section.drag-over {
+      border-color: var(--primary);
+      background: rgba(0, 255, 157, 0.05);
+      transform: scale(1.02);
+    }
+    
+    .upload-icon {
+      font-size: 2.5rem;
+      color: var(--text-muted);
+      margin-bottom: var(--space-md);
+    }
+    
+    .drop-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: var(--space-xs);
+      color: var(--text-primary);
+    }
+    
+    .drop-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: var(--space-lg);
+      line-height: 1.5;
+    }
+    
+    input[type="file"] {
+      display: none;
+    }
+    
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
+    }
+    
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    
+    .control-group label {
+      margin-bottom: var(--space-sm);
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    
+    .control-group::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+    
+    .control-group:focus-within::after {
+      transform: scaleX(1);
+    }
+    
+    select {
+      appearance: none;
+      background: var(--bg-glass);
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right var(--space-md) center;
+      background-size: 15px;
+      padding-right: var(--space-2xl);
+      cursor: pointer;
+      color: var(--text-primary);
+      border: 1px solid var(--border-primary);
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-sm);
+      border-radius: var(--radius-md);
+      padding: var(--space-md) var(--space-lg);
+      font-size: 1rem;
+      backdrop-filter: blur(10px);
+    }
+    
+    select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.1), var(--shadow-glow);
+    }
+    
+    select:hover {
+      background: var(--bg-glass-hover);
+      border-color: var(--border-accent);
+    }
+    
+    option {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      padding: var(--space-md);
+    }
+    
+    .quality-control {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    
+    .quality-control input[type="range"] {
+      flex-grow: 1;
+      -webkit-appearance: none;
+      height: 6px;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-full);
+      outline: none;
+    }
+    
+    .quality-control input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+    }
+    
+    .quality-control input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      box-shadow: var(--shadow-glow);
+    }
+    
+    .quality-value {
+      min-width: 40px;
+      text-align: center;
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+    
+    button {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: var(--bg-primary);
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      position: relative;
+      overflow: hidden;
+      border: none;
+      padding: var(--space-md) var(--space-xl);
+      font-size: 1rem;
+      border-radius: var(--radius-md);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md), var(--shadow-glow);
+    }
+    
+    .preview {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--space-lg);
+      margin: var(--space-xl) 0;
+    }
+    
+    .preview-card {
+      background: var(--bg-glass);
+      padding: var(--space-lg);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-primary);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(10px);
+      position: relative;
+    }
+    
+    .preview-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
+    }
+    
+    .preview-img-container {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-md);
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-tertiary);
+    }
+    
+    canvas {
+      max-width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: var(--radius-md);
+      transition: transform 0.3s ease;
+    }
+    
+    .preview-card:hover canvas {
+      transform: scale(1.03);
+    }
+    
+    .preview-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: var(--space-sm);
+      color: var(--text-primary);
+      text-align: center;
+    }
+    
+    .status-message {
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-lg);
+      display: none;
+      animation: fadeIn 0.5s ease;
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-primary);
+    }
+    
+    .status-message.success {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--success);
+      color: var(--success);
+      display: block;
+    }
+    
+    .status-message.error {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: var(--danger);
+      color: var(--danger);
+      display: block;
+    }
+    
+    .status-message.info {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--warning);
+      color: var(--warning);
+      display: block;
+    }
+
+    /* Fullscreen overlay styles */
+    .fullscreen-btn-container {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 10;
+    }
+
+    .fullscreen-btn-zoom {
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+      border-radius: var(--radius-md);
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 0.8;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .fullscreen-btn-zoom:hover {
+      background: rgba(0, 255, 157, 0.3);
+      border-color: rgba(0, 255, 157, 0.5);
+      opacity: 1;
+      transform: scale(1.1);
+      box-shadow: 0 4px 16px rgba(0, 255, 157, 0.2);
+    }
+
+    .fullscreen-btn-zoom i {
+      font-size: 14px;
+      transition: transform 0.3s ease;
+    }
+
+    .fullscreen-btn-zoom:hover i {
+      transform: scale(1.1);
+    }
+
+    /* Enhanced Fullscreen Overlay */
+    .fullscreen-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(10, 10, 10, 0.98);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .fullscreen-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .fullscreen-image-container {
+      position: relative;
+      width: 90%;
+      height: 80%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .fullscreen-canvas {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      transform-origin: center center;
+      transition: transform 0.2s ease;
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .fullscreen-controls {
+      position: absolute;
+      bottom: 30px;
+      display: flex;
+      gap: 12px;
+      background: rgba(26, 26, 26, 0.8);
+      backdrop-filter: blur(20px);
+      padding: 12px 24px;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-primary);
+      box-shadow: var(--shadow-md);
+    }
+
+    .fullscreen-btn {
+      background: transparent;
+      color: var(--text-primary);
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .fullscreen-btn:hover {
+      background: rgba(0, 255, 157, 0.2);
+      color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+.close-fullscreen {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  background: rgba(26, 26, 26, 0.8);
+  backdrop-filter: blur(20px);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  font-size: 1rem;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+}
+
+.close-fullscreen:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--danger);
+  border-color: var(--danger);
+  transform: translateY(-2px);
+}
+
+
+    .zoom-level-indicator {
+      position: absolute;
+      bottom: 100px;
+      background: rgba(26, 26, 26, 0.8);
+      backdrop-filter: blur(20px);
+      color: var(--text-primary);
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      border: 1px solid var(--border-primary);
+    }
+
+    .zoom-level-indicator.visible {
+      opacity: 1;
+    }
+
+
+    @media (max-width: 768px) {
+      .converter-box {
+        padding: var(--space-lg);
+      }
+      
+      .controls {
+        grid-template-columns: 1fr;
+      }
+      
+      .preview {
+        grid-template-columns: 1fr;
+      }
+
+.fullscreen-btn-container {
+        top: 8px;
+        right: 8px;
+      }
+
+      .fullscreen-btn-zoom {
+        width: 32px;
+        height: 32px;
+      }
+
+      .fullscreen-image-container {
+        width: 95%;
+        height: 70%;
+        padding: 10px;
+      }
+
+      .fullscreen-controls {
+        bottom: 20px;
+        padding: 10px 20px;
+      }
+
+      .fullscreen-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
+      }
+
+      .close-fullscreen {
+        top: 20px;
+        right: 20px;
+        width: 38px;
+        height: 38px;
+      }
+    
+    }
+  </style>
+</head>
+<body>
+  <div class="converter-box">
+    <div class="header">
+      <h1><i class="fas fa-image"></i> Image Noise Adder</h1>
+      <p>Add various types of noise effects to your images with real-time preview</p>
+    </div>
+
+    <div class="upload-section" id="dropArea">
+      <i class="fas fa-cloud-upload-alt upload-icon"></i>
+      <h3 class="drop-title">Drop your image here</h3>
+      <p class="drop-subtitle">or click to select an image file</p>
+      <input type="file" id="imageUpload" accept="image/*" />
+    </div>
+
+    <div class="status-message" id="statusMessage"></div>
+
+    <div class="controls">
+      <div class="control-group">
+        <label for="noiseType"><i class="fas fa-filter"></i> Noise Type</label>
+        <select id="noiseType">
+          <option value="gaussian">Gaussian</option>
+          <option value="saltpepper">Salt & Pepper</option>
+          <option value="uniform">Uniform</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label><i class="fas fa-sliders-h"></i> Intensity</label>
+        <div class="quality-control">
+          <input type="range" id="intensity" min="1" max="100" value="10">
+          <span class="quality-value" id="intensityValue">10</span>
+        </div>
+      </div>
+    </div>
+
+  <div class="preview">
+    <div class="preview-card">
+      <div class="preview-img-container">
+        <canvas id="originalCanvas"></canvas>
+      </div>
+      <h4 class="preview-title">Original Image</h4>
+    </div>
+    <div class="preview-card">
+      <div class="preview-img-container">
+        <canvas id="noisyCanvas"></canvas>
+        <div class="fullscreen-btn-container">
+          <button class="fullscreen-btn-zoom" id="fullscreenBtn" title="View fullscreen">
+            <i class="fas fa-expand"></i>
+          </button>
+        </div>
+      </div>
+      <h4 class="preview-title">Noisy Image</h4>
+    </div>
+  </div>
+  
+<button id="downloadBtn"">
+  <i class="fas fa-download"></i> Download Noisy Image
+</button>
+  </div>
+
+  <!-- Fullscreen overlay -->
+<div class="fullscreen-overlay" id="fullscreenOverlay">
+    <button class="close-fullscreen" id="closeFullscreen" title="Close">
+      <i class="fas fa-times"></i>
+    </button>
+    <div class="fullscreen-image-container">
+      <canvas id="fullscreenCanvas"></canvas>
+      <div class="zoom-level-indicator" id="zoomLevelIndicator"></div>
+    </div>
+    <div class="fullscreen-controls">
+      <button class="fullscreen-btn" id="zoomInBtn" title="Zoom in">
+        <i class="fas fa-search-plus"></i>
+      </button>
+      <button class="fullscreen-btn" id="zoomOutBtn" title="Zoom out">
+        <i class="fas fa-search-minus"></i>
+      </button>
+      <button class="fullscreen-btn" id="resetZoomBtn" title="Reset zoom">
+        <i class="fas fa-sync-alt"></i>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const imageUpload = document.getElementById('imageUpload');
+    const originalCanvas = document.getElementById('originalCanvas');
+    const noisyCanvas = document.getElementById('noisyCanvas');
+    const noiseTypeSelect = document.getElementById('noiseType');
+    const intensityInput = document.getElementById('intensity');
+    const intensityValue = document.getElementById('intensityValue');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const dropArea = document.getElementById('dropArea');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const fullscreenOverlay = document.getElementById('fullscreenOverlay');
+    const closeFullscreen = document.getElementById('closeFullscreen');
+    const fullscreenCanvas = document.getElementById('fullscreenCanvas');
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const resetZoomBtn = document.getElementById('resetZoomBtn');
+
+    const originalCtx = originalCanvas.getContext('2d');
+    const noisyCtx = noisyCanvas.getContext('2d');
+    const fullscreenCtx = fullscreenCanvas.getContext('2d');
+
+    let currentImage = null;
+    let scale = 1;
+
+    function handleFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        const img = new Image();
+        img.onload = () => {
+          currentImage = img;
+          originalCanvas.width = noisyCanvas.width = fullscreenCanvas.width = img.width;
+          originalCanvas.height = noisyCanvas.height = fullscreenCanvas.height = img.height;
+          originalCtx.clearRect(0, 0, originalCanvas.width, originalCanvas.height);
+          noisyCtx.clearRect(0, 0, noisyCanvas.width, noisyCanvas.height);
+          originalCtx.drawImage(img, 0, 0);
+          applyNoise();
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    dropArea.addEventListener('click', () => {
+      imageUpload.click();
+    });
+
+    imageUpload.addEventListener('change', (e) => {
+      handleFile(e.target.files[0]);
+    });
+
+    dropArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropArea.classList.add('hover');
+    });
+
+    dropArea.addEventListener('dragleave', () => {
+      dropArea.classList.remove('hover');
+    });
+
+    dropArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropArea.classList.remove('hover');
+      handleFile(e.dataTransfer.files[0]);
+    });
+
+    function applyNoise() {
+      if (!currentImage) return;
+
+      const imgData = originalCtx.getImageData(
+        0,
+        0,
+        originalCanvas.width,
+        originalCanvas.height
+      );
+      const data = new Uint8ClampedArray(imgData.data);
+      const intensity = parseInt(intensityInput.value);
+
+      switch (noiseTypeSelect.value) {
+        case 'gaussian':
+          for (let i = 0; i < data.length; i += 4) {
+            const noise = randn_bm() * intensity;
+            data[i] = clamp(data[i] + noise);
+            data[i + 1] = clamp(data[i + 1] + noise);
+            data[i + 2] = clamp(data[i + 2] + noise);
+          }
+          break;
+        case 'saltpepper':
+          for (let i = 0; i < data.length; i += 4) {
+            if (Math.random() < intensity / 100) {
+              const val = Math.random() < 0.5 ? 0 : 255;
+              data[i] = data[i + 1] = data[i + 2] = val;
+            }
+          }
+          break;
+        case 'uniform':
+          for (let i = 0; i < data.length; i += 4) {
+            const noise = (Math.random() - 0.5) * intensity * 2;
+            data[i] = clamp(data[i] + noise);
+            data[i + 1] = clamp(data[i + 1] + noise);
+            data[i + 2] = clamp(data[i + 2] + noise);
+          }
+          break;
+      }
+
+      imgData.data.set(data);
+      noisyCtx.putImageData(imgData, 0, 0);
+      
+      // Update fullscreen canvas if open
+      if (fullscreenOverlay.classList.contains('active')) {
+        fullscreenCtx.putImageData(imgData, 0, 0);
+        resetZoom();
+      }
+    }
+
+    function randn_bm() {
+      let u = 0,
+        v = 0;
+      while (u === 0) u = Math.random();
+      while (v === 0) v = Math.random();
+      return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    }
+
+    function clamp(value) {
+      return Math.max(0, Math.min(255, value));
+    }
+
+    // Slider → Value display
+    intensityInput.addEventListener('input', () => {
+      intensityValue.textContent = intensityInput.value;
+      applyNoise();
+    });
+
+    // Value display (inline edit) → slider + validate
+    intensityValue.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        intensityValue.blur();
+      }
+    });
+
+    intensityValue.addEventListener('blur', () => {
+      let val = parseInt(intensityValue.textContent);
+      if (isNaN(val) || val < 1) val = 1;
+      if (val > 100) val = 100;
+      intensityValue.textContent = val;
+      intensityInput.value = val;
+      applyNoise();
+    });
+
+    noiseTypeSelect.addEventListener('change', applyNoise);
+
+    downloadBtn.onclick = () => {
+      if (!currentImage) return;
+      const link = document.createElement('a');
+      link.download = 'noisy-image.png';
+      link.href = noisyCanvas.toDataURL();
+      link.click();
+    };
+
+    // Fullscreen functionality
+    fullscreenBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!currentImage) return;
+      
+      // Copy the noisy canvas to fullscreen canvas
+      fullscreenCanvas.width = noisyCanvas.width;
+      fullscreenCanvas.height = noisyCanvas.height;
+      fullscreenCtx.putImageData(noisyCtx.getImageData(0, 0, noisyCanvas.width, noisyCanvas.height), 0, 0);
+      
+      fullscreenOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      resetZoom();
+    });
+
+    closeFullscreen.addEventListener('click', () => {
+      fullscreenOverlay.classList.remove('active');
+      document.body.style.overflow = '';
+    });
+
+    function resetZoom() {
+      scale = 1;
+      updateZoom();
+      showZoomLevel();
+    }
+
+    function updateZoom() {
+      fullscreenCanvas.style.transform = `scale(${scale})`;
+      showZoomLevel();
+    }
+
+       function showZoomLevel() {
+      const indicator = document.getElementById('zoomLevelIndicator');
+      indicator.textContent = `${Math.round(scale * 100)}%`;
+      indicator.classList.add('visible');
+      setTimeout(() => {
+        indicator.classList.remove('visible');
+      }, 1000);
+    }
+
+    zoomInBtn.addEventListener('click', () => {
+      scale = Math.min(scale + 0.1, 3);
+      updateZoom();
+    });
+
+    zoomOutBtn.addEventListener('click', () => {
+      scale = Math.max(scale - 0.1, 0.5);
+      updateZoom();
+    });
+
+    resetZoomBtn.addEventListener('click', resetZoom);
+
+    // Close fullscreen when clicking outside the image
+    fullscreenOverlay.addEventListener('click', (e) => {
+      if (e.target === fullscreenOverlay) {
+        fullscreenOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    });
+
+    // Keyboard controls for fullscreen mode
+    document.addEventListener('keydown', (e) => {
+      if (!fullscreenOverlay.classList.contains('active')) return;
+      
+      switch(e.key) {
+        case 'Escape':
+          fullscreenOverlay.classList.remove('active');
+          document.body.style.overflow = '';
+          break;
+        case '+':
+        case '=':
+          if (e.shiftKey || e.key === '+') {
+            scale = Math.min(scale + 0.1, 3);
+            updateZoom();
+          }
+          break;
+        case '-':
+          scale = Math.max(scale - 0.1, 0.5);
+          updateZoom();
+          break;
+        case '0':
+          resetZoom();
+          break;
+      }
+    });
+  </script>
+</body>
+</html>
