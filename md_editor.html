@@ -1,0 +1,4989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Markdown Editor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #1a1a1a;
+      --text-color: #e0e0e0;
+      --header-bg: #222;
+      --preview-bg: #1e1e1e;
+      --accent-color: #70cfff;
+      --button-bg: #333;
+      --button-hover: #555;
+      --divider-color: #444;
+      --divider-handle: #666;
+      --toolbar-bg: #2a2a2a;
+      --editor-bg: #1a1a1a;
+
+        --note-color: #3b82f6;
+  --note-bg: rgba(59, 130, 246, 0.1);
+  --tip-color: #10b981;
+  --tip-bg: rgba(16, 185, 129, 0.1);
+  --important-color: #8b5cf6;
+  --important-bg: rgba(139, 92, 246, 0.1);
+  --warning-color: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.1);
+  --caution-color: #ef4444;
+  --caution-bg: rgba(239, 68, 68, 0.1);
+    }
+
+    /* Dark Theme (Default) */
+    .theme-dark {
+      --bg-color: #1a1a1a;
+      --text-color: #e0e0e0;
+      --header-bg: #222;
+      --preview-bg: #1e1e1e;
+      --accent-color: #70cfff;
+      --button-bg: #333;
+      --button-hover: #555;
+      --divider-color: #444;
+      --toolbar-bg: #2a2a2a;
+      --editor-bg: #1a1a1a;
+    }
+
+    /* Light Theme */
+    .theme-light {
+      --bg-color: #ffffff;
+      --text-color: #333333;
+      --header-bg: #f5f5f5;
+      --preview-bg: #f9f9f9;
+      --accent-color: #0066cc;
+      --button-bg: #e0e0e0;
+      --button-hover: #d0d0d0;
+      --divider-color: #ddd;
+      --toolbar-bg: #f0f0f0;
+      --editor-bg: #ffffff;
+    }
+
+    /* Blue Theme */
+    .theme-blue {
+      --bg-color: #0d1b2a;
+      --text-color: #e0e1dd;
+      --header-bg: #1b263b;
+      --preview-bg: #0f1c2e;
+      --accent-color: #48cae4;
+      --button-bg: #415a77;
+      --button-hover: #5e7ba1;
+      --divider-color: #314a6e;
+      --toolbar-bg: #1b263b;
+      --editor-bg: #0d1b2a;
+    }
+
+    /* Dark Blue Theme */
+    .theme-dark-blue {
+      --bg-color: #0a192f;
+      --text-color: #ccd6f6;
+      --header-bg: #112240;
+      --preview-bg: #0f1a2e;
+      --accent-color: #64ffda;
+      --button-bg: #233554;
+      --button-hover: #3a597d;
+      --divider-color: #1e3a6b;
+      --toolbar-bg: #112240;
+      --editor-bg: #0a192f;
+    }
+
+    /* Deep Purple Theme */
+    .theme-deep-purple {
+      --bg-color: #1a1a2e;
+      --text-color: #e2e2e2;
+      --header-bg: #16213e;
+      --preview-bg: #1a1a3a;
+      --accent-color: #a6b1e1;
+      --button-bg: #3d2c5a;
+      --button-hover: #5a3d7a;
+      --divider-color: #3a2c5a;
+      --toolbar-bg: #16213e;
+      --editor-bg: #1a1a2e;
+    }
+
+    /* Solarized Dark Theme */
+    .theme-solarized {
+      --bg-color: #002b36;
+      --text-color: #839496;
+      --header-bg: #073642;
+      --preview-bg: #01313f;
+      --accent-color: #2aa198;
+      --button-bg: #586e75;
+      --button-hover: #657b83;
+      --divider-color: #475b62;
+      --toolbar-bg: #073642;
+      --editor-bg: #002b36;
+    }
+
+    * { box-sizing: border-box; }
+    
+    /* Fixed scrolling: prevent body scroll */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden; /* Prevent window scrolling */
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+    }
+    
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    header {
+      padding: 7px 20px;
+      background: var(--header-bg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--divider-color);
+      flex-shrink: 0;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+      position: relative;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 0 0 12px 12px;
+      margin: 0 10px;
+      margin-top: 5px;
+      border: 1px solid var(--divider-color);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.1em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--accent-color);
+    }
+
+    header h1 i {
+      font-size: 1.2em;
+      color: var(--accent-color);
+    }
+
+    /* Modern Toolbar Styles */
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .toolbar button, .toolbar select {
+      padding: 8px 14px;
+      background: var(--button-bg);
+      color: var(--text-color);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.8em;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .toolbar button::before, .toolbar select::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .toolbar button:hover, .toolbar select:hover {
+      background: var(--button-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .toolbar button:hover::before, .toolbar select:hover::before {
+      opacity: 0.3;
+    }
+
+    .toolbar button i, .toolbar select i {
+      transition: transform 0.2s ease;
+    }
+
+    .toolbar button:hover i, .toolbar select:hover i {
+      transform: scale(1.1);
+    }
+
+    .toolbar select {
+      padding: 8px 30px 8px 12px;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      background-size: 16px;
+    }
+
+    /* Theme Selector Dropdown */
+    .theme-selector {
+      position: relative;
+      display: inline-block;
+    }
+
+    .theme-dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      background: var(--header-bg);
+      min-width: 180px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      z-index: 1;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--divider-color);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 5px;
+    }
+
+    .theme-dropdown button {
+      color: var(--text-color);
+      padding: 8px 16px;
+      text-decoration: none;
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .theme-dropdown button:hover {
+      background: var(--button-hover);
+    }
+
+    .theme-dropdown button::before {
+      content: '';
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+    }
+
+    .theme-dropdown button[onclick*="light"]::before { background: #ffffff; border: 1px solid #ddd; }
+    .theme-dropdown button[onclick*="dark"]::before { background: #1a1a1a; }
+    .theme-dropdown button[onclick*="blue"]::before { background: #0d1b2a; }
+    .theme-dropdown button[onclick*="dark-blue"]::before { background: #0a192f; }
+    .theme-dropdown button[onclick*="deep-purple"]::before { background: #1a1a2e; }
+    .theme-dropdown button[onclick*="solarized"]::before { background: #002b36; }
+
+    .theme-selector:hover .theme-dropdown {
+      display: block;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+        /* Responsive adjustments */
+    @media (max-width: 768px) {
+      header {
+        padding: 8px 12px;
+        margin: 0 5px;
+        margin-top: 3px;
+        border-radius: 0 0 8px 8px;
+      }
+      
+      header h1 .header-text {
+        display: none;
+      }
+      
+    .toolbar button, .toolbar select {
+      padding: 6px 10px;
+      font-size: 0; /* Hide text */
+      min-width: 36px;
+      justify-content: center;
+    }
+    
+    /* Keep text visible in dropdown buttons */
+    .theme-dropdown button,
+    .download-dropdown button {
+      font-size: 0.9em !important;
+    }
+    
+    .toolbar button i, .toolbar select i {
+      font-size: 14px;
+      margin: 0;
+    }
+    
+    .toolbar select {
+      padding-right: 28px;
+      min-width: auto;
+    }
+    
+    /* Keep text in download button */
+    .download-btn span {
+      display: inline !important;
+    }
+  
+      
+      .rich-toolbar {
+        padding: 6px 8px;
+        gap: 4px;
+        margin: 0 5px;
+        margin-top: 8px;
+        border-radius: 8px;
+      }
+      
+    .toolbar-group {
+    display: contents; /* This makes the group children appear as if they're direct children of toolbar */
+    border-right: none !important;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  .toolbar-group::after {
+    display: none !important;
+  }
+  
+  /* Adjust button styles for mobile */
+  .toolbar-btn {
+    padding: 4px 6px;
+    min-width: 28px;
+    height: 28px;
+    font-size: 0;
+  }
+  
+  .toolbar-btn i {
+    font-size: 14px;
+  }
+  
+  /* Keep text visible in dropdown buttons */
+  .theme-dropdown button,
+  .download-dropdown button {
+    font-size: 0.9em !important;
+  }
+      
+      .toolbar-btn[onclick*="insertText('# '"] svg,
+      .toolbar-btn[onclick*="insertText('## '"] svg,
+      .toolbar-btn[onclick*="insertText('### '"] svg {
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+
+    /* Rich Toolbar Styles */
+    .rich-toolbar {
+      padding: 6px 8px;
+      background: var(--toolbar-bg);
+      border-bottom: 1px solid var(--divider-color);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      align-items: center;
+      flex-shrink: 0; /* Prevent toolbar from shrinking */
+     border-radius: 12px;
+      margin: 0 10px;
+      margin-top: 10px;
+      border: 1px solid var(--divider-color);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .rich-toolbar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);
+      opacity: 0.3;
+      pointer-events: none;
+      border-radius: inherit;
+    }
+
+    .toolbar-group {
+      display: flex;
+      gap: 2px;
+      padding-right: 10px;
+      border-right: 1px solid var(--divider-color);
+      margin-right: 5px;
+    }
+.toolbar-group:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 60%;
+      width: 1px;
+      background: linear-gradient(to bottom, 
+        transparent, 
+        var(--divider-color), 
+        transparent);
+    }
+
+    .toolbar-btn {
+      padding: 5px 7px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-color);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85em;
+      transition: all 0.3s ease;
+      min-width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .toolbar-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .toolbar-btn:hover {
+      background: var(--button-hover);
+      border-color: var(--divider-color);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .toolbar-btn:hover::before {
+      opacity: 0.3;
+    }
+
+    .toolbar-btn.active {
+      background: var(--accent-color);
+      color: var(--bg-color);
+      border-color: var(--accent-color);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .toolbar-select {
+      padding: 6px 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-color);
+      border: 1px solid var(--divider-color);
+      border-radius: 8px;
+      font-size: 0.85em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      height: 32px;
+      min-width: 100px;
+    }
+        .toolbar-select:hover {
+      background: var(--button-hover);
+      border-color: var(--accent-color);
+    }
+
+    /* Symbol Picker Styles */
+    .symbol-picker {
+      position: relative;
+      display: inline-block;
+      z-index: 1000;
+    }
+
+    .symbol-dropdown {
+      position: fixed;
+      background: var(--header-bg);
+      border: 1px solid var(--divider-color);
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      z-index: 1001;
+      min-width: 300px;
+      max-width: 320px;
+      max-height: 400px;
+      overflow: hidden;
+      display: none;
+      backdrop-filter: blur(10px);
+      border: 2px solid var(--divider-color);
+    }
+    
+    .symbol-dropdown.active {
+      display: block;
+    }
+    
+    .symbol-dropdown-header {
+      padding: 15px 18px;
+      background: linear-gradient(135deg, var(--toolbar-bg), var(--button-bg));
+      border-bottom: 1px solid var(--divider-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 8px 8px 0 0;
+    }
+    
+    .symbol-dropdown-title {
+      font-size: 1em;
+      font-weight: 700;
+      color: var(--text-color);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    .symbol-dropdown-close {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--divider-color);
+      color: var(--text-color);
+      cursor: pointer;
+      font-size: 1.2em;
+      padding: 6px 8px;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .symbol-dropdown-close:hover {
+      background: var(--button-hover);
+      transform: scale(1.05);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+
+    /* Improved Symbol Categories */
+    .symbol-categories {
+      display: flex;
+      background: var(--toolbar-bg);
+      border-bottom: 1px solid var(--divider-color);
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent-color) var(--button-bg);
+      padding: 8px 12px;
+      gap: 6px;
+    }
+    
+    .symbol-category-btn {
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-color);
+      border: 1px solid var(--divider-color);
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.75em;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+      margin: 0;
+      position: relative;
+      overflow: hidden;
+      min-width: fit-content;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .symbol-category-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--accent-color);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+.symbol-category-btn.active {
+  background: var(--accent-color);
+  color: var(--bg-color);
+  border-color: var(--accent-color);
+  font-weight: 600;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
+    
+.symbol-category-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 2px;
+  background: var(--bg-color);
+  border-radius: 1px;
+}
+    
+    .symbol-category-btn:hover::after {
+      opacity: 1;
+    }
+    
+    .symbol-category-btn.active::after {
+      background: linear-gradient(135deg, rgba(255,255,255,0.3), transparent);
+    }
+
+    @keyframes categorySwitch {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.symbol-category-btn.active {
+  animation: categorySwitch 0.2s ease-out;
+}
+
+    .symbol-content {
+      padding: 15px;
+      max-height: 280px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent-color) var(--button-bg);
+    }
+    
+    .symbol-content::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    .symbol-content::-webkit-scrollbar-track {
+      background: var(--button-bg);
+      border-radius: 4px;
+    }
+    
+    .symbol-content::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, var(--accent-color), var(--divider-color));
+      border-radius: 4px;
+      transition: background 0.3s ease;
+    }
+    
+    .symbol-content::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-color);
+    }
+    
+    .symbol-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+      gap: 8px;
+      padding: 5px;
+    }
+    
+    .symbol-item {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1em;
+      transition: all 0.3s ease;
+      color: var(--text-color);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .symbol-item:hover {
+      background: var(--button-hover);
+      border-color: var(--accent-color);
+      transform: scale(1.15);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      z-index: 10;
+    }
+    
+    .symbol-item:active {
+      transform: scale(0.95);
+      transition: transform 0.1s ease;
+    }
+    
+    .symbol-categories::-webkit-scrollbar {
+      height: 6px;
+    }
+    
+    .symbol-categories::-webkit-scrollbar-track {
+      background: var(--button-bg);
+      border-radius: 3px;
+    }
+    
+    .symbol-categories::-webkit-scrollbar-thumb {
+      background: linear-gradient(90deg, var(--accent-color), var(--divider-color));
+      border-radius: 3px;
+      transition: background 0.3s ease;
+    }
+    
+    .symbol-categories::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-color);
+    }
+
+    /* Image Dialog Styles */
+.image-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--header-bg);
+  border: 1px solid var(--divider-color);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  min-width: 300px;
+  display: none;
+}
+
+.image-dialog.active {
+  display: block;
+}
+
+.image-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.image-dialog-title {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.image-dialog-close {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 1.2em;
+  padding: 5px;
+  border-radius: 3px;
+}
+
+.image-dialog-close:hover {
+  background: var(--button-hover);
+}
+
+.image-dialog-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.image-dialog-label {
+  min-width: 80px;
+  color: var(--text-color);
+  font-size: 0.9em;
+}
+
+.image-dialog-input {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--editor-bg);
+  color: var(--text-color);
+  border: 1px solid var(--divider-color);
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.image-dialog-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.image-dialog-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+  justify-content: flex-end;
+}
+.image-dialog-btn {
+  padding: 8px 16px;
+  background: var(--button-bg);
+  color: var(--text-color);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.2s ease;
+}
+
+.image-dialog-btn:hover {
+  background: var(--button-hover);
+}
+
+.image-dialog-btn.primary {
+  background: var(--accent-color);
+  color: var(--bg-color);
+}
+
+.image-dialog-btn.primary:hover {
+  opacity: 0.9;
+}
+
+    /* Table Dialog Styles */
+.table-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--header-bg);
+  border: 1px solid var(--divider-color);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  min-width: 300px;
+  display: none;
+}
+
+.table-dialog.active {
+  display: block;
+}
+
+.table-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.table-dialog-title {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.table-dialog-close {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 1.2em;
+  padding: 5px;
+  border-radius: 3px;
+}
+
+.table-dialog-close:hover {
+  background: var(--button-hover);
+}
+
+.table-dialog-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.table-dialog-label {
+  min-width: 100px;
+  color: var(--text-color);
+  font-size: 0.9em;
+}
+
+.table-dialog-input {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--editor-bg);
+  color: var(--text-color);
+  border: 1px solid var(--divider-color);
+  border-radius: 4px;
+  font-size: 0.9em;
+  width: 60px;
+}
+
+.table-dialog-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+  justify-content: flex-end;
+}
+
+.table-dialog-btn {
+  padding: 8px 16px;
+  background: var(--button-bg);
+  color: var(--text-color);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.2s ease;
+}
+
+.table-dialog-btn:hover {
+  background: var(--button-hover);
+}
+
+.table-dialog-btn.primary {
+  background: var(--accent-color);
+  color: var(--bg-color);
+}
+
+.table-dialog-btn.primary:hover {
+  opacity: 0.9;
+}
+
+/* Enhanced Footnote Styles */
+#preview .footnotes {
+  margin-top: 2em;
+  padding-top: 1em;
+  border-top: 1px solid var(--divider-color);
+  font-size: 0.95em;
+  color: var(--text-color);
+}
+
+#preview .footnotes ol {
+  padding-left: 0;
+  list-style: none;
+}
+
+#preview .footnotes li {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+  text-indent: -1.5em;
+}
+
+#preview .footnote-ref {
+  font-size: 0.7em;
+  color: var(--accent-color);
+  vertical-align: super;
+  text-decoration: none;
+  margin: 0 0.2em;
+}
+
+#preview .footnote-number {
+  color: var(--accent-color);
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+
+#preview .footnote-backref {
+  font-size: 0.9em;
+  margin-left: 0.5em;
+  color: var(--accent-color);
+  text-decoration: none;
+}
+
+    /* Download Selector Dropdown */
+.download-selector {
+  position: relative;
+  display: inline-block;
+}
+
+.download-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  background: var(--header-bg);
+  min-width: 160px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  z-index: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--divider-color);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 5px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.download-dropdown button {
+  color: var(--text-color);
+  padding: 8px 16px;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.download-dropdown button:hover {
+  background: var(--button-hover);
+}
+
+.download-selector:hover .download-dropdown {
+  display: block;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .download-dropdown {
+    right: auto;
+    left: 0;
+    min-width: 140px; /* Slightly narrower for mobile */
+    max-width: calc(100vw - 20px); /* Ensure it doesn't exceed screen width */
+  }
+  
+  
+  .toolbar button, .toolbar select {
+    padding: 6px 7px;
+  }
+  
+  .download-btn span {
+    display: inline !important;
+  }
+}
+
+    /* Footnote Dialog Styles */
+.footnote-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--header-bg);
+  border: 1px solid var(--divider-color);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  min-width: 300px;
+  max-width: 500px;
+  display: none;
+}
+
+.footnote-dialog.active {
+  display: block;
+}
+
+.footnote-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.footnote-dialog-title {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.footnote-dialog-close {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 1.2em;
+  padding: 5px;
+  border-radius: 3px;
+}
+
+.footnote-dialog-close:hover {
+  background: var(--button-hover);
+}
+
+.footnote-dialog-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  gap: 5px;
+}
+
+.footnote-dialog-label {
+  color: var(--text-color);
+  font-size: 0.9em;
+}
+
+.footnote-dialog-input {
+  padding: 8px 12px;
+  background: var(--editor-bg);
+  color: var(--text-color);
+  border: 1px solid var(--divider-color);
+  border-radius: 4px;
+  font-size: 0.9em;
+  width: 100%;
+}
+
+.footnote-dialog-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.footnote-dialog-input[type="text"] {
+  height: auto;
+}
+
+.footnote-dialog-input[type="textarea"] {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.footnote-dialog-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+  justify-content: flex-end;
+}
+
+.footnote-dialog-btn {
+  padding: 8px 16px;
+  background: var(--button-bg);
+  color: var(--text-color);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.2s ease;
+}
+
+.footnote-dialog-btn:hover {
+  background: var(--button-hover);
+}
+
+.footnote-dialog-btn.primary {
+  background: var(--accent-color);
+  color: var(--bg-color);
+}
+
+.footnote-dialog-btn.primary:hover {
+  opacity: 0.9;
+}
+
+       main {
+      flex: 1;
+      display: flex;
+      overflow: hidden; /* Prevent main from scrolling */
+      min-height: 0; /* Allow flex children to shrink */
+    }
+
+    /* Fixed layout for live preview mode */
+    .main-live {
+      flex-direction: row;
+    }
+
+    .main-manual {
+      flex-direction: column;
+    }
+
+    .editor-container, .preview-container {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* Prevent container scrolling */
+      min-height: 0; /* Allow flex children to shrink */
+    }
+
+    /* Live preview mode - side by side */
+    .main-live .editor-container,
+    .main-live .preview-container {
+      width: 50%;
+      height: 100%;
+    }
+
+    /* Manual preview mode - full width, toggle visibility */
+    .main-manual .editor-container {
+      width: 100%;
+      height: 100%;
+    }
+
+    .main-manual .preview-container {
+      width: 100%;
+      height: 100%;
+      display: none;
+    }
+
+    .main-manual .preview-container.active {
+      display: flex;
+    }
+
+    .main-manual .editor-container.hidden {
+      display: none;
+    }
+
+    .editor-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* Prevent wrapper scrolling */
+      min-height: 0; /* Allow flex children to shrink */
+    }
+
+    textarea {
+      width: 100%;
+      height: 100%;
+      padding: 20px;
+      font-size: 1em;
+      line-height: 1.6;
+      border: none;
+      resize: none;
+      background: var(--editor-bg);
+      color: var(--text-color);
+      outline: none;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+      tab-size: 2;
+      flex: 1;
+      overflow-y: auto; /* Allow textarea to scroll vertically */
+      overflow-x: auto; /* Allow textarea to scroll horizontally if needed */
+    }
+
+    /* Preview container with proper scrolling */
+    .preview-toolbar {
+      padding: 8px 15px;
+      background: var(--header-bg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--divider-color);
+      flex-shrink: 0; /* Prevent toolbar from shrinking */
+    }
+    .preview-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .preview-actions button {
+      padding: 4px 8px;
+      font-size: 0.85em;
+      background: var(--button-bg);
+      color: var(--text-color);
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .preview-actions button:hover {
+      background: var(--button-hover);
+    }
+
+    #preview {
+      padding: 20px;
+      background: var(--preview-bg);
+      flex: 1;
+      overflow-y: auto; /* Allow preview to scroll vertically */
+      overflow-x: auto; /* Allow preview to scroll horizontally if needed */
+      min-height: 0; /* Allow flex child to shrink */
+    }
+    #preview h1, #preview h2, #preview h3, #preview h4, #preview h5, #preview h6 {
+      color: var(--accent-color);
+      margin-top: 1.2em;
+      margin-bottom: 0.6em;
+    }
+    #preview h1 { font-size: 2em; border-bottom: 1px solid var(--divider-color); padding-bottom: 0.3em; }
+    #preview h2 { font-size: 1.7em; border-bottom: 1px solid var(--divider-color); padding-bottom: 0.3em; }
+    #preview h3 { font-size: 1.4em; }
+    #preview h4 { font-size: 1.2em; }
+    #preview p { margin: 1em 0; line-height: 1.7; }
+    #preview code {
+      background: rgba(0, 0, 0, 0.1);
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+      font-size: 0.9em;
+    }
+    #preview pre {
+      background: rgba(0, 0, 0, 0.1);
+      padding: 1em;
+      border-radius: 4px;
+      overflow: auto;
+    }
+    #preview pre code {
+      background: transparent;
+      padding: 0;
+    }
+    #preview blockquote {
+      border-left: 4px solid var(--accent-color);
+      margin: 1em 0;
+      padding-left: 1em;
+      color: var(--text-color);
+      opacity: 0.8;
+    }
+    #preview table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1em 0;
+    }
+    #preview table th, #preview table td {
+      border: 1px solid var(--divider-color);
+      padding: 0.5em 1em;
+    }
+    #preview table th {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    #preview img {
+      max-width: 100%;
+      border-radius: 4px;
+    }
+    #preview a {
+      color: var(--accent-color);
+      text-decoration: none;
+    }
+    #preview a:hover {
+      text-decoration: underline;
+    }
+    #preview ul, #preview ol {
+      padding-left: 2em;
+      margin: 1em 0;
+    }
+    #preview li {
+      margin: 0.5em 0;
+      line-height: 1.6;
+    }
+
+    /* Math rendering styles */
+    .katex {
+      font-size: 1.1em;
+    }
+    .katex-display {
+      margin: 1em 0;
+    }
+
+    .word-count {
+      font-size: 0.85em;
+      color: var(--text-color);
+      opacity: 0.7;
+    }
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 15px;
+      background: var(--header-bg);
+      font-size: 0.85em;
+      color: var(--text-color);
+      opacity: 0.7;
+      border-top: 1px solid var(--divider-color);
+      flex-shrink: 0; /* Prevent status bar from shrinking */
+    }
+    .theme-selector {
+      position: relative;
+      display: inline-block;
+    }
+    .theme-dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: var(--button-bg);
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .theme-dropdown button {
+      color: var(--text-color);
+      padding: 8px 16px;
+      text-decoration: none;
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    .theme-dropdown button:hover {
+      background-color: var(--button-hover);
+    }
+    .theme-selector:hover .theme-dropdown {
+      display: block;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .main-live {
+        flex-direction: column;
+      }
+      .main-live .editor-container,
+      .main-live .preview-container {
+        width: 100%;
+        height: 50%;
+      }
+      /* Hide header title text on mobile but keep icon */
+      header h1 .header-text {
+        display: none;
+      }
+      header h1 i {
+        font-size: 1.3em;
+        display: inline-block !important;
+        visibility: visible !important;
+        color: var(--text-color) !important;
+      }
+      header h1 {
+        display: flex !important;
+        align-items: center;
+        gap: 0;
+      }
+      .rich-toolbar {
+        padding: 5px 10px;
+        gap: 3px;
+      }
+      .toolbar-group {
+        padding-right: 5px;
+        margin-right: 3px;
+      }
+      /* Rich toolbar buttons - hide text, keep icons */
+      .toolbar-btn {
+        padding: 4px 6px;
+        min-width: 28px;
+        height: 28px;
+        font-size: 0; /* Hide text */
+      }
+      .toolbar-btn i {
+        font-size: 14px; /* Show icons */
+      }
+      /* Header toolbar buttons - hide text, keep icons */
+      .toolbar button {
+        font-size: 0; /* Hide text */
+      }
+      .toolbar button i {
+        font-size: 14px; /* Show icons */
+      }
+      /* Keep select dropdown text visible */
+      .toolbar select {
+        font-size: 0.8em;
+      }
+      textarea {
+        padding: 15px;
+        font-size: 0.9em;
+      }
+      #preview {
+        padding: 15px;
+      }
+
+      .toolbar button, .toolbar select {
+      padding: 6px 7px;
+    }
+    /* Symbol picker mobile adjustments */
+    .symbol-dropdown {
+      min-width: 280px;
+      max-width: calc(100vw - 20px); /* Reduced padding for mobile */
+      max-height: calc(100vh - 80px); /* Reduced padding for mobile */
+    }
+    
+    .symbol-content {
+      max-height: calc(100vh - 200px); /* Adjust for header and categories */
+    }
+    
+    .symbol-grid {
+      grid-template-columns: repeat(auto-fill, minmax(32px, 1fr)); /* Slightly larger on mobile */
+      gap: 6px; /* Smaller gap for mobile */
+    }
+    
+    .symbol-item {
+      width: 32px;
+      height: 32px;
+      font-size: 1em;
+    }
+    
+    .symbol-categories {
+      padding: 3px 5px; /* Reduced padding for mobile */
+    }
+    
+    .symbol-category-btn {
+      padding: 8px 1px; /* Smaller padding for mobile */
+      font-size: 0.8em;
+      margin: 0 1px;
+    }
+    
+    .symbol-dropdown-header {
+      padding: 12px 15px; /* Reduced padding for mobile */
+    }
+    
+    .symbol-dropdown-title {
+      font-size: 0.9em; /* Smaller title on mobile */
+    }
+    }
+
+/* Enhanced Mermaid Diagram Styles for all themes */
+.mermaid {
+  background: var(--preview-bg);
+  padding: 20px;
+  border-radius: 8px;
+  margin: 1em 0;
+  overflow: auto;
+  max-width: 100%;
+  border: 1px solid var(--divider-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mermaid svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Node styling - Theme-aware */
+.mermaid .node rect,
+.mermaid .node circle,
+.mermaid .node polygon,
+.mermaid .node path {
+  fill: var(--button-bg) !important;
+  stroke: var(--accent-color) !important;
+  stroke-width: 2px !important;
+  rx: 6px !important;
+  ry: 6px !important;
+  transition: all 0.3s ease;
+}
+
+.mermaid .node:hover rect,
+.mermaid .node:hover circle,
+.mermaid .node:hover polygon,
+.mermaid .node:hover path {
+  filter: brightness(1.1);
+  stroke-width: 3px !important;
+}
+
+/* Text styling - Theme-aware */
+.mermaid .label,
+.mermaid .label text,
+.mermaid text,
+.mermaid span,
+.mermaid tspan {
+  color: var(--text-color) !important;
+  fill: var(--text-color) !important;
+  font-family: 'Segoe UI', system-ui, sans-serif !important;
+  font-size: 14px !important;
+}
+
+/* Edge/arrow styling - Theme-aware */
+.mermaid .edgePath .path {
+  stroke: var(--accent-color) !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid .arrowheadPath,
+.mermaid .arrowheadPath path {
+  fill: var(--accent-color) !important;
+  stroke: var(--accent-color) !important;
+}
+
+.mermaid .edgeLabel {
+  background: var(--preview-bg) !important;
+  color: var(--text-color) !important;
+  fill: var(--text-color) !important;
+  border-radius: 4px;
+  padding: 2px 6px;
+  border: 1px solid var(--divider-color) !important;
+}
+
+/* Cluster styling - Theme-aware */
+.mermaid .cluster rect {
+  fill: rgba(0, 0, 0, 0.05) !important;
+  stroke: var(--divider-color) !important;
+  stroke-width: 1.5px !important;
+  rx: 8px !important;
+  ry: 8px !important;
+}
+
+.mermaid .cluster-label {
+  color: var(--accent-color) !important;
+  fill: var(--accent-color) !important;
+  font-weight: 600 !important;
+}
+
+/* Link styling - Theme-aware */
+.mermaid .link {
+  stroke: var(--accent-color) !important;
+}
+
+.mermaid .flowchart-link {
+  stroke: var(--accent-color) !important;
+}
+
+.mermaid .flowchart-title {
+  fill: var(--accent-color) !important;
+}
+
+/* Sequence diagram specific - Theme-aware */
+.mermaid .actor {
+  stroke: var(--accent-color) !important;
+  fill: var(--button-bg) !important;
+}
+
+.mermaid .actor-line {
+  stroke: var(--divider-color) !important;
+}
+
+.mermaid .messageText {
+  fill: var(--text-color) !important;
+}
+
+.mermaid .messageLine0,
+.mermaid .messageLine1 {
+  stroke: var(--accent-color) !important;
+  stroke-width: 2px !important;
+}
+
+/* Gantt chart specific - Theme-aware */
+.mermaid .section {
+  stroke: none !important;
+  fill: var(--button-bg) !important;
+  opacity: 0.2 !important;
+}
+
+.mermaid .section0 {
+  fill: var(--accent-color) !important;
+  opacity: 0.1 !important;
+}
+
+.mermaid .task {
+  rx: 4px !important;
+  ry: 4px !important;
+}
+
+.mermaid .taskText {
+  fill: var(--text-color) !important;
+  font-weight: 500 !important;
+}
+
+.mermaid .taskTextOutsideRight {
+  fill: var(--text-color) !important;
+}
+
+/* State diagram specific - Theme-aware */
+.mermaid .state-diagram .state-title {
+  fill: var(--text-color) !important;
+}
+
+.mermaid .state-diagram .state-label {
+  color: var(--text-color) !important;
+  fill: var(--text-color) !important;
+}
+
+/* Class diagram specific - Theme-aware - FIXED */
+.mermaid .classTitle {
+  fill: var(--accent-color) !important;
+  font-weight: 600 !important;
+}
+
+.mermaid .classAttr {
+  fill: var(--text-color) !important;
+}
+
+.mermaid .classBox {
+  stroke: var(--accent-color) !important;
+  fill: var(--button-bg) !important;
+}
+
+.mermaid .classText {
+  fill: var(--text-color) !important;
+}
+
+.mermaid .relation {
+  stroke: var(--accent-color) !important;
+}
+
+.mermaid .composition {
+  stroke: var(--accent-color) !important;
+  fill: var(--accent-color) !important;
+}
+
+.mermaid .aggregation {
+  stroke: var(--accent-color) !important;
+  fill: var(--button-bg) !important;
+}
+
+.mermaid .dependency {
+  stroke: var(--accent-color) !important;
+}
+
+/* Pie chart specific - Theme-aware */
+.mermaid .pieTitleText {
+  fill: var(--text-color) !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+}
+
+.mermaid .slice {
+  stroke: var(--preview-bg) !important;
+  stroke-width: 2px !important;
+}
+
+/* Entity Relationship Diagram specific - Theme-aware */
+.mermaid .er.entityBox {
+  stroke: var(--accent-color) !important;
+  fill: var(--button-bg) !important;
+}
+
+.mermaid .er.attributeBoxEven {
+  fill: var(--preview-bg) !important;
+  stroke: var(--divider-color) !important;
+}
+
+.mermaid .er.attributeBoxOdd {
+  fill: var(--button-bg) !important;
+  stroke: var(--divider-color) !important;
+}
+
+/* User Journey Diagram specific - Theme-aware */
+.mermaid .journey-section {
+  fill: var(--button-bg) !important;
+  stroke: var(--accent-color) !important;
+}
+
+.mermaid .journey-task {
+  fill: var(--preview-bg) !important;
+  stroke: var(--divider-color) !important;
+}
+
+/* Requirement Diagram specific - Theme-aware */
+.mermaid .requirement {
+  fill: var(--button-bg) !important;
+  stroke: var(--accent-color) !important;
+}
+
+.mermaid .requirementText {
+  fill: var(--text-color) !important;
+}
+
+/* Fix for arrow markers in all themes */
+.marker path,
+.marker polygon {
+  fill: var(--accent-color) !important;
+  stroke: var(--accent-color) !important;
+}
+
+/* Fix for arrow heads in all themes */
+.mermaid .arrowheadPath path {
+  fill: var(--accent-color) !important;
+  stroke: var(--accent-color) !important;
+}
+
+/* Fix for line colors in all themes */
+.mermaid .edgePath .path {
+  stroke: var(--accent-color) !important;
+}
+
+/* Fix for text labels in all themes */
+.mermaid .edgeLabel text {
+  fill: var(--text-color) !important;
+}
+
+/* Fix for sequence diagram activation boxes */
+.mermaid .activation {
+  fill: var(--button-bg) !important;
+  stroke: var(--accent-color) !important;
+}
+
+/* Fix for note boxes */
+.mermaid .note {
+  fill: var(--button-bg) !important;
+  stroke: var(--divider-color) !important;
+}
+
+.mermaid .noteText {
+  fill: var(--text-color) !important;
+}
+
+/* Fix for mindmap styling */
+.mermaid .mindmap-node {
+  fill: var(--button-bg) !important;
+  stroke: var(--accent-color) !important;
+}
+
+.mermaid .mindmap-node-label {
+  fill: var(--text-color) !important;
+}
+
+/* Fix for git graph styling */
+.mermaid .git-branch {
+  stroke: var(--accent-color) !important;
+}
+
+.mermaid .git-commit {
+  fill: var(--button-bg) !important;
+  stroke: var(--accent-color) !important;
+}
+
+.mermaid .git-commit-id,
+.mermaid .git-commit-message {
+  fill: var(--text-color) !important;
+}
+
+/* State Diagram specific - Theme-aware */
+.mermaid .state-diagram .state-title {
+  fill: var(--text-color) !important;
+}
+
+.mermaid .state-diagram .state-label {
+  color: var(--text-color) !important;
+  fill: var(--text-color) !important;
+}
+
+/* State diagram edges and arrows */
+.mermaid .state-diagram .transition {
+  stroke: var(--accent-color) !important;
+}
+
+.mermaid .state-diagram .transition .arrowheadPath {
+  fill: var(--accent-color) !important;
+  stroke: var(--accent-color) !important;
+}
+
+.mermaid .state-diagram .transition text {
+  fill: var(--text-color) !important;
+}
+
+/* State diagram states */
+.mermaid .state-diagram .state rect {
+  fill: var(--button-bg) !important;
+  stroke: var(--accent-color) !important;
+  rx: 6px !important;
+  ry: 6px !important;
+}
+
+.mermaid .state-diagram .state .state-title {
+  fill: var(--text-color) !important;
+}
+
+/* State diagram start/end points */
+.mermaid .state-diagram .start-end {
+  fill: var(--text-color) !important;
+  stroke: var(--text-color) !important;
+}
+
+.mermaid .state-diagram .note rect {
+  fill: var(--button-bg) !important;
+  stroke: var(--divider-color) !important;
+}
+
+.mermaid .state-diagram .note text {
+  fill: var(--text-color) !important;
+}
+
+/* Fork and join points */
+.mermaid .state-diagram .fork-join {
+  fill: var(--text-color) !important;
+  stroke: var(--text-color) !important;
+}
+
+/* State diagram divider lines */
+.mermaid .state-diagram .divider {
+  stroke: var(--divider-color) !important;
+}
+
+.sticky-note {
+  padding: 16px 20px;
+  margin: 16px 0;
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.sticky-note.note {
+  background-color: var(--note-bg);
+  border-left: 4px solid var(--note-color);
+}
+
+.sticky-note.tip {
+  background-color: var(--tip-bg);
+  border-left: 4px solid var(--tip-color);
+}
+
+.sticky-note.important {
+  background-color: var(--important-bg);
+  border-left: 4px solid var(--important-color);
+}
+
+.sticky-note.warning {
+  background-color: var(--warning-bg);
+  border-left: 4px solid var(--warning-color);
+}
+
+.sticky-note.caution {
+  background-color: var(--caution-bg);
+  border-left: 4px solid var(--caution-color);
+}
+
+.sticky-note-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 0.95em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sticky-note.note .sticky-note-title {
+  color: var(--note-color);
+}
+
+.sticky-note.tip .sticky-note-title {
+  color: var(--tip-color);
+}
+
+.sticky-note.important .sticky-note-title {
+  color: var(--important-color);
+}
+
+.sticky-note.warning .sticky-note-title {
+  color: var(--warning-color);
+}
+
+.sticky-note.caution .sticky-note-title {
+  color: var(--caution-color);
+}
+
+.sticky-note-icon {
+  font-size: 1.1em;
+}
+
+.sticky-note-content {
+  color: var(--text-color);
+  font-weight: normal;
+  line-height: 1.6;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.sticky-note-content p {
+  margin: 0;
+}
+
+.sticky-note-content p:not(:last-child) {
+  margin-bottom: 8px;
+}
+
+
+/* Blockquote Dropdown Styles */
+.sticky-note-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.sticky-note-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  display: none;
+  min-width: 160px;
+  background: var(--header-bg);
+  border: 1px solid var(--divider-color);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 5px 0;
+  margin-top: 5px;
+}
+
+.sticky-note-dropdown-menu.active {
+  display: block;
+}
+
+.sticky-note-dropdown-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 16px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.2s ease;
+}
+
+.sticky-note-dropdown-menu button:hover {
+  background: var(--button-hover);
+}
+
+.sticky-note-dropdown-menu button i {
+  width: 16px;
+  text-align: center;
+}
+
+/* Specific colors for each type */
+.sticky-note-dropdown-menu button[onclick*="NOTE"] i {
+  color: var(--note-color);
+}
+
+.sticky-note-dropdown-menu button[onclick*="TIP"] i {
+  color: var(--tip-color);
+}
+
+.sticky-note-dropdown-menu button[onclick*="IMPORTANT"] i {
+  color: var(--important-color);
+}
+
+.sticky-note-dropdown-menu button[onclick*="WARNING"] i {
+  color: var(--warning-color);
+}
+
+.sticky-note-dropdown-menu button[onclick*="CAUTION"] i {
+  color: var(--caution-color);
+}
+    /* Find and Replace Dialog Styles */
+    .find-replace-dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--header-bg);
+      border: 1px solid var(--divider-color);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      min-width: 400px;
+      display: none;
+    }
+    .find-replace-dialog.active {
+      display: block;
+    }
+    .dialog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .dialog-title {
+      font-size: 1.1em;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+    .dialog-close {
+      background: none;
+      border: none;
+      color: var(--text-color);
+      cursor: pointer;
+      font-size: 1.2em;
+      padding: 5px;
+      border-radius: 3px;
+    }
+    .dialog-close:hover {
+      background: var(--button-hover);
+    }
+    .dialog-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 10px;
+    }
+    .dialog-label {
+      min-width: 80px;
+      color: var(--text-color);
+      font-size: 0.9em;
+    }
+    .dialog-input {
+      flex: 1;
+      padding: 8px 12px;
+      background: var(--editor-bg);
+      color: var(--text-color);
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    .dialog-input:focus {
+      outline: none;
+      border-color: var(--accent-color);
+    }
+    .dialog-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 15px;
+      justify-content: flex-end;
+    }
+    .dialog-btn {
+      padding: 8px 16px;
+      background: var(--button-bg);
+      color: var(--text-color);
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9em;
+      transition: all 0.2s ease;
+    }
+    .dialog-btn:hover {
+      background: var(--button-hover);
+    }
+    .dialog-btn.primary {
+      background: var(--accent-color);
+      color: var(--bg-color);
+    }
+    .dialog-btn.primary:hover {
+      opacity: 0.9;
+    }
+    .dialog-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      display: none;
+    }
+    .dialog-overlay.active {
+      display: block;
+    }
+    .find-options {
+      display: flex;
+      gap: 15px;
+      margin-top: 10px;
+      font-size: 0.85em;
+    }
+    .find-option {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--text-color);
+    }
+    .find-option input[type="checkbox"] {
+      accent-color: var(--accent-color);
+    }
+
+    /* Custom scrollbar styles */
+    textarea::-webkit-scrollbar,
+    #preview::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    textarea::-webkit-scrollbar-track,
+    #preview::-webkit-scrollbar-track {
+      background: var(--bg-color);
+    }
+    textarea::-webkit-scrollbar-thumb,
+    #preview::-webkit-scrollbar-thumb {
+      background: var(--divider-color);
+      border-radius: 4px;
+    }
+    textarea::-webkit-scrollbar-thumb:hover,
+    #preview::-webkit-scrollbar-thumb:hover {
+      background: var(--button-hover);
+    }
+
+    /* Export styles for image generation */
+    .export-container {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px;
+      box-sizing: border-box;
+    }
+    
+    .export-container h1, .export-container h2, .export-container h3, 
+    .export-container h4, .export-container h5, .export-container h6 {
+      margin-top: 1.2em;
+      margin-bottom: 0.6em;
+      font-weight: 600;
+    }
+    
+    .export-container h1 { 
+      font-size: 2em; 
+      border-bottom: 2px solid currentColor; 
+      padding-bottom: 0.3em; 
+    }
+    
+    .export-container h2 { 
+      font-size: 1.7em; 
+      border-bottom: 1px solid currentColor; 
+      padding-bottom: 0.3em; 
+    }
+    
+    .export-container h3 { font-size: 1.4em; }
+    .export-container h4 { font-size: 1.2em; }
+    
+    .export-container p { 
+      margin: 1em 0; 
+      line-height: 1.7; 
+    }
+    
+    .export-container code {
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      font-family: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.9em;
+      background: rgba(128, 128, 128, 0.15);
+    }
+    
+    .export-container pre {
+      padding: 1em;
+      overflow: auto;
+      border-radius: 6px;
+      line-height: 1.45;
+      background: rgba(128, 128, 128, 0.1);
+      border: 1px solid rgba(128, 128, 128, 0.2);
+    }
+    
+    .export-container pre code {
+      background: transparent;
+      padding: 0;
+    }
+    
+    .export-container blockquote {
+      border-left: 4px solid currentColor;
+      margin: 1em 0;
+      padding: 0.5em 0 0.5em 1em;
+      background: rgba(128, 128, 128, 0.05);
+      border-radius: 0 4px 4px 0;
+      opacity: 0.9;
+    }
+    
+    .export-container table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1.5em 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    
+    .export-container table th, 
+    .export-container table td {
+      border: 1px solid rgba(128, 128, 128, 0.3);
+      padding: 0.75em 1em;
+      text-align: left;
+    }
+    
+    .export-container table th {
+      font-weight: 600;
+      background: rgba(128, 128, 128, 0.15);
+    }
+    
+    .export-container table tr:nth-child(even) {
+      background: rgba(128, 128, 128, 0.05);
+    }
+    
+    .export-container img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .export-container a {
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    
+    .export-container a:hover {
+      text-decoration: underline;
+      opacity: 0.8;
+    }
+    
+    .export-container ul, .export-container ol {
+      padding-left: 2em;
+      margin: 1em 0;
+    }
+    
+    .export-container li {
+      margin: 0.5em 0;
+      line-height: 1.6;
+    }
+    
+    .export-container hr {
+      border: 0;
+      height: 2px;
+      background: rgba(128, 128, 128, 0.3);
+      margin: 2em 0;
+      border-radius: 1px;
+    }
+    
+    .export-container .katex {
+      font-size: 1.1em;
+    }
+    
+    .export-container .katex-display {
+      margin: 1em 0;
+    }
+
+    /* Enhanced Prism.js styles for image export */
+    .export-container pre[class*="language-"] {
+      background: rgba(128, 128, 128, 0.1) !important;
+      color: #ccc !important;
+      border: 1px solid #444 !important;
+      border-radius: 6px !important;
+      padding: 1em !important;
+      margin: 1em 0 !important;
+      overflow: auto !important;
+      font-family: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace !important;
+      font-size: 0.9em !important;
+      line-height: 1.5 !important;
+    }
+
+    .export-container code[class*="language-"] {
+      color: #ccc !important;
+      background: none !important;
+      font-family: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace !important;
+      font-size: 0.9em !important;
+    }
+
+    /* Prism Tomorrow Night theme colors for export */
+    .export-container .token.comment,
+    .export-container .token.prolog,
+    .export-container .token.doctype,
+    .export-container .token.cdata {
+      color: #999 !important;
+    }
+
+    .export-container .token.punctuation {
+      color: #ccc !important;
+    }
+
+    .export-container .token.property,
+    .export-container .token.tag,
+    .export-container .token.boolean,
+    .export-container .token.number,
+    .export-container .token.constant,
+    .export-container .token.symbol,
+    .export-container .token.deleted {
+      color: #f2777a !important;
+    }
+
+    .export-container .token.selector,
+    .export-container .token.attr-name,
+    .export-container .token.string,
+    .export-container .token.char,
+    .export-container .token.builtin,
+    .export-container .token.inserted {
+      color: #99cc99 !important;
+    }
+
+    .export-container .token.operator,
+    .export-container .token.entity,
+    .export-container .token.url,
+    .export-container .language-css .token.string,
+    .export-container .style .token.string {
+      color: #67cdcc !important;
+    }
+
+    .export-container .token.atrule,
+    .export-container .token.attr-value,
+    .export-container .token.keyword {
+      color: #cc99cd !important;
+    }
+
+    .export-container .token.function,
+    .export-container .token.class-name {
+      color: #ffcc66 !important;
+    }
+
+    .export-container .token.regex,
+    .export-container .token.important,
+    .export-container .token.variable {
+      color: #f99157 !important;
+    }
+
+    .export-container .token.important,
+    .export-container .token.bold {
+      font-weight: bold !important;
+    }
+
+    .export-container .token.italic {
+      font-style: italic !important;
+    }
+
+    .export-container .token.entity {
+      cursor: help !important;
+    }
+
+    /* Light theme syntax highlighting for export */
+    .export-container.light-theme pre[class*="language-"] {
+      background: #f5f5f5 !important;
+      color: #333 !important;
+      border: 1px solid #ddd !important;
+    }
+
+    .export-container.light-theme code[class*="language-"] {
+      color: #333 !important;
+    }
+
+    .export-container.light-theme .token.comment,
+    .export-container.light-theme .token.prolog,
+    .export-container.light-theme .token.doctype,
+    .export-container.light-theme .token.cdata {
+      color: #708090 !important;
+    }
+
+    .export-container.light-theme .token.property,
+    .export-container.light-theme .token.tag,
+    .export-container.light-theme .token.boolean,
+    .export-container.light-theme .token.number,
+    .export-container.light-theme .token.constant,
+    .export-container.light-theme .token.symbol,
+    .export-container.light-theme .token.deleted {
+      color: #d73a49 !important;
+    }
+
+    .export-container.light-theme .token.selector,
+    .export-container.light-theme .token.attr-name,
+    .export-container.light-theme .token.string,
+    .export-container.light-theme .token.char,
+    .export-container.light-theme .token.builtin,
+    .export-container.light-theme .token.inserted {
+      color: #22863a !important;
+    }
+
+    .export-container.light-theme .token.operator,
+    .export-container.light-theme .token.entity,
+    .export-container.light-theme .token.url,
+    .export-container.light-theme .language-css .token.string,
+    .export-container.light-theme .style .token.string {
+      color: #005cc5 !important;
+    }
+
+    .export-container.light-theme .token.atrule,
+    .export-container.light-theme .token.attr-value,
+    .export-container.light-theme .token.keyword {
+      color: #d73a49 !important;
+    }
+
+    .export-container.light-theme .token.function,
+    .export-container.light-theme .token.class-name {
+      color: #6f42c1 !important;
+    }
+
+    .export-container.light-theme .token.regex,
+    .export-container.light-theme .token.important,
+    .export-container.light-theme .token.variable {
+      color: #e36209 !important;
+    }
+
+    
+  </style>
+</head>
+<body class="theme-dark">
+
+<header>
+  <h1><i class="fa-brands fa-markdown"></i><span class="header-text">Markdown Editor</span></h1>
+  <div class="toolbar">
+    <!-- Existing theme selector -->
+    <div class="theme-selector">
+      <button id="theme-btn"><i class="fas fa-palette"></i> <span>Theme</span></button>
+      <div class="theme-dropdown">
+        <button onclick="changeTheme('light')"><i class="fas fa-sun"></i> Light</button>
+        <button onclick="changeTheme('dark')"><i class="fas fa-moon"></i> Dark</button>
+        <button onclick="changeTheme('blue')"><i class="fas fa-droplet"></i> Blue</button>
+        <button onclick="changeTheme('dark-blue')"><i class="fas fa-stars"></i> Dark Blue</button>
+        <button onclick="changeTheme('deep-purple')"><i class="fas fa-mountain"></i> Deep Purple</button>
+        <button onclick="changeTheme('solarized')"><i class="fas fa-solar-panel"></i> Solarized</button>
+      </div>
+    </div>
+        <select id="mode-select">
+    <option value="live">Live</option>
+      <option value="manual">Manual</option>
+    </select>
+    <button id="toggle-view-btn" style="display: none;"><i class="fas fa-eye"></i> <span>Preview</span></button>
+    
+    <!-- New Download Dropdown -->
+<div class="download-selector">
+  <button id="download-btn" class="download-btn"><i class="fa-solid fa-download"></i> <span>Download</span></button>
+  <div class="download-dropdown">
+    <button onclick="saveFile()"><i class="fa-brands fa-markdown"></i>MD File</button>
+    <button onclick="exportHTML()"><i class="fas fa-file-code"></i> HTML</button>
+    <button onclick="exportPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+    <button onclick="exportImage()"><i class="fas fa-file-image"></i> Image</button>
+  </div>
+</div>
+
+  </div>
+</header>
+
+<main id="main" class="main-live">
+  <div class="editor-container" id="editor-container">
+    <div class="rich-toolbar">
+      <div class="toolbar-group">
+        <button class="toolbar-btn" onclick="openFile()" title="Open File"><i class="fas fa-folder-open"></i></button>
+        <input type="file" id="file-input" accept=".md,.txt" style="display: none;" onchange="handleFileLoad(event)">
+      </div>
+      <div class="toolbar-group">
+<button class="toolbar-btn" onclick="insertText('# ', '')" title="Heading 1" aria-label="Heading 1" style="padding:4px;">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <text x="3" y="18" font-family="monospace" font-weight="bold" font-size="18" fill="currentColor">H</text>
+    <text x="15" y="18" font-family="monospace" font-weight="bold" font-size="18" fill="currentColor">1</text>
+  </svg>
+</button>
+
+<button class="toolbar-btn" onclick="insertText('## ', '')" title="Heading 2" aria-label="Heading 2" style="padding:4px;">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <text x="3" y="18" font-family="monospace" font-weight="bold" font-size="18" fill="currentColor">H</text>
+    <text x="15" y="18" font-family="monospace" font-weight="bold" font-size="18" fill="currentColor">2</text>
+  </svg>
+</button>
+
+<button class="toolbar-btn" onclick="insertText('### ', '')" title="Heading 3" aria-label="Heading 3" style="padding:4px;">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <text x="3" y="18" font-family="monospace" font-weight="bold" font-size="18" fill="currentColor">H</text>
+    <text x="15" y="18" font-family="monospace" font-weight="bold" font-size="18" fill="currentColor">3</text>
+  </svg>
+</button>
+
+      </div>
+      <div class="toolbar-group">
+        <button class="toolbar-btn" onclick="wrapText('**', '**')" title="Bold"><i class="fas fa-bold"></i></button>
+        <button class="toolbar-btn" onclick="wrapText('*', '*')" title="Italic"><i class="fas fa-italic"></i></button>
+        <button class="toolbar-btn" onclick="wrapText('<u>', '</u>')" title="Underline"><i class="fas fa-underline"></i></button>
+        <button class="toolbar-btn" onclick="wrapText('~~', '~~')" title="Strikethrough"><i class="fas fa-strikethrough"></i></button>
+        <button class="toolbar-btn" onclick="wrapText('<mark>', '</mark>')" title="Highlight"><i class="fas fa-highlighter"></i></button>
+        <button class="toolbar-btn" onclick="wrapText('<sup>', '</sup>')" title="Superscript"><i class="fas fa-superscript"></i></button>
+        <button class="toolbar-btn" onclick="wrapText('<sub>', '</sub>')" title="Subscript"><i class="fas fa-subscript"></i></button>
+        <button class="toolbar-btn" onclick="wrapText('`', '`')" title="Inline Code"><i class="fas fa-code"></i></button>
+      </div>
+      <div class="toolbar-group">
+        <button class="toolbar-btn" onclick="insertText('- ', '')" title="Unordered List"><i class="fas fa-list-ul"></i></button>
+        <button class="toolbar-btn" onclick="insertText('1. ', '')" title="Ordered List"><i class="fas fa-list-ol"></i></button>
+        <button class="toolbar-btn" onclick="insertText('- [ ] ', '')" title="Task List"><i class="fas fa-tasks"></i></button>
+        <button class="toolbar-btn" onclick="insertText('---\n', '')" title="Horizontal Rule"><i class="fas fa-minus"></i></button>
+      </div>
+      <div class="toolbar-group">
+        <button class="toolbar-btn" onclick="insertText('> ', '')" title="Quote"><i class="fas fa-quote-left"></i></button>
+  <!-- Sticky Notes Dropdown -->
+<div class="sticky-note-dropdown">
+  <button class="toolbar-btn" onclick="toggleStickyNoteDropdown()" title="Sticky Notes">
+    <i class="fa-solid fa-note-sticky"></i>
+  </button>
+  <div class="sticky-note-dropdown-menu">
+    <button onclick="insertStickyNote('NOTE')"><i class="fas fa-info-circle"></i> Note</button>
+    <button onclick="insertStickyNote('TIP')"><i class="fas fa-lightbulb"></i> Tip</button>
+    <button onclick="insertStickyNote('IMPORTANT')"><i class="fas fa-exclamation-circle"></i> Important</button>
+    <button onclick="insertStickyNote('WARNING')"><i class="fas fa-exclamation-triangle"></i> Warning</button>
+    <button onclick="insertStickyNote('CAUTION')"><i class="fas fa-times-circle"></i> Caution</button>
+  </div>
+</div>
+        <button class="toolbar-btn" onclick="insertText('```\n', '\n```')" title="Code Block"><i class="fas fa-code"></i></button>
+        <button class="toolbar-btn" onclick="insertFootnote()" title="Footnote"><i class="fa-solid fa-info"></i></button>
+      </div>
+      <div class="toolbar-group">
+        <button class="toolbar-btn" onclick="insertText('[', '](url)')" title="Link"><i class="fas fa-link"></i></button>
+        <button class="toolbar-btn" onclick="openImageDialog()" title="Image"><i class="fas fa-image"></i></button>
+        <button class="toolbar-btn" onclick="insertTable()" title="Table"><i class="fas fa-table"></i></button>
+        <button class="toolbar-btn" onclick="insertMermaid()" title="Mermaid Diagram"><i class="fas fa-project-diagram"></i></button>
+      </div>
+      <div class="toolbar-group">
+        <button class="toolbar-btn" onclick="wrapText('$', '$')" title="Inline Math"><i class="fas fa-square-root-alt"></i></button>
+        <button class="toolbar-btn" onclick="wrapText('$$\n', '\n$$')" title="Display Math"><i class="fas fa-calculator"></i></button>
+                <!-- Symbol Picker -->
+      <div class="symbol-picker">
+        <button class="toolbar-btn" onclick="toggleSymbolPicker()" title="Insert Symbol">
+          <i class="fa-solid fa-atom"></i>
+        </button>
+        <div class="symbol-dropdown" id="symbolDropdown">
+          <div class="symbol-dropdown-header">
+            <span class="symbol-dropdown-title">Insert Symbol</span>
+            <button class="symbol-dropdown-close" onclick="closeSymbolPicker()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="symbol-categories">
+<button class="symbol-category-btn" onclick="showSymbolCategory('arrows')">Arrows</button>
+            <button class="symbol-category-btn" onclick="showSymbolCategory('superscript')">Superscript</button>
+            <button class="symbol-category-btn" onclick="showSymbolCategory('subscript')">Subscript</button>
+            <button class="symbol-category-btn" onclick="showSymbolCategory('math')">Math</button>
+            <button class="symbol-category-btn" onclick="showSymbolCategory('greek')">Greek</button>
+            <button class="symbol-category-btn" onclick="showSymbolCategory('logic')">Logic</button>
+            <button class="symbol-category-btn" onclick="showSymbolCategory('stars')">Stars</button>
+            <button class="symbol-category-btn" onclick="showSymbolCategory('shapes')">Shapes</button>
+            <button class="symbol-category-btn" onclick="showSymbolCategory('currency')">Currency</button>
+            <button class="symbol-category-btn" onclick="showSymbolCategory('technical')">Technical</button>
+            <button class="symbol-category-btn" onclick="showSymbolCategory('dingbats')">Dingbats</button>
+            <button class="symbol-category-btn" onclick="showSymbolCategory('blockElements')">BlockElements</button>
+            <button class="symbol-category-btn" onclick="showSymbolCategory('mathAlphabets')">MathAlphabets</button>
+            <button class="symbol-category-btn" onclick="showSymbolCategory('miscSymbols')">Misc Symbols</button>
+            <button class="symbol-category-btn" onclick="showSymbolCategory('games')">Games</button>
+            <button class="symbol-category-btn" onclick="showSymbolCategory('punctuation')">Punctuation</button>
+            <button class="symbol-category-btn" onclick="showSymbolCategory('quotesAndBrackets')">Quotes & Brackets</button>
+          </div>
+          <div class="symbol-content">
+            <div class="symbol-grid" id="symbolGrid">
+              <!-- Symbols will be populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <div class="toolbar-group">
+        <button class="toolbar-btn" onclick="findText()" title="Find"><i class="fas fa-search"></i></button>
+        <button class="toolbar-btn" onclick="selectAllText()" title="Select All"><i class="fa-solid fa-check-double"></i></button>
+        <button class="toolbar-btn" onclick="undoAction()" title="Undo"><i class="fas fa-undo"></i></button>
+        <button class="toolbar-btn" onclick="redoAction()" title="Redo"><i class="fas fa-redo"></i></button>
+      </div>
+    </div>
+    <div class="editor-wrapper">
+      <textarea id="editor" placeholder="# Welcome to Rich Markdown Editor!
+
+Start writing your markdown here with advanced features."></textarea>
+    </div>
+    <div class="status-bar">
+      <span class="word-count">Words: 0 | Characters: 0</span>
+      <span id="syntax-help"><i class="fas fa-question-circle"></i> Markdown Help</span>
+    </div>
+  </div>
+  <div class="preview-container" id="preview-container">
+    <div class="preview-toolbar">
+      <span>Preview</span>
+      <div class="preview-actions">
+        <button onclick="refreshPreview()"><i class="fas fa-sync-alt"></i></button>
+        <button onclick="toggleFullscreen()"><i class="fas fa-expand"></i></button>
+      </div>
+    </div>
+    <div id="preview"></div>
+  </div>
+</main>
+
+<!-- Footnote Insert Dialog -->
+<div class="footnote-dialog" id="footnote-dialog">
+  <div class="footnote-dialog-header">
+    <span class="footnote-dialog-title">Insert Footnote</span>
+    <button class="footnote-dialog-close" onclick="closeFootnoteDialog()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  
+  <div class="footnote-dialog-row">
+    <label class="footnote-dialog-label">Identifier:</label>
+    <input type="text" class="footnote-dialog-input" id="footnote-id" placeholder="Enter footnote identifier (letters/numbers only)">
+  </div>
+  
+  <div class="footnote-dialog-row">
+    <label class="footnote-dialog-label">Text:</label>
+    <textarea class="footnote-dialog-input" id="footnote-text" placeholder="Enter footnote text (Optional)"></textarea>
+  </div>
+  
+  <div class="footnote-dialog-actions">
+    <button class="footnote-dialog-btn" onclick="closeFootnoteDialog()">Cancel</button>
+    <button class="footnote-dialog-btn primary" onclick="insertFootnoteFromDialog()">Insert</button>
+  </div>
+</div>
+
+
+<!-- Image Insert Dialog -->
+<div class="image-dialog" id="image-dialog">
+  <div class="image-dialog-header">
+    <span class="image-dialog-title">Insert Image</span>
+    <button class="image-dialog-close" onclick="closeImageDialog()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  
+  <div class="image-dialog-row">
+    <label class="image-dialog-label">Image URL:</label>
+    <input type="text" class="image-dialog-input" id="image-url" placeholder="Enter image URL">
+  </div>
+  
+  <div class="image-dialog-row">
+    <label class="image-dialog-label">Alt Text:</label>
+    <input type="text" class="image-dialog-input" id="image-alt" placeholder="Enter alt text (Optional)">
+  </div>
+  
+  <div class="image-dialog-row">
+    <label class="image-dialog-label">Title:</label>
+    <input type="text" class="image-dialog-input" id="image-title" placeholder="Enter title (Optional)">
+  </div>
+  
+  <div class="image-dialog-row">
+    <label class="image-dialog-label">Link URL:</label>
+    <input type="text" class="image-dialog-input" id="image-link" placeholder="Enter link URL (Optional)">
+  </div>
+  
+  <div class="image-dialog-actions">
+    <button class="image-dialog-btn" onclick="closeImageDialog()">Cancel</button>
+    <button class="image-dialog-btn primary" onclick="insertImage()">Insert</button>
+  </div>
+</div>
+
+<!-- Table Insert Dialog -->
+<div class="table-dialog" id="table-dialog">
+  <div class="table-dialog-header">
+    <span class="table-dialog-title">Insert Table</span>
+    <button class="table-dialog-close" onclick="closeTableDialog()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  
+  <div class="table-dialog-row">
+    <label class="table-dialog-label">Columns:</label>
+    <input type="number" class="table-dialog-input" id="table-cols" min="1" max="10" value="3">
+  </div>
+  
+  <div class="table-dialog-row">
+    <label class="table-dialog-label">Rows:</label>
+    <input type="number" class="table-dialog-input" id="table-rows" min="1" max="20" value="3">
+  </div>
+  
+  <div class="table-dialog-actions">
+    <button class="table-dialog-btn" onclick="closeTableDialog()">Cancel</button>
+    <button class="table-dialog-btn primary" onclick="generateTable()">Insert</button>
+  </div>
+</div>
+
+<!-- Find and Replace Dialog -->
+<div class="dialog-overlay" id="dialog-overlay" onclick="closeFindReplaceDialog()"></div>
+<div class="find-replace-dialog" id="find-replace-dialog">
+  <div class="dialog-header">
+    <span class="dialog-title">Find and Replace</span>
+    <button class="dialog-close" onclick="closeFindReplaceDialog()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  
+  <div class="dialog-row">
+    <label class="dialog-label">Find:</label>
+    <input type="text" class="dialog-input" id="find-input" placeholder="Enter text to find">
+  </div>
+  
+  <div class="dialog-row">
+    <label class="dialog-label">Replace:</label>
+    <input type="text" class="dialog-input" id="replace-input" placeholder="Enter replacement text">
+  </div>
+  
+  <div class="find-options">
+    <label class="find-option">
+      <input type="checkbox" id="case-sensitive">
+      Case sensitive
+    </label>
+    <label class="find-option">
+      <input type="checkbox" id="whole-word">
+      Whole word
+    </label>
+  </div>
+  
+  <div class="dialog-actions">
+    <button class="dialog-btn" onclick="findNext()">Find Next</button>
+    <button class="dialog-btn" onclick="findPrevious()">Find Previous</button>
+    <button class="dialog-btn" onclick="replaceOne()">Replace</button>
+    <button class="dialog-btn primary" onclick="replaceAll()">Replace All</button>
+    <button class="dialog-btn" onclick="closeFindReplaceDialog()">Close</button>
+  </div>
+</div>
+
+<script>
+
+      // Symbol data organized by categories
+const symbolData = {
+    arrows: [
+        '↑', '↓', '←', '→', '⇧', '⇩', '⇦', '⇨', '↖', '↗', '↘', '↙', '↔', '↕',
+        '⟵', '⟶', '⟷', '⟸', '⟹', '⟺', '⟻', '⟼', '⟽', '⟾', '⟿',
+        '⇐', '⇒', '⇔', '⇑', '⇓', '⇕', '⇖', '⇗', '⇘', '⇙',
+        '↩', '↪', '↫', '↬', '↭', '↮', '↯', '↰', '↱', '↲', '↳', '↴', '↵', '↶', '↷', '↺', '↻',
+        '⇜', '⇝', '⇞', '⇟', '⇠', '⇢', '⇤', '⇥', '⇦', '⇨', '⇩', '⇪',
+        '⤴', '⤵', '⤶', '⤷', '⤸', '⤹', '⤺', '⤻', '⤼', '⤽', '⤾', '⤿',
+        '➔', '➙', '➚', '➘', '➜', '➝', '➞', '➟', '➠', '➡', '➢', '➣', '➤', '➥', '➦', '➧', '➨', '➩', '➪', '➫', '➬', '➭', '➮', '➯', '➱',
+        '⭠', '⭡', '⭢', '⭣', '⭤', '⭥', '⭦', '⭧', '⭨', '⭩', '⭪', '⭫', '⭬', '⭭', '⭮', '⭯', '⬆', '⬇', '⬅', '➡',
+        '⤈', '⤉', '⤊', '⤋', '⤌', '⤍', '↼', '⇀', '↤', '↦', '⟰', '⟱', '⟲', '⟳', '⟴', '⬰', '⬱', '⬲', '⬳', '⬴', '⬵', '⬶', '⬷', '⬸', '⬹', '⬺', '⬻', '⬼', '⬽', '⬾', '⬿'
+    ],
+
+    superscript: [
+        '⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹',
+        '⁺', '⁻', '⁼', '⁽', '⁾',
+        'ᵃ', 'ᵇ', 'ᶜ', 'ᵈ', 'ᵉ', 'ᶠ', 'ᵍ', 'ʰ', 'ⁱ', 'ʲ', 'ᵏ', 'ˡ', 'ᵐ', 'ⁿ', 'ᵒ', 'ᵖ', 'ʳ', 'ˢ', 'ᵗ', 'ᵘ', 'ᵛ', 'ʷ', 'ˣ', 'ʸ', 'ᶻ',
+        'ᴬ', 'ᴮ', 'ᴰ', 'ᴱ', 'ᴳ', 'ᴴ', 'ᴵ', 'ᴶ', 'ᴷ', 'ᴸ', 'ᴹ', 'ᴺ', 'ᴼ', 'ᴾ', 'ᴿ', 'ᵀ', 'ᵁ', 'ⱽ', 'ᵂ',
+        'ᶦ', 'ᶫ', 'ᶰ', 'ᶱ', 'ᶲ', 'ᶴ', 'ᶵ', 'ᶶ', 'ᶷ', 'ᶸ', 'ᶹ', 'ᶺ', 'ᶻ'
+    ],
+
+    subscript: [
+        '₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉',
+        '₊', '₋', '₌', '₍', '₎',
+        'ₐ', 'ₑ', 'ₕ', 'ᵢ', 'ⱼ', 'ₖ', 'ₗ', 'ₘ', 'ₙ', 'ₒ', 'ₚ', 'ᵣ', 'ₛ', 'ₜ', 'ᵤ', 'ᵥ', 'ₓ',
+        'ₔ', 'ᵦ', 'ᵧ', 'ᵨ', 'ᵩ', 'ᵪ'
+    ],
+
+    math: [
+        '±', '×', '÷', '−', '∙', '·', '√', '∛', '∜', '∞', 'π', 'ℏ', 'ℓ', '°', '℃', '℉', '‰', '‱', 'Ω', 'Ω', 'µ',
+        '=', '≠', '≈', '≡', '≅', '≃', '≜', '≥', '≤', '≪', '≫', '≮', '≯', '≰', '≱',
+        '∠', '∡', '∢', '∟', '⊾', '⊿', '∧', '∨', '∩', '∪', '∅', '∃', '∀', '∴', '∵',
+        '⊂', '⊃', '⊆', '⊇', '⊄', '⊅', '⊊', '⊋', '∫', '∬', '∭', '∮', '∯', '∰', '∱', '∲', '∳',
+        '⊕', '⊖', '⊗', '⊘', '⊙', '⊚', '⊛', '⊜', '⊝', '⊞', '⊟', '⊠', '⊡', '∇', '∂', '∑', '∏',
+        '⋄', '⋅', '⋆', '⋇', '⋈', '⋉', '⋊', '⋋', '⋌', '∥', '∦', '∷', '∸'
+    ],
+
+    greek: [
+        'α', 'β', 'γ', 'δ', 'ε', 'ζ', 'η', 'θ', 'ι', 'κ', 'λ', 'μ', 'ν', 'ξ',
+        'ο', 'π', 'ρ', 'σ', 'ς', 'τ', 'υ', 'φ', 'χ', 'ψ', 'ω',
+        'Α', 'Β', 'Γ', 'Δ', 'Ε', 'Ζ', 'Η', 'Θ', 'Ι', 'Κ', 'Λ', 'Μ', 'Ν', 'Ξ',
+        'Ο', 'Π', 'Ρ', 'Σ', 'Τ', 'Υ', 'Φ', 'Χ', 'Ψ', 'Ω',
+        'ϑ', 'ϕ', 'ϖ', 'ϱ', 'ϰ', 'ϵ', 'ϛ', 'ϝ'
+
+    ],
+
+    logic: [
+        '¬', '∧', '∨', '⇒', '⇔', '⊢', '⊨', '⊬', '⊭', '⊻', '⊼', '⊽',
+        '∀', '∃', '∄', '∈', '∉', '∋', '∌', '⊂', '⊃', '⊆', '⊇', '⊄', '⊅',
+        '⊊', '⊋', '⊏', '⊐', '⊑', '⊒', '⊓', '⊔', '⊕', '⊖', '⊗', '⊘', '⊙', '⊚'
+    ],
+
+    stars: [
+        '★', '☆', '✦', '✧', '✩', '✪', '✫', '✬', '✭', '✮', '✯', '✰', '✨', '🌟', '💫', '⚝'
+    ],
+
+    shapes: [
+        '■', '□', '▪', '▫', '▣', '▤', '▥', '▦', '▧', '▨', '▩',
+        '▲', '△', '▴', '▵', '▼', '▽', '▾', '▿',
+        '◆', '◇', '◈', '◉', '○', '◌', '◎', '●', '◍', '◐', '◑', '◒', '◓', '◔', '◕',
+        '⬤', '⯀', '⬛', '⬜', '◼', '◻', '⬟', '⬢', '⬣', '🔶', '🔷', '🔸', '🔹', '🔺', '🔻',
+        '⯁', '⯂', '⯃', '⯄', '⯅', '⯆', '⯇', '⯈', '⯉', '⯊', '⯋',
+        '🞀', '🞁', '🞂', '🞃', '🞄', '🞅'
+    ],
+
+    currency: [
+        '$', '¢', '£', '€', '¥', '₣', '₤', '₥', '₦', '₧', '₨', '₹', '₩', '₫', '₭', '₮', '₯', '₱', '₲', '₳', '₴', '₵', '₸', '₺', '₼', '₽',
+        '؋', '﷼', '₠', '¤', '₿', '🪙', '₢', '₡', '₪', '₰', '₻', '৳', '꠸', '៛'
+    ],
+
+    technical: [
+        '⌂', '⌘', '⌥', '⎋', '⏎', '⇪', '⏏', '⌫', '⌦', '⎆', '⍟', '⌧', '⎊', '⚙', '🖥', '⌨', '🖱', '🖲', '🖴',
+        '🖧', '🖨', '🖩', '🖫', '🖬', '🖭', '🖮', '🖯', '⏰', '⏱', '⏲', '🕰', '♩', '♪', '♫', '♬', '♭', '♯', '𝄞', '𝄢', '𝄡', '𝄫', '𝄪', '♮', '𝄐', '𝄑', '𝄒', '𝄓'
+    ],
+
+    dingbats: [
+        '✂', '✄', '✆', '✉', '✍', '✎', '✏', '✑', '✒', '✔', '✘', '✚', '✜', '✛', '✞', '✟', '✠', '✡', '✢', '✣', '✤', '✥', '✦', '✧', '★', '☆',
+        '✩', '✪', '✫', '✬', '✭', '✮', '✯', '✰', '⚗', '🜁', '🜂', '🜃', '🜄', '🜇', '🜈', '🜍', '🜔', '🜕', '🜚', '🜛', '🜜', '🜞'
+    ],
+
+    blockElements: [
+        '▀', '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█', '▉', '▊', '▋', '▌', '▍', '▎', '▏', '▐', '░', '▒', '▓',
+        '─', '│', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '╔', '╗', '╚', '╝', '╠', '╣', '╦', '╩', '╬', '═', '║', '╭', '╮', '╯', '╰',
+        '╒', '╓', '╕', '╖', '╘', '╙', '╛', '╜', '╞', '╟', '╡', '╢', '╤', '╥', '╧', '╨', '╪', '╫',
+    ],
+    miscSymbols: [
+        '☀', '☁', '☂', '☃', '☄', '★', '☆', '☇', '☈', '☉', '☊', '☋', '☌', '☍',
+        '☠', '☢', '☣', '☮', '☯', '☸', '☹', '☺', '☻', '☼', '☽', '☾', '♲', '♻', '✈', '⛏'
+    ],
+    games: [
+        '♔', '♕', '♖', '♗', '♘', '♙', '♚', '♛', '♜', '♝', '♞', '♟',
+        '♠', '♥', '♦', '♣', '🂡', '🂱', '🃁', '🃑'
+    ],
+    punctuation: [
+        '.', '…', '‥', '‧', '﹒', '﹐', '﹑', '﹒', '、', '。', '·', '•', '◦',
+        ',', ';', ';', ':', '⁚', '⁝', '⁞', '！', '‼', '❗', '❕', '？', '⁇', '⁈', '⁉', '々', '〆', '〤', '〇', '〒', '〄', '〓', '・', '〜', '〠'
+    ],
+
+    quotesAndBrackets: ['"', "'", '`', '´', '‘', '’', '‚', '‛', '“', '”', '„', '‟', '«', '»',
+        '‹', '›', '⟪', '⟫', '《', '》', '〈', '〉', '❛', '❜', '❝', '❞', '❮', '❯', '❟', '❠', '❢', '❣', '「', '」',
+        '『', '』', '﹁', '﹂', '﹃', '﹄', '｢', '｣', '〝', '〞', '〟', '〃', '⸂', '⸃', '⸄', '⸅', '⸆', '⸇', '⸉',
+        '⸊', '⸌', '⸍', '⸜', '⸝', '⸞', '⸟', '⁅', '⁆', '⸢', '⸣', '⸤', '⸥', '⸦', '⸧', '⸨', '⸩', '(', ')', '[', ']', '{', '}', '⟨', '⟩', '⟪', '⟫', '〈', '〉', '《', '》', '「', '」', '『', '』', '【', '】', '〔', '〕', '〖', '〗', '〘', '〙',
+        '（', '）', '［', '］', '｛', '｝', '﹁', '﹂', '﹃', '﹄', '⦃', '⦄', '⦅', '⦆', '⦇', '⦈', '⦉', '⦊', '⦋', '⦌', '⦍', '⦎',
+        '⦏', '⦐', '⦑', '⦒', '⦓', '⦔', '⦕', '⦖', '⦗', '⦘'
+    ],
+
+    mathAlphabets: [
+        '𝐀', '𝐁', '𝐂', '𝐃', '𝐄', '𝐅', '𝐆', '𝐇', '𝐈', '𝐉', '𝐊', '𝐋', '𝐌', '𝐍', '𝐎', '𝐏', '𝐐', '𝐑', '𝐒', '𝐓', '𝐔', '𝐕', '𝐖', '𝐗', '𝐘', '𝐙',
+        '𝑎', '𝑏', '𝑐', '𝑑', '𝑒', '𝑓', '𝑔', 'ℎ', '𝑖', '𝑗', '𝑘', '𝑙', '𝑚', '𝑛', '𝑜', '𝑝', '𝑞', '𝑟', '𝑠', '𝑡', '𝑢', '𝑣', '𝑤', '𝑥', '𝑦', '𝑧',
+        '𝒜', 'ℬ', '𝒞', '𝒟', 'ℰ', 'ℱ', '𝒢', 'ℋ', 'ℐ', 'ℒ', 'ℳ', '𝒩', '𝒪', '𝒫', '𝒬', 'ℛ', '𝒮', '𝒯', '𝒰', '𝒱', '𝒲', '𝒳', '𝒴', '𝒵',
+        '𝓪', '𝓫', '𝓬', '𝓭', '𝓮', '𝓯', '𝓰', '𝓱', '𝓲', '𝓳', '𝓴', '𝓵', '𝓶', '𝓷', '𝓸', '𝓹', '𝓺', '𝓻', '𝓼', '𝓽', '𝓾', '𝓿', '𝔀', '𝔁', '𝔂', '𝔃',
+        '𝔄', '𝔅', 'ℭ', '𝔇', '𝔈', '𝔉', '𝔊', 'ℌ', 'ℑ', '𝔍', '𝔎', '𝔏', '𝔐', '𝔑', '𝔒', '𝔓', '𝔔', 'ℜ', '𝔖', '𝔗', '𝔘', '𝔙', '𝔚', '𝔛', '𝔜', 'ℨ'
+    ]
+};
+
+    let isSymbolPickerOpen = false;
+        // Initialize symbol picker
+function initSymbolPicker() {
+  // Set arrows as default category and ensure it's visible
+  const arrowsBtn = document.querySelector('.symbol-category-btn[onclick*="arrows"]');
+  if (arrowsBtn) {
+    arrowsBtn.classList.add('active');
+    // Scroll the active button into view smoothly
+    arrowsBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+  showSymbolCategory('arrows');
+}
+
+    // Toggle symbol picker dropdown
+function toggleSymbolPicker() {
+  const dropdown = document.getElementById('symbolDropdown');
+  const symbolButton = event.target.closest('.toolbar-btn');
+  isSymbolPickerOpen = !isSymbolPickerOpen;
+  
+  if (isSymbolPickerOpen) {
+    dropdown.classList.add('active');
+    
+    // Get button and viewport dimensions
+    const buttonRect = symbolButton.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Check if mobile viewport
+    const isMobile = viewportWidth <= 768;
+    
+    if (isMobile) {
+      // For mobile, center the dropdown and ensure it fits
+      const dropdownWidth = Math.min(300, viewportWidth - 20);
+      const dropdownHeight = Math.min(350, viewportHeight - 100);
+      
+      // Center horizontally
+      const left = (viewportWidth - dropdownWidth) / 2;
+      
+      // Position vertically with preference for below button
+      let top = buttonRect.bottom + 5;
+      
+      // If doesn't fit below, position above
+      if (top + dropdownHeight > viewportHeight - 20) {
+        top = buttonRect.top - dropdownHeight - 5;
+        
+        // If still doesn't fit, position at top with reduced height
+        if (top < 20) {
+          top = 20;
+          dropdown.style.maxHeight = (viewportHeight - 40) + 'px';
+        }
+      } else {
+        dropdown.style.maxHeight = dropdownHeight + 'px';
+      }
+      
+      dropdown.style.left = left + 'px';
+      dropdown.style.top = top + 'px';
+      dropdown.style.width = dropdownWidth + 'px';
+      
+    } else {
+      // Desktop positioning logic
+      const dropdownWidth = 320;
+      const dropdownHeight = 400;
+      
+      let left = buttonRect.left;
+      let top = buttonRect.bottom + 2;
+      
+      // Adjust horizontal position if dropdown would overflow right
+      if (left + dropdownWidth > viewportWidth - 20) {
+        left = viewportWidth - dropdownWidth - 20;
+      }
+      
+      // Ensure dropdown doesn't go off left edge
+      if (left < 20) {
+        left = 20;
+      }
+      
+      // Adjust vertical position if dropdown would overflow bottom
+      if (top + dropdownHeight > viewportHeight - 20) {
+        top = buttonRect.top - dropdownHeight - 2;
+        
+        // If still doesn't fit above, position at top of viewport
+        if (top < 20) {
+          top = 20;
+          dropdown.style.maxHeight = (viewportHeight - 40) + 'px';
+        }
+      } else {
+        dropdown.style.maxHeight = '400px';
+      }
+      
+      dropdown.style.left = left + 'px';
+      dropdown.style.top = top + 'px';
+      dropdown.style.width = dropdownWidth + 'px';
+    }
+    
+    dropdown.style.right = 'auto';
+    dropdown.style.bottom = 'auto';
+    
+    document.addEventListener('click', handleSymbolPickerOutsideClick);
+  } else {
+    dropdown.classList.remove('active');
+    document.removeEventListener('click', handleSymbolPickerOutsideClick);
+  }
+}
+
+    // Close symbol picker
+    function closeSymbolPicker() {
+      const dropdown = document.getElementById('symbolDropdown');
+      dropdown.classList.remove('active');
+      isSymbolPickerOpen = false;
+      document.removeEventListener('click', handleSymbolPickerOutsideClick);
+    }
+
+
+    // Handle clicks outside symbol picker
+function handleSymbolPickerOutsideClick(event) {
+  const symbolPicker = document.querySelector('.symbol-picker');
+  const symbolDropdown = document.getElementById('symbolDropdown');
+  
+  // Check if click is outside both the button and dropdown
+  if (!symbolPicker.contains(event.target) && !symbolDropdown.contains(event.target)) {
+    closeSymbolPicker();
+  }
+}
+
+
+    // Show symbols for a specific category
+function showSymbolCategory(category) {
+  currentSymbolCategory = category;
+  
+  // Update active category button
+  document.querySelectorAll('.symbol-category-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // If called from an event, use the button that triggered it
+  let activeBtn;
+  if (event && event.target) {
+    activeBtn = event.target;
+    activeBtn.classList.add('active');
+  } else {
+    // Otherwise find the button for this category
+    activeBtn = document.querySelector(`.symbol-category-btn[onclick*="${category}"]`);
+    if (activeBtn) {
+      activeBtn.classList.add('active');
+    }
+  }
+  
+  // Scroll the active button into view smoothly
+  if (activeBtn) {
+    activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+  
+  // Populate symbol grid
+  const symbolGrid = document.getElementById('symbolGrid');
+  symbolGrid.innerHTML = '';
+  
+  const symbols = symbolData[category] || [];
+  symbols.forEach(symbol => {
+    const symbolItem = document.createElement('button');
+    symbolItem.className = 'symbol-item';
+    symbolItem.textContent = symbol;
+    symbolItem.title = `Insert ${symbol}`;
+    symbolItem.onclick = () => insertSymbol(symbol);
+    symbolGrid.appendChild(symbolItem);
+  });
+}
+
+    // Insert symbol at cursor position
+function insertSymbol(symbol) {
+  const editor = document.getElementById('editor');
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const text = editor.value;
+  
+  // Insert the symbol
+  editor.value = text.substring(0, start) + symbol + text.substring(end);
+  
+  // Move cursor after the inserted symbol
+  editor.selectionStart = editor.selectionEnd = start + symbol.length;
+  editor.focus();
+  
+  // Update preview
+  updatePreview();
+  
+  // Update word count
+  updateWordCount();
+}
+
+    function insertMermaid() {
+  const mermaidTemplate = 
+`\`\`\`mermaid
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Do something]
+    B -->|No| D[Do something else]
+    C --> E[End]
+    D --> E
+\`\`\``;
+  
+  insertText(mermaidTemplate, '');
+}
+
+
+  const editor = document.getElementById('editor');
+  const preview = document.getElementById('preview');
+  const modeSelect = document.getElementById('mode-select');
+  const toggleViewBtn = document.getElementById('toggle-view-btn');
+  const editorContainer = document.getElementById('editor-container');
+  const previewContainer = document.getElementById('preview-container');
+  const main = document.getElementById('main');
+  const wordCountEl = document.querySelector('.word-count');
+  const syntaxHelp = document.getElementById('syntax-help');
+
+  let isLivePreview = true;
+  let isPreviewVisible = false;
+  let undoStack = [];
+  let redoStack = [];
+  let currentContent = '';
+
+  // Configure marked for better markdown parsing
+marked.setOptions({
+  breaks: true,
+  gfm: true,
+  // Custom footnote handling
+  extensions: [
+    {
+      name: 'footnote',
+      level: 'block',
+      start(src) { return src.indexOf('[^'); },
+      tokenizer(src) {
+        // Support multi-line footnotes
+        const rule = /^\[\^([^\]]+)\]:\s+([\s\S]*?)(?=\n{2,}|\n\[\^|\n*$)/;
+        const match = rule.exec(src);
+        if (match) {
+          return {
+            type: 'footnote',
+            raw: match[0],
+            label: match[1],
+            text: match[2].replace(/\n\s+/g, ' ').trim(), // merge multi-line
+            tokens: []
+          };
+        }
+      },
+      renderer(token) {
+        return `<li id="fn-${token.label}">${token.text} <a href="#fnref-${token.label}" class="footnote-backref">↩</a></li>\n`;
+      }
+    }
+  ],
+  highlight: function(code, lang) {
+    if (lang && Prism.languages[lang]) {
+      return Prism.highlight(code, Prism.languages[lang], lang);
+    }
+    return code;
+  }
+});
+
+  // Initialize
+  function init() {
+    updateWordCount();
+    
+    
+    // Check if mobile device and set default to Manual Preview
+    if (window.innerWidth <= 768) {
+      modeSelect.value = 'manual';
+      isLivePreview = false;
+    }
+    
+    modeSelect.addEventListener('change', togglePreviewMode);
+    toggleViewBtn.addEventListener('click', toggleView);
+    editor.addEventListener('input', handleEditorInput);
+    editor.addEventListener('keydown', handleKeyDown);
+    syntaxHelp.addEventListener('click', showSyntaxHelp);
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    
+    // Initialize content and undo stack
+    currentContent = editor.value;
+    saveToUndoStack();
+    
+    // Set initial preview mode
+    togglePreviewMode();
+
+  }
+
+  function handleEditorInput() {
+    updateWordCount();
+    if (isLivePreview) {
+      updatePreview();
+    }
+    
+    // Save to undo stack if content changed significantly
+    if (Math.abs(editor.value.length - currentContent.length) > 10 || 
+        editor.value !== currentContent) {
+      saveToUndoStack();
+      currentContent = editor.value;
+    }
+  }
+
+  function saveToUndoStack() {
+    undoStack.push({
+      content: editor.value,
+      selectionStart: editor.selectionStart,
+      selectionEnd: editor.selectionEnd
+    });
+    if (undoStack.length > 50) {
+      undoStack.shift();
+    }
+    redoStack = [];
+  }
+
+// Insert blockquote based on type
+function toggleStickyNoteDropdown() {
+  const dropdown = document.querySelector('.sticky-note-dropdown-menu');
+  dropdown.classList.toggle('active');
+  
+  if (dropdown.classList.contains('active')) {
+    setTimeout(() => {
+      document.addEventListener('click', closeStickyNoteDropdownOutside);
+    }, 10);
+  } else {
+    document.removeEventListener('click', closeStickyNoteDropdownOutside);
+  }
+}
+
+function closeStickyNoteDropdown() {
+  const dropdown = document.querySelector('.sticky-note-dropdown-menu');
+  dropdown.classList.remove('active');
+  document.removeEventListener('click', closeStickyNoteDropdownOutside);
+}
+
+function closeStickyNoteDropdownOutside(event) {
+  const dropdown = document.querySelector('.sticky-note-dropdown');
+  if (!dropdown.contains(event.target)) {
+    closeStickyNoteDropdown();
+  }
+}
+
+function insertStickyNote(type) {
+  if (!type) return;
+  
+  const stickyNoteTemplates = {
+    'NOTE': ':::note\nThis is a note\n:::', 
+    'TIP': ':::tip\nThis is a tip\n:::',
+    'IMPORTANT': ':::important\nThis is important\n:::', 
+    'WARNING': ':::warning\nThis is a warning\n:::',
+    'CAUTION': ':::caution\nThis is a caution\n:::'
+  };
+  
+  const template = stickyNoteTemplates[type];
+  if (template) {
+    insertText(template, '');
+  }
+  
+  closeStickyNoteDropdown();
+}
+
+
+// Add this to the updatePreview function to handle blockquote rendering
+function updatePreview() {
+  let content = editor.value;
+
+  // Extract footnote definitions (multi-line safe)
+  const footnoteDefs = {};
+  const defRegex = /^\[\^([^\]]+)\]:\s+([\s\S]*?)(?=\n{2,}|\n\[\^|\n*$)/gm;
+  content = content.replace(defRegex, (match, id, text) => {
+    footnoteDefs[id] = text.replace(/\n\s+/g, ' ').trim();
+    return ''; // remove from main content
+  });
+
+  // First, handle GitHub-style blockquotes
+content = content.replace(/^:::(note|tip|important|warning|caution)\n([\s\S]*?)\n:::/gm, function(match, type, content) {
+    const cleanContent = content.trim();
+    const icons = {
+      'note': 'fas fa-info-circle',
+      'tip': 'fas fa-lightbulb',
+      'important': 'fas fa-exclamation-circle',
+      'warning': 'fas fa-exclamation-triangle',
+      'caution': 'fas fa-times-circle'
+    };
+    
+    const processedContent = cleanContent.split('\n').join('<br>');
+    
+    return `<div class="sticky-note ${type.toLowerCase()}">
+      <div class="sticky-note-title">
+        <i class="sticky-note-icon ${icons[type]}"></i>
+        ${type.toUpperCase()}
+      </div>
+      <div class="sticky-note-content">
+        ${processedContent}
+      </div>
+    </div>`;
+  });
+
+  // Process math expressions
+  content = content.replace(/\$\$([\s\S]*?)\$\$/g, (match, math) => {
+    try {
+      return katex.renderToString(math, { displayMode: true });
+    } catch (e) {
+      return `<span style="color: red;">Math Error: ${e.message}</span>`;
+    }
+  });
+
+  content = content.replace(/\$([^$\n]+?)\$/g, (match, math) => {
+    try {
+      return katex.renderToString(math, { displayMode: false });
+    } catch (e) {
+      return `<span style="color: red;">Math Error: ${e.message}</span>`;
+    }
+  });
+
+  // Parse markdown
+  let html = marked.parse(content);
+
+  // Replace footnote references
+  html = html.replace(/\[\^([^\]]+)\]/g, (match, id) => {
+    if (footnoteDefs[id]) {
+      return `<span class="footnote-ref"><a href="#fn-${id}" id="fnref-${id}">[${id}]</a></span>`;
+    }
+    return match;
+  });
+
+  // Add footnotes section
+  if (Object.keys(footnoteDefs).length > 0) {
+    let footnotesHtml = '<section class="footnotes"><ol>';
+    for (const [id, text] of Object.entries(footnoteDefs)) {
+      footnotesHtml += `<li id="fn-${id}"><span class="footnote-number">[${id}]</span> ${text} <a href="#fnref-${id}" class="footnote-backref">↩</a></li>`;
+    }
+    footnotesHtml += '</ol></section>';
+    html += footnotesHtml;
+  }
+
+  preview.innerHTML = html;
+
+  Prism.highlightAllUnder(preview);
+  renderMermaidDiagrams();
+}
+
+function insertFootnote() {
+  openFootnoteDialog();
+}
+
+function openFootnoteDialog() {
+  // If text is selected, pre-fill the footnote text
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const selectedText = editor.value.substring(start, end);
+  
+  if (selectedText) {
+    document.getElementById('footnote-text').value = selectedText;
+  } else {
+    document.getElementById('footnote-text').value = '';
+  }
+  
+  document.getElementById('footnote-id').value = '';
+  document.getElementById('footnote-dialog').classList.add('active');
+  document.getElementById('footnote-id').focus();
+}
+
+function closeFootnoteDialog() {
+  document.getElementById('footnote-dialog').classList.remove('active');
+}
+
+function insertFootnoteFromDialog() {
+  const id = document.getElementById('footnote-id').value.trim();
+  const text = document.getElementById('footnote-text').value.trim();
+  
+  if (!id) {
+    alert('Please enter a footnote identifier');
+    return;
+  }
+  
+  // Validate ID (letters/numbers only, no spaces)
+  if (!/^[a-zA-Z0-9]+$/.test(id)) {
+    alert('Identifier can only contain letters and numbers, no spaces or special characters');
+    return;
+  }
+  
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const content = editor.value;
+  
+  // Insert reference at cursor position
+  const referenceText = `[^${id}]`;
+  let definitionText = `\n\n[^${id}]: ${text}`;
+  
+  editor.value = content.substring(0, start) + 
+                 referenceText + 
+                 content.substring(end) + 
+                 definitionText;
+  
+  // Position cursor after the reference
+  editor.selectionStart = editor.selectionEnd = start + referenceText.length;
+  editor.focus();
+  
+  // Close dialog and update
+  closeFootnoteDialog();
+  updatePreview();
+  updateWordCount();
+}
+
+// Function to render Mermaid diagrams
+function renderMermaidDiagrams() {
+  // Initialize Mermaid with theme settings
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: getComputedStyle(document.body).getPropertyValue('--button-bg').trim(),
+      primaryBorderColor: getComputedStyle(document.body).getPropertyValue('--accent-color').trim(),
+      primaryTextColor: getComputedStyle(document.body).getPropertyValue('--text-color').trim(),
+      lineColor: getComputedStyle(document.body).getPropertyValue('--accent-color').trim(),
+      textColor: getComputedStyle(document.body).getPropertyValue('--text-color').trim(),
+    }
+  });
+
+  // Find all Mermaid code blocks
+  const mermaidBlocks = preview.querySelectorAll('code.language-mermaid');
+  
+  mermaidBlocks.forEach(block => {
+    // Create a container div for the diagram
+    const diagramDiv = document.createElement('div');
+    diagramDiv.className = 'mermaid';
+    diagramDiv.textContent = block.textContent;
+    
+    // Replace the code block with the diagram container
+    block.parentNode.replaceWith(diagramDiv);
+  });
+  
+  // Render the diagrams
+  mermaid.init(undefined, preview.querySelectorAll('.mermaid'));
+}
+
+  function togglePreviewMode() {
+    isLivePreview = modeSelect.value === 'live';
+    
+    if (isLivePreview) {
+      // Live Preview: Show both editor and preview side by side
+      main.className = 'main-live';
+      toggleViewBtn.style.display = 'none';
+      editorContainer.classList.remove('hidden');
+      previewContainer.classList.remove('active');
+      updatePreview();
+    } else {
+      // Manual Preview: Show only editor (full width)
+      main.className = 'main-manual';
+      toggleViewBtn.style.display = 'block';
+      editorContainer.classList.remove('hidden');
+      previewContainer.classList.remove('active');
+      isPreviewVisible = false;
+      toggleViewBtn.innerHTML = '<i class="fas fa-eye"></i> Preview';
+    }
+  }
+
+  document.querySelector('.download-selector').addEventListener('mouseenter', function() {
+  const dropdown = this.querySelector('.download-dropdown');
+  if (dropdown) {
+    // For mobile, ensure dropdown stays within viewport
+    if (window.innerWidth <= 768) {
+      const rect = this.getBoundingClientRect();
+      const dropdownWidth = dropdown.offsetWidth;
+      
+      // Check if dropdown would go off-screen to the right
+      if (rect.left + dropdownWidth > window.innerWidth) {
+        dropdown.style.left = 'auto';
+        dropdown.style.right = '0';
+      } else {
+        dropdown.style.left = '0';
+        dropdown.style.right = 'auto';
+      }
+    }
+  }
+});
+
+  function toggleView() {
+    if (isLivePreview) return;
+    
+    isPreviewVisible = !isPreviewVisible;
+    
+    if (isPreviewVisible) {
+      // Show Preview ONLY (full screen)
+      editorContainer.classList.add('hidden');
+      previewContainer.classList.add('active');
+      toggleViewBtn.innerHTML = '<i class="fas fa-edit"></i> Editor';
+      updatePreview();
+    } else {
+      // Show Editor ONLY (full screen)
+      editorContainer.classList.remove('hidden');
+      previewContainer.classList.remove('active');
+      toggleViewBtn.innerHTML = '<i class="fas fa-eye"></i> Preview';
+    }
+  }
+
+  function refreshPreview() {
+    updatePreview();
+  }
+
+  function updateWordCount() {
+    const text = editor.value;
+    const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+    const charCount = text.length;
+    wordCountEl.textContent = `Words: ${wordCount} | Characters: ${charCount}`;
+  }
+
+  // Rich toolbar functions
+  function insertText(before, after) {
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const text = editor.value;
+    const selectedText = text.substring(start, end);
+    
+    const newText = text.substring(0, start) + before + selectedText + after + text.substring(end);
+    editor.value = newText;
+    
+    // Set cursor position
+    const newCursorPos = start + before.length + selectedText.length + after.length;
+    editor.setSelectionRange(newCursorPos, newCursorPos);
+    editor.focus();
+    
+    handleEditorInput();
+  }
+
+  function wrapText(before, after) {
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const text = editor.value;
+    const selectedText = text.substring(start, end);
+    
+    if (selectedText) {
+      const newText = text.substring(0, start) + before + selectedText + after + text.substring(end);
+      editor.value = newText;
+      editor.setSelectionRange(start + before.length, start + before.length + selectedText.length);
+    } else {
+      const newText = text.substring(0, start) + before + after + text.substring(end);
+      editor.value = newText;
+      editor.setSelectionRange(start + before.length, start + before.length);
+    }
+    
+    editor.focus();
+    handleEditorInput();
+  }
+
+function insertTable() {
+  openTableDialog();
+}
+
+function openTableDialog() {
+  document.getElementById('table-dialog').classList.add('active');
+  document.getElementById('table-cols').focus();
+}
+
+function closeTableDialog() {
+  document.getElementById('table-dialog').classList.remove('active');
+}
+
+function generateTable() {
+  const numCols = parseInt(document.getElementById('table-cols').value) || 3;
+  const numRows = parseInt(document.getElementById('table-rows').value) || 3;
+  
+  // Validate inputs
+  const validatedCols = Math.min(Math.max(numCols, 1), 10);
+  const validatedRows = Math.min(Math.max(numRows, 1), 20);
+  
+  // Generate header row
+  let tableText = "|";
+  for (let i = 1; i <= validatedCols; i++) {
+    tableText += ` Header ${i} |`;
+  }
+  
+  // Generate separator row
+  tableText += "\n|";
+  for (let i = 1; i <= validatedCols; i++) {
+    tableText += "---------|";
+  }
+  
+  // Generate data rows
+  for (let r = 1; r <= validatedRows; r++) {
+    tableText += "\n|";
+    for (let c = 1; c <= validatedCols; c++) {
+      tableText += ` Data ${r},${c} |`;
+    }
+  }
+  
+  // Add newline at end
+  tableText += "\n\n";
+  
+  insertText(tableText, '');
+  closeTableDialog();
+}
+
+function openImageDialog() {
+  document.getElementById('image-url').value = '';
+  document.getElementById('image-alt').value = '';
+  document.getElementById('image-title').value = '';
+  document.getElementById('image-link').value = '';
+  document.getElementById('image-dialog').classList.add('active');
+  document.getElementById('image-url').focus();
+}
+
+function closeImageDialog() {
+  document.getElementById('image-dialog').classList.remove('active');
+}
+
+function insertImage() {
+  const url = document.getElementById('image-url').value.trim();
+  const altText = document.getElementById('image-alt').value.trim();
+  const title = document.getElementById('image-title').value.trim();
+  const linkUrl = document.getElementById('image-link').value.trim();
+  
+  // Determine what to insert based on the inputs
+  let imageMarkdown;
+  
+  // Basic image syntax
+  if (!title) {
+    imageMarkdown = `![${altText}](${url})`;
+  } else {
+    imageMarkdown = `![${altText}](${url} "${title}")`;
+  }
+  
+  // If link URL is provided, wrap the image in a link
+  if (linkUrl) {
+    imageMarkdown = `[${imageMarkdown}](${linkUrl})`;
+  }
+  
+  // Insert at cursor position
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const text = editor.value;
+  
+  editor.value = text.substring(0, start) + imageMarkdown + text.substring(end);
+  
+  // Position cursor appropriately
+  if (!url && !linkUrl) {
+    // If both URL and link URL are empty, position cursor between the parentheses
+    editor.selectionStart = editor.selectionEnd = start + imageMarkdown.length - 1;
+  } else if (url && !linkUrl) {
+    // If only link URL is empty, position cursor after the image
+    editor.selectionStart = editor.selectionEnd = start + imageMarkdown.length;
+  } else if (!url && linkUrl) {
+    // If only image URL is empty, position cursor between the image parentheses
+    const imagePartLength = imageMarkdown.indexOf('](') + 2;
+    editor.selectionStart = editor.selectionEnd = start + imagePartLength;
+  } else {
+    // If both URLs are provided, position cursor after the whole thing
+    editor.selectionStart = editor.selectionEnd = start + imageMarkdown.length;
+  }
+  
+  editor.focus();
+  
+  // Clear the dialog inputs
+  document.getElementById('image-url').value = '';
+  document.getElementById('image-alt').value = '';
+  document.getElementById('image-title').value = '';
+  document.getElementById('image-link').value = '';
+  
+  closeImageDialog();
+  updatePreview();
+  updateWordCount();
+}
+
+  function undoAction() {
+    if (undoStack.length > 1) {
+      const current = undoStack.pop();
+      redoStack.push(current);
+      const previous = undoStack[undoStack.length - 1];
+      editor.value = previous.content;
+      editor.setSelectionRange(previous.selectionStart, previous.selectionEnd);
+      currentContent = editor.value;
+      handleEditorInput();
+    }
+  }
+
+  function redoAction() {
+    if (redoStack.length > 0) {
+      const next = redoStack.pop();
+      undoStack.push(next);
+      editor.value = next.content;
+      editor.setSelectionRange(next.selectionStart, next.selectionEnd);
+      currentContent = editor.value;
+      handleEditorInput();
+    }
+  }
+
+  function handleKeyDown(e) {
+    // Tab handling
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      
+      if (e.shiftKey) {
+        // Shift+Tab: Remove indentation
+        const lines = editor.value.split('\n');
+        const startLine = editor.value.substring(0, start).split('\n').length - 1;
+        const endLine = editor.value.substring(0, end).split('\n').length - 1;
+        
+        for (let i = startLine; i <= endLine; i++) {
+          if (lines[i].startsWith('  ')) {
+            lines[i] = lines[i].substring(2);
+          } else if (lines[i].startsWith('\t')) {
+            lines[i] = lines[i].substring(1);
+          }
+        }
+        
+        editor.value = lines.join('\n');
+      } else {
+        // Tab: Add indentation
+        editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+        editor.setSelectionRange(start + 2, start + 2);
+      }
+      
+      handleEditorInput();
+    }
+  }
+
+  function handleGlobalKeyDown(e) {
+  // Close symbol picker if any key is pressed (except when inside the picker)
+  if (isSymbolPickerOpen && !e.ctrlKey && !e.metaKey && 
+      !document.querySelector('.symbol-dropdown').contains(e.target)) {
+    closeSymbolPicker();
+    return;
+  }
+
+    if (e.key === 'Escape' && document.getElementById('table-dialog').classList.contains('active')) {
+    closeTableDialog();
+    e.preventDefault();
+  }
+
+  // Global shortcuts
+  if (e.ctrlKey || e.metaKey) {
+    switch (e.key) {
+      case 's':
+        e.preventDefault();
+        saveFile();
+        break;
+      case 'o':
+        e.preventDefault();
+        openFile();
+        break;
+      case 'f':
+        if (document.activeElement === editor) {
+          e.preventDefault();
+          findText();
+        }
+        break;
+      case 'a':
+        if (document.activeElement === editor) {
+          e.preventDefault();
+          selectAllText();
+        }
+        break;
+      case 'z':
+        if (!e.shiftKey) {
+          e.preventDefault();
+          undoAction();
+        }
+        break;
+      case 'y':
+      case 'Z':
+        if (e.shiftKey) {
+          e.preventDefault();
+          redoAction();
+        }
+        break;
+      case 'b':
+        if (document.activeElement === editor) {
+          e.preventDefault();
+          wrapText('**', '**');
+        }
+        break;
+      case 'i':
+        if (document.activeElement === editor) {
+          e.preventDefault();
+          wrapText('*', '*');
+        }
+        break;
+      case 'u':
+        if (document.activeElement === editor) {
+          e.preventDefault();
+          wrapText('<u>', '</u>');
+        }
+        break;
+    }
+  }
+}
+
+function showSyntaxHelp() {
+  const url = "https://raw.githubusercontent.com/mish0as/md-editor/refs/heads/main/help.text";
+
+  fetch(url)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Failed to load help file.");
+      }
+      return response.text();
+    })
+    .then(helpText => {
+      if (editor.value.trim() === '') {
+        editor.value = helpText;
+      } else {
+        editor.value = helpText + '\n\n' + editor.value;
+      }
+      editor.focus();
+      updatePreview();
+      updateWordCount();
+    })
+    .catch(error => {
+      alert("Error loading help text: " + error.message);
+    });
+}
+
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      previewContainer.requestFullscreen().catch(err => {
+        alert(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  function changeTheme(themeName) {
+    document.body.className = 'theme-' + themeName;
+    // Update preview to reflect new theme colors
+    if (isLivePreview || isPreviewVisible) {
+      updatePreview();
+    }
+  }
+
+  // New toolbar functions
+  function saveFile() {
+    const content = editor.value;
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'document.md';
+    link.click();
+  }
+
+  function openFile() {
+    document.getElementById('file-input').click();
+  }
+
+  function handleFileLoad(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        editor.value = e.target.result;
+        updateWordCount();
+        if (isLivePreview) {
+          updatePreview();
+        }
+        saveToUndoStack();
+        currentContent = editor.value;
+      };
+      reader.readAsText(file);
+    }
+  }
+
+
+  // Find and Replace functionality
+  let currentSearchIndex = -1;
+  let searchMatches = [];
+  let lastSearchTerm = '';
+
+  function findText() {
+    openFindReplaceDialog();
+  }
+
+  function openFindReplaceDialog() {
+    document.getElementById('dialog-overlay').classList.add('active');
+    document.getElementById('find-replace-dialog').classList.add('active');
+    document.getElementById('find-input').focus();
+    
+    // If there's selected text, use it as the search term
+    const selectedText = editor.value.substring(editor.selectionStart, editor.selectionEnd);
+    if (selectedText) {
+      document.getElementById('find-input').value = selectedText;
+    }
+  }
+
+  function closeFindReplaceDialog() {
+    document.getElementById('dialog-overlay').classList.remove('active');
+    document.getElementById('find-replace-dialog').classList.remove('active');
+    editor.focus();
+    clearHighlights();
+  }
+
+  function buildSearchRegex(searchTerm) {
+    const caseSensitive = document.getElementById('case-sensitive').checked;
+    const wholeWord = document.getElementById('whole-word').checked;
+    
+    let pattern = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special characters
+    
+    if (wholeWord) {
+      pattern = '\\b' + pattern + '\\b';
+    }
+    
+    const flags = caseSensitive ? 'g' : 'gi';
+    return new RegExp(pattern, flags);
+  }
+
+  function findMatches(searchTerm) {
+    if (!searchTerm) return [];
+    
+    const regex = buildSearchRegex(searchTerm);
+    const content = editor.value;
+    const matches = [];
+    let match;
+    
+    while ((match = regex.exec(content)) !== null) {
+      matches.push({
+        index: match.index,
+        length: match[0].length,
+        text: match[0]
+      });
+      
+      // Prevent infinite loop on zero-length matches
+      if (match.index === regex.lastIndex) {
+        regex.lastIndex++;
+      }
+    }
+    
+    return matches;
+  }
+
+  function highlightMatch(matchIndex) {
+    if (matchIndex >= 0 && matchIndex < searchMatches.length) {
+      const match = searchMatches[matchIndex];
+      editor.focus();
+      editor.setSelectionRange(match.index, match.index + match.length);
+      
+      // Scroll to the match
+      const lineHeight = parseInt(getComputedStyle(editor).lineHeight);
+      const lines = editor.value.substring(0, match.index).split('\n').length;
+      editor.scrollTop = Math.max(0, (lines - 5) * lineHeight);
+    }
+  }
+
+  function clearHighlights() {
+    // Clear any existing highlights
+    searchMatches = [];
+    currentSearchIndex = -1;
+  }
+
+  function findNext() {
+    const searchTerm = document.getElementById('find-input').value;
+    if (!searchTerm) return;
+    
+    if (searchTerm !== lastSearchTerm) {
+      searchMatches = findMatches(searchTerm);
+      lastSearchTerm = searchTerm;
+      currentSearchIndex = -1;
+    }
+    
+    if (searchMatches.length === 0) {
+      alert('Text not found');
+      return;
+    }
+    
+    currentSearchIndex = (currentSearchIndex + 1) % searchMatches.length;
+    highlightMatch(currentSearchIndex);
+  }
+
+  function findPrevious() {
+    const searchTerm = document.getElementById('find-input').value;
+    if (!searchTerm) return;
+    
+    if (searchTerm !== lastSearchTerm) {
+      searchMatches = findMatches(searchTerm);
+      lastSearchTerm = searchTerm;
+      currentSearchIndex = searchMatches.length;
+    }
+    
+    if (searchMatches.length === 0) {
+      alert('Text not found');
+      return;
+    }
+    
+    currentSearchIndex = currentSearchIndex <= 0 ? searchMatches.length - 1 : currentSearchIndex - 1;
+    highlightMatch(currentSearchIndex);
+  }
+
+  function replaceOne() {
+    const searchTerm = document.getElementById('find-input').value;
+    const replaceTerm = document.getElementById('replace-input').value;
+    
+    if (!searchTerm) return;
+    
+    if (searchMatches.length === 0) {
+      findNext();
+      return;
+    }
+    
+    if (currentSearchIndex >= 0 && currentSearchIndex < searchMatches.length) {
+      const match = searchMatches[currentSearchIndex];
+      const content = editor.value;
+      
+      // Replace the current match
+      const newContent = content.substring(0, match.index) + 
+                        replaceTerm + 
+                        content.substring(match.index + match.length);
+      
+      editor.value = newContent;
+      
+      // Update cursor position
+      editor.setSelectionRange(match.index + replaceTerm.length, match.index + replaceTerm.length);
+      
+      // Refresh matches after replacement
+      const lengthDiff = replaceTerm.length - match.length;
+      searchMatches = findMatches(searchTerm);
+      
+      // Adjust current index
+      if (currentSearchIndex < searchMatches.length) {
+        highlightMatch(currentSearchIndex);
+      } else if (searchMatches.length > 0) {
+        currentSearchIndex = 0;
+        highlightMatch(currentSearchIndex);
+      }
+      
+      handleEditorInput();
+    }
+  }
+
+  function replaceAll() {
+    const searchTerm = document.getElementById('find-input').value;
+    const replaceTerm = document.getElementById('replace-input').value;
+    
+    if (!searchTerm) return;
+    
+    const regex = buildSearchRegex(searchTerm);
+    const content = editor.value;
+    const newContent = content.replace(regex, replaceTerm);
+    
+    if (newContent !== content) {
+      const replacementCount = (content.match(regex) || []).length;
+      editor.value = newContent;
+      editor.focus();
+      handleEditorInput();
+      alert(`Replaced ${replacementCount} occurrence(s)`);
+      
+      // Clear search state
+      searchMatches = [];
+      currentSearchIndex = -1;
+      lastSearchTerm = '';
+    } else {
+      alert('Text not found');
+    }
+  }
+
+  // Add keyboard support for the dialog
+  document.addEventListener('keydown', function(e) {
+    const dialog = document.getElementById('find-replace-dialog');
+    if (dialog.classList.contains('active')) {
+      if (e.key === 'Escape') {
+        closeFindReplaceDialog();
+      } else if (e.key === 'Enter') {
+        if (e.shiftKey) {
+          findPrevious();
+        } else {
+          findNext();
+        }
+      } else if (e.key === 'F3') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          findPrevious();
+        } else {
+          findNext();
+        }
+      }
+    }
+  });
+
+  function selectAllText() {
+    editor.focus();
+    editor.select();
+  }
+
+function exportHTML() {
+  const tempDiv = document.createElement('div');
+  let content = editor.value;
+
+    // Process math expressions
+    content = content.replace(/\$\$([\s\S]*?)\$\$/g, (match, math) => {
+      try {
+        return katex.renderToString(math, { displayMode: true });
+      } catch (e) {
+        return `<span style="color: red;">Math Error: ${e.message}</span>`;
+      }
+    });
+    
+    content = content.replace(/\$([^$\n]+?)\$/g, (match, math) => {
+      try {
+        return katex.renderToString(math, { displayMode: false });
+      } catch (e) {
+        return `<span style="color: red;">Math Error: ${e.message}</span>`;
+      }
+    });
+
+  // Extract footnote definitions (multi-line support)
+  const footnoteDefs = {};
+  const defRegex = /^\[\^([^\]]+)\]:\s+([\s\S]*?)(?=\n{2,}|\n\[\^|\n*$)/gm;
+  content = content.replace(defRegex, (match, id, text) => {
+    footnoteDefs[id] = text.replace(/\n\s+/g, ' ').trim(); // merge multiline
+    return ''; // remove from main content
+  });
+
+  content = content.replace(/^:::(note|tip|important|warning|caution)\n([\s\S]*?)\n:::/gm, function(match, type, content) {
+    const cleanContent = content.trim();
+    const icons = {
+      'note': 'fas fa-info-circle',
+      'tip': 'fas fa-lightbulb',
+      'important': 'fas fa-exclamation-circle',
+      'warning': 'fas fa-exclamation-triangle',
+      'caution': 'fas fa-times-circle'
+    };
+    
+    const processedContent = cleanContent.split('\n').join('<br>');
+    
+    return `<div class="sticky-note ${type.toLowerCase()}">
+      <div class="sticky-note-title">
+        <i class="sticky-note-icon ${icons[type]}"></i>
+        ${type.toUpperCase()}
+      </div>
+      <div class="sticky-note-content">
+        ${processedContent}
+      </div>
+    </div>`;
+  });
+  // Parse markdown
+  let html = marked.parse(content);
+  
+  // Replace footnote references with original IDs, no renumbering
+  html = html.replace(/\[\^([^\]]+)\]/g, (match, id) => {
+    if (footnoteDefs[id]) {
+      return `<span class="footnote-ref"><a href="#fn-${id}" id="fnref-${id}">[${id}]</a></span>`;
+    }
+    return match;
+  });
+
+  // Footnotes list - keep original IDs
+  if (Object.keys(footnoteDefs).length > 0) {
+    let footnotesHtml = '<section class="footnotes"><ol>';
+    for (const [id, text] of Object.entries(footnoteDefs)) {
+      footnotesHtml += `<li id="fn-${id}"><span class="footnote-number">[${id}]</span> ${text} <a href="#fnref-${id}" class="footnote-backref">↩</a></li>`;
+    }
+    footnotesHtml += '</ol></section>';
+    html += footnotesHtml;
+  }
+
+  tempDiv.innerHTML = html;
+  Prism.highlightAllUnder(tempDiv);
+
+  // Convert Mermaid code blocks
+  const mermaidBlocks = tempDiv.querySelectorAll('code.language-mermaid');
+  mermaidBlocks.forEach(block => {
+      const diagramDiv = document.createElement('div');
+      diagramDiv.className = 'mermaid';
+      diagramDiv.textContent = block.textContent;
+      block.parentNode.replaceWith(diagramDiv);
+  });
+
+  // Define sticky note colors for export
+  const stickyNoteColors = {
+    note: { bg: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' },
+    tip: { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981' },
+    important: { bg: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' },
+    warning: { bg: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' },
+    caution: { bg: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }
+  };
+
+  const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Markdown Export</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"><\/script>
+<style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #ffffff;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      color: #2c3e50;
+      margin-top: 1.2em;
+      margin-bottom: 0.6em;
+    }
+    h1 { font-size: 2em; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
+    h2 { font-size: 1.7em; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
+    h3 { font-size: 1.4em; }
+    h4 { font-size: 1.2em; }
+    p { margin: 1em 0; line-height: 1.7; }
+    code {
+      background: #f5f5f5;
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      font-family: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.9em;
+      color: #d63384;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 1em;
+      overflow: auto;
+      border-radius: 4px;
+      line-height: 1.45;
+      margin: 1em 0;
+      border: 1px solid #e1e1e1;
+    }
+
+    blockquote {
+      border-left: 4px solid #3498db;
+      margin: 1em 0;
+      padding-left: 1em;
+      color: #555;
+      background: #f9f9f9;
+      padding: 10px 15px;
+      border-radius: 0 4px 4px 0;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: #333;
+    }
+    
+    /* Sticky Notes styles */
+    .sticky-note {
+      padding: 16px 20px;
+      margin: 16px 0;
+      border-radius: 8px;
+      position: relative;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+    }
+
+    .sticky-note.note {
+      background-color: ${stickyNoteColors.note.bg};
+      border-left: 4px solid ${stickyNoteColors.note.color};
+    }
+
+    .sticky-note.tip {
+      background-color: ${stickyNoteColors.tip.bg};
+      border-left: 4px solid ${stickyNoteColors.tip.color};
+    }
+
+    .sticky-note.important {
+      background-color: ${stickyNoteColors.important.bg};
+      border-left: 4px solid ${stickyNoteColors.important.color};
+    }
+
+    .sticky-note.warning {
+      background-color: ${stickyNoteColors.warning.bg};
+      border-left: 4px solid ${stickyNoteColors.warning.color};
+    }
+
+    .sticky-note.caution {
+      background-color: ${stickyNoteColors.caution.bg};
+      border-left: 4px solid ${stickyNoteColors.caution.color};
+    }
+
+    .sticky-note-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.95em;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .sticky-note.note .sticky-note-title {
+      color: ${stickyNoteColors.note.color};
+    }
+
+    .sticky-note.tip .sticky-note-title {
+      color: ${stickyNoteColors.tip.color};
+    }
+
+    .sticky-note.important .sticky-note-title {
+      color: ${stickyNoteColors.important.color};
+    }
+
+    .sticky-note.warning .sticky-note-title {
+      color: ${stickyNoteColors.warning.color};
+    }
+
+    .sticky-note.caution .sticky-note-title {
+      color: ${stickyNoteColors.caution.color};
+    }
+
+    .sticky-note-icon {
+      font-size: 1.1em;
+    }
+
+    .sticky-note-content {
+      color: #333;
+      font-weight: normal;
+      line-height: 1.6;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .sticky-note-content p {
+      margin: 0;
+    }
+
+    .sticky-note-content p:not(:last-child) {
+      margin-bottom: 8px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1.5em 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    table th, table td {
+      border: 1px solid #ddd;
+      padding: 0.75em 1em;
+      text-align: left;
+    }
+    table th {
+      background: #f5f5f5;
+      font-weight: 600;
+    }
+    table tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    table tr:hover {
+      background: #f1f1f1;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    a {
+      color: #3498db;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    a:hover {
+      color: #1d6fa5;
+      text-decoration: underline;
+    }
+    ul, ol {
+      padding-left: 2em;
+      margin: 1em 0;
+    }
+    li {
+      margin: 0.5em 0;
+      line-height: 1.6;
+    }
+    hr {
+      border: 0;
+      height: 1px;
+      background: #eee;
+      margin: 2em 0;
+    }
+    .katex {
+      font-size: 1.1em;
+    }
+    .katex-display {
+      margin: 1em 0;
+    }
+
+    /* Footnote styles */
+    .footnotes {
+      margin-top: 2em;
+      padding-top: 1em;
+      border-top: 1px solid #ddd;
+      font-size: 0.95em;
+      color: #555;
+    }
+
+    .footnotes ol {
+      padding-left: 1.5em;
+    }
+
+    .footnotes li {
+      margin: 0.5em 0;
+    }
+
+    .footnote-ref {
+      font-size: 0.8em;
+      vertical-align: super;
+      margin-left: 0.2em;
+      color: #3498db;
+      text-decoration: none;
+    }
+
+    .footnote-number {
+      color: #0483c3;
+      font-weight: bold;
+      margin-right: 0.5em;
+    }
+
+    .footnote-backref {
+      font-size: 0.9em;
+      margin-left: 0.3em;
+      font-weight: bold;
+      color: #0483c3;
+      text-decoration: none;
+    }
+
+    /* Mermaid diagram styles */
+    .mermaid {
+      background: #f5f5f5;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 1em 0;
+      overflow: auto;
+      max-width: 100%;
+      border: 1px solid #ddd;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .mermaid svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* Prism Light Theme Colors */
+    .token.comment,
+    .token.prolog,
+    .token.doctype,
+    .token.cdata {
+      color: #708090;
+    }
+
+    .token.punctuation {
+      color: #999;
+    }
+
+    .token.property,
+    .token.tag,
+    .token.boolean,
+    .token.number,
+    .token.constant,
+    .token.symbol,
+    .token.deleted {
+      color: #d63384;
+    }
+
+    .token.selector,
+    .token.attr-name,
+    .token.string,
+    .token.char,
+    .token.builtin,
+    .token.inserted {
+      color: #22863a;
+    }
+
+    .token.operator,
+    .token.entity,
+    .token.url,
+    .language-css .token.string,
+    .style .token.string {
+      color: #005cc5;
+    }
+
+    .token.atrule,
+    .token.attr-value,
+    .token.keyword {
+      color: #d63384;
+    }
+
+    .token.function,
+    .token.class-name {
+      color: #6f42c1;
+    }
+
+    .token.regex,
+    .token.important,
+    .token.variable {
+      color: #e36209;
+    }
+
+    .token.important,
+    .token.bold {
+      font-weight: bold;
+    }
+
+    .token.italic {
+      font-style: italic;
+    }
+
+    .token.entity {
+      cursor: help;
+    }
+</style>
+</head>
+<body>
+${tempDiv.innerHTML}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    mermaid.initialize({
+        startOnLoad: false,
+        theme: 'default',
+        flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
+        securityLevel: 'loose'
+    });
+    mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+});
+<\/script>
+</body>
+</html>`;
+
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'markdown_export.html';
+    link.click();
+}
+
+function exportPDF() {
+    // Create a temporary preview with math rendered
+    const tempDiv = document.createElement('div');
+    let content = editor.value;
+    
+    // Process math expressions
+    content = content.replace(/\$\$([\s\S]*?)\$\$/g, (match, math) => {
+      try {
+        return katex.renderToString(math, { displayMode: true });
+      } catch (e) {
+        return `<span style="color: red;">Math Error: ${e.message}</span>`;
+      }
+    });
+    
+    content = content.replace(/\$([^$\n]+?)\$/g, (match, math) => {
+      try {
+        return katex.renderToString(math, { displayMode: false });
+      } catch (e) {
+        return `<span style="color: red;">Math Error: ${e.message}</span>`;
+      }
+    });
+
+    // Process sticky notes
+    content = content.replace(/^:::(note|tip|important|warning|caution)\n([\s\S]*?)\n:::/gm, function(match, type, content) {
+      const cleanContent = content.trim();
+      const icons = {
+        'note': 'fas fa-info-circle',
+        'tip': 'fas fa-lightbulb',
+        'important': 'fas fa-exclamation-circle',
+        'warning': 'fas fa-exclamation-triangle',
+        'caution': 'fas fa-times-circle'
+      };
+      
+      const processedContent = cleanContent.split('\n').join('<br>');
+      
+      return `<div class="sticky-note ${type.toLowerCase()}">
+        <div class="sticky-note-title">
+          <i class="sticky-note-icon ${icons[type]}"></i>
+          ${type.toUpperCase()}
+        </div>
+        <div class="sticky-note-content">
+          ${processedContent}
+        </div>
+      </div>`;
+    });
+    
+    // Parse markdown - skip footnote processing
+    let html = marked.parse(content);
+
+    tempDiv.innerHTML = html;
+    Prism.highlightAllUnder(tempDiv);
+
+    // Define sticky note colors for export
+    const stickyNoteColors = {
+      note: { bg: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' },
+      tip: { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981' },
+      important: { bg: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' },
+      warning: { bg: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' },
+      caution: { bg: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }
+    };
+
+    // Style sticky notes
+    const stickyNotes = tempDiv.querySelectorAll('.sticky-note');
+    stickyNotes.forEach(note => {
+      const type = Array.from(note.classList).find(cls => 
+        ['note', 'tip', 'important', 'warning', 'caution'].includes(cls)
+      );
+      
+      if (type && stickyNoteColors[type]) {
+        note.style.cssText = `
+          padding: 16px 20px;
+          margin: 16px 0;
+          border-radius: 8px;
+          position: relative;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          background-color: ${stickyNoteColors[type].bg};
+          border-left: 4px solid ${stickyNoteColors[type].color};
+        `;
+        
+        const title = note.querySelector('.sticky-note-title');
+        if (title) {
+          title.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: ${stickyNoteColors[type].color};
+          `;
+        }
+        
+        const content = note.querySelector('.sticky-note-content');
+        if (content) {
+          content.style.cssText = `
+            color: #333;
+            font-weight: normal;
+            line-height: 1.6;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+          `;
+        }
+      }
+    });
+
+    // Style blockquotes for PDF
+    const blockquotes = tempDiv.querySelectorAll('blockquote');
+    blockquotes.forEach(blockquote => {
+      blockquote.style.cssText = `
+        border-left: 4px solid #3498db;
+        margin: 1em 0;
+        padding-left: 1em;
+        color: #555;
+        background: #f9f9f9;
+        padding: 10px 15px;
+        border-radius: 0 4px 4px 0;
+      `;
+    });
+
+    // Add Font Awesome for icons
+    const faLink = document.createElement('link');
+    faLink.rel = 'stylesheet';
+    faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+    tempDiv.appendChild(faLink);
+
+    // Style for PDF appearance (light mode)
+    tempDiv.style.background = '#ffffff';
+    tempDiv.style.color = '#111111';
+    tempDiv.style.padding = '30px';
+    tempDiv.style.fontFamily = 'Georgia, serif';
+    tempDiv.style.fontSize = '12pt';
+    tempDiv.style.lineHeight = '1.6';
+    tempDiv.style.maxWidth = '800px';
+    tempDiv.style.margin = 'auto';
+
+    // Wrap in container
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '1000px';
+    container.style.background = '#ffffff';
+    container.appendChild(tempDiv);
+    document.body.appendChild(container);
+
+    // Options for html2pdf
+    const opt = {
+      margin:       [0.5, 0.5, 0.5, 0.5], // inches
+      filename:     'markdown_export.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { 
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        scrollX: 0,
+        scrollY: 0
+      },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    // Wait for Font Awesome to load
+    setTimeout(() => {
+      html2pdf().set(opt).from(tempDiv).save().then(() => {
+        document.body.removeChild(container);
+      });
+    }, 500);
+}
+
+  // Get current theme colors
+  function getCurrentThemeColors() {
+    const computedStyle = getComputedStyle(document.body);
+    return {
+      bgColor: computedStyle.getPropertyValue('--preview-bg').trim(),
+      textColor: computedStyle.getPropertyValue('--text-color').trim(),
+      accentColor: computedStyle.getPropertyValue('--accent-color').trim(),
+      dividerColor: computedStyle.getPropertyValue('--divider-color').trim()
+    };
+  }
+
+  // Check if current theme is light
+  function isLightTheme() {
+    return document.body.classList.contains('theme-light');
+  }
+
+function exportImage() {
+    // Create a temporary preview with math rendered and proper styling
+    const tempDiv = document.createElement('div');
+    let content = editor.value;
+    
+    // Process math expressions
+    content = content.replace(/\$\$([\s\S]*?)\$\$/g, (match, math) => {
+      try {
+        return katex.renderToString(math, { displayMode: true });
+      } catch (e) {
+        return `<span style="color: red;">Math Error: ${e.message}</span>`;
+      }
+    });
+    
+    content = content.replace(/\$([^$\n]+?)\$/g, (match, math) => {
+      try {
+        return katex.renderToString(math, { displayMode: false });
+      } catch (e) {
+        return `<span style="color: red;">Math Error: ${e.message}</span>`;
+      }
+    });
+
+    // Extract footnote definitions (multi-line safe)
+    const footnoteDefs = {};
+    const defRegex = /^\[\^([^\]]+)\]:\s+([\s\S]*?)(?=\n{2,}|\n\[\^|\n*$)/gm;
+    content = content.replace(defRegex, (match, id, text) => {
+      footnoteDefs[id] = text.replace(/\n\s+/g, ' ').trim(); // merge multiline
+      return ''; // remove from main content
+    });
+
+    // Process sticky notes first
+    content = content.replace(/^:::(note|tip|important|warning|caution)\n([\s\S]*?)\n:::/gm, function(match, type, content) {
+      const cleanContent = content.trim();
+      const icons = {
+        'note': 'fas fa-info-circle',
+        'tip': 'fas fa-lightbulb',
+        'important': 'fas fa-exclamation-circle',
+        'warning': 'fas fa-exclamation-triangle',
+        'caution': 'fas fa-times-circle'
+      };
+      
+      const processedContent = cleanContent.split('\n').join('<br>');
+      
+      return `<div class="sticky-note ${type.toLowerCase()}">
+        <div class="sticky-note-title">
+          <i class="sticky-note-icon ${icons[type]}"></i>
+          ${type.toUpperCase()}
+        </div>
+        <div class="sticky-note-content">
+          ${processedContent}
+        </div>
+      </div>`;
+    });
+    
+    // Parse markdown
+    let html = marked.parse(content);
+    
+    // Replace footnote references with original IDs, no renumbering
+    html = html.replace(/\[\^([^\]]+)\]/g, (match, id) => {
+      if (footnoteDefs[id]) {
+        return `<span class="footnote-ref"><a href="#fn-${id}" id="fnref-${id}">[${id}]</a></span>`;
+      }
+      return match;
+    });
+
+    // Footnotes list - keep original IDs
+    if (Object.keys(footnoteDefs).length > 0) {
+      let footnotesHtml = '<section class="footnotes"><ol>';
+      for (const [id, text] of Object.entries(footnoteDefs)) {
+        footnotesHtml += `<li id="fn-${id}"><span class="footnote-number">[${id}]</span> ${text} <a href="#fnref-${id}" class="footnote-backref">↩</a></li>`;
+      }
+      footnotesHtml += '</ol></section>';
+      html += footnotesHtml;
+    }
+
+    tempDiv.innerHTML = html;
+    
+    // Apply syntax highlighting to code blocks BEFORE styling
+    Prism.highlightAllUnder(tempDiv);
+    
+    // Add the export-container class for proper styling
+    tempDiv.className = 'export-container';
+    
+    // Add light theme class if current theme is light
+    if (isLightTheme()) {
+      tempDiv.classList.add('light-theme');
+    }
+    
+    // Get current theme colors
+    const themeColors = getCurrentThemeColors();
+    
+    // Apply theme-aware styling
+    tempDiv.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: -9999px;
+      width: 900px;
+      background: ${themeColors.bgColor};
+      color: ${themeColors.textColor};
+      padding: 40px;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      overflow: visible;
+      z-index: -1;
+    `;
+    
+    // Define sticky note colors for export
+    const stickyNoteColors = {
+      note: { bg: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' },
+      tip: { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981' },
+      important: { bg: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' },
+      warning: { bg: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' },
+      caution: { bg: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }
+    };
+
+    // Style sticky notes
+    const stickyNotes = tempDiv.querySelectorAll('.sticky-note');
+    stickyNotes.forEach(note => {
+      const type = Array.from(note.classList).find(cls => 
+        ['note', 'tip', 'important', 'warning', 'caution'].includes(cls)
+      );
+      
+      if (type && stickyNoteColors[type]) {
+        note.style.cssText = `
+          padding: 16px 20px;
+          margin: 16px 0;
+          border-radius: 8px;
+          position: relative;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          background-color: ${stickyNoteColors[type].bg};
+          border-left: 4px solid ${stickyNoteColors[type].color};
+        `;
+        
+        const title = note.querySelector('.sticky-note-title');
+        if (title) {
+          title.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: ${stickyNoteColors[type].color};
+          `;
+        }
+        
+        const content = note.querySelector('.sticky-note-content');
+        if (content) {
+          content.style.cssText = `
+            color: ${themeColors.textColor};
+            font-weight: normal;
+            line-height: 1.6;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+          `;
+        }
+      }
+    });
+    
+    // Apply accent color to headings and links
+    const headings = tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    headings.forEach(heading => {
+      heading.style.color = themeColors.accentColor;
+    });
+    
+    const links = tempDiv.querySelectorAll('a');
+    links.forEach(link => {
+      link.style.color = themeColors.accentColor;
+    });
+    
+    // Apply proper table styling
+    const tables = tempDiv.querySelectorAll('table');
+    tables.forEach(table => {
+      table.style.cssText = `
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1.5em 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-radius: 6px;
+        overflow: hidden;
+      `;
+      
+      const cells = table.querySelectorAll('th, td');
+      cells.forEach(cell => {
+        cell.style.cssText = `
+          border: 1px solid ${themeColors.dividerColor};
+          padding: 0.75em 1em;
+          text-align: left;
+        `;
+      });
+      
+      const headers = table.querySelectorAll('th');
+      headers.forEach(header => {
+        header.style.cssText += `
+          font-weight: 600;
+          background: rgba(128, 128, 128, 0.15);
+        `;
+      });
+      
+      const rows = table.querySelectorAll('tr:nth-child(even)');
+      rows.forEach(row => {
+        row.style.background = 'rgba(128, 128, 128, 0.05)';
+      });
+    });
+    
+    // Apply proper blockquote styling
+    const blockquotes = tempDiv.querySelectorAll('blockquote');
+    blockquotes.forEach(blockquote => {
+      blockquote.style.cssText = `
+        border-left: 4px solid ${themeColors.accentColor};
+        margin: 1em 0;
+        padding: 0.5em 0 0.5em 1em;
+        background: rgba(128, 128, 128, 0.05);
+        border-radius: 0 4px 4px 0;
+        opacity: 0.9;
+      `;
+    });
+    
+    // Apply proper inline code styling (not in pre blocks)
+    const inlineCodes = tempDiv.querySelectorAll('code:not(pre code)');
+    inlineCodes.forEach(code => {
+      code.style.cssText = `
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+        font-family: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 0.9em;
+        background: rgba(128, 128, 128, 0.15);
+      `;
+    });
+
+    // Add Font Awesome for icons
+    const faLink = document.createElement('link');
+    faLink.rel = 'stylesheet';
+    faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+    tempDiv.appendChild(faLink);
+
+    // Add to DOM temporarily
+    document.body.appendChild(tempDiv);
+    
+    // Wait for fonts and styles to load, then capture
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        html2canvas(tempDiv, {
+          scale: 3,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: themeColors.bgColor,
+          windowWidth: tempDiv.scrollWidth,
+          windowHeight: tempDiv.scrollHeight,
+          width: tempDiv.scrollWidth,
+          height: tempDiv.scrollHeight,
+          scrollX: 0,
+          scrollY: 0
+        }).then(canvas => {
+          const link = document.createElement('a');
+          link.href = canvas.toDataURL('image/png', 1.0);
+          link.download = 'markdown_export.png';
+          link.click();
+          document.body.removeChild(tempDiv);
+        }).catch(error => {
+          console.error('Error generating image:', error);
+          document.body.removeChild(tempDiv);
+          alert('Error generating image. Please try again.');
+        });
+      }, 500); // Increased timeout to ensure Font Awesome and styles are loaded
+    });
+}
+
+  // Initialize the app
+  window.onload = init;
+init();
+initSymbolPicker();
+
+</script>
+
+</body>
+</html>
