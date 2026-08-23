@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
+  <title>To Do Study · compact</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background: #f0f4fe;
+      transition: background 0.3s, color 0.2s;
+    }
+
+    body.dark-mode {
+      background: #0b1120;
+      color: #e2e8f0;
+    }
+
+    .app-card {
+      max-width: 960px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 40px;
+      padding: 1.8rem 1.8rem 2rem;
+      box-shadow: 0 25px 50px -10px rgba(0, 20, 60, 0.25), 
+                  inset 0 1px 2px rgba(255,255,255,0.6);
+      border: 1px solid rgba(255,255,255,0.3);
+      transition: background 0.3s, border 0.3s, box-shadow 0.3s;
+    }
+
+    body.dark-mode .app-card {
+      background: rgba(18, 30, 51, 0.75);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 25px 50px -10px rgba(0, 0, 0, 0.6);
+    }
+
+    /* header */
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      gap: 0.8rem;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .header-left i {
+      font-size: 2rem;
+      color: #2563eb;
+      background: rgba(37, 99, 235, 0.12);
+      padding: 0.45rem;
+      border-radius: 18px;
+      box-shadow: 0 4px 8px rgba(37, 99, 235, 0.08);
+      transition: 0.2s;
+    }
+
+    body.dark-mode .header-left i {
+      background: rgba(37, 99, 235, 0.25);
+      color: #60a5fa;
+    }
+
+    .header-left h1 {
+      font-weight: 700;
+      font-size: 1.7rem;
+      letter-spacing: -0.02em;
+      background: linear-gradient(145deg, #0b1e4a, #1e3a8a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    body.dark-mode .header-left h1 {
+      background: linear-gradient(145deg, #b3d0ff, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-left span {
+      font-weight: 500;
+      background: rgba(37, 99, 235, 0.08);
+      padding: 0.15rem 1rem;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      color: #2563eb;
+      border: 1px solid rgba(37,99,235,0.15);
+      margin-left: 0.1rem;
+    }
+
+    body.dark-mode .header-left span {
+      background: rgba(37, 99, 235, 0.2);
+      color: #93bbfc;
+      border-color: rgba(37,99,235,0.3);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+    }
+
+    .stats-badge {
+      background: white;
+      padding: 0.5rem 1.2rem;
+      border-radius: 60px;
+      box-shadow: 0 8px 20px -8px rgba(0,0,0,0.08);
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #1e293b;
+      border: 1px solid rgba(255,255,255,0.6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: 0.2s;
+    }
+
+    body.dark-mode .stats-badge {
+      background: #1e2a44;
+      color: #e2e8f0;
+      border-color: rgba(255,255,255,0.05);
+      box-shadow: 0 8px 20px -8px rgba(0,0,0,0.3);
+    }
+
+    .stats-badge i {
+      color: #2563eb;
+      font-size: 1rem;
+    }
+
+    body.dark-mode .stats-badge i {
+      color: #60a5fa;
+    }
+
+    .theme-toggle {
+      background: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: #1e293b;
+      cursor: pointer;
+      box-shadow: 0 8px 20px -8px rgba(0,0,0,0.06);
+      border: 1px solid rgba(255,255,255,0.5);
+      transition: 0.2s;
+    }
+
+    body.dark-mode .theme-toggle {
+      background: #1e2a44;
+      color: #facc15;
+      border-color: rgba(255,255,255,0.05);
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.05);
+    }
+
+    /* ---- ADD SECTION (collapsible) ---- */
+    .add-section-wrapper {
+      margin-bottom: 2.2rem;
+    }
+
+    .add-toggle {
+      background: white;
+      border: none;
+      padding: 0.5rem 1.6rem;
+      border-radius: 60px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #1e293b;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 8px 20px -8px rgba(0,0,0,0.06);
+      border: 1px solid rgba(255,255,255,0.5);
+      cursor: pointer;
+      transition: 0.2s;
+      font-family: 'Inter', sans-serif;
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(4px);
+    }
+
+    body.dark-mode .add-toggle {
+      background: #1e2a44;
+      color: #e2e8f0;
+      border-color: rgba(255,255,255,0.05);
+    }
+
+    .add-toggle i {
+      color: #2563eb;
+      font-size: 1rem;
+      transition: transform 0.3s;
+    }
+
+    body.dark-mode .add-toggle i {
+      color: #60a5fa;
+    }
+
+    .add-toggle:hover {
+      transform: scale(1.02);
+      box-shadow: 0 12px 24px -10px rgba(0, 20, 40, 0.12);
+    }
+
+    .add-section {
+      background: white;
+      padding: 1.3rem 1.5rem;
+      border-radius: 28px;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04);
+      margin-top: 0.9rem;
+      display: none;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 0.8rem 1rem;
+      border: 1px solid rgba(255,255,255,0.5);
+      transition: 0.2s;
+    }
+
+    .add-section.open {
+      display: flex;
+    }
+
+    body.dark-mode .add-section {
+      background: #172237;
+      border-color: rgba(255,255,255,0.06);
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
+    }
+
+    .input-group {
+      flex: 1 1 130px;
+      min-width: 110px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 0.25rem;
+    }
+
+    body.dark-mode .input-group label {
+      color: #94a3b8;
+    }
+
+    .input-group input, 
+    .input-group select,
+    .input-group textarea {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      border-radius: 18px;
+      border: 1px solid #e9edf4;
+      background: #f8faff;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      font-size: 0.85rem;
+      transition: 0.2s;
+      color: #0f172a;
+      resize: vertical;
+    }
+
+    body.dark-mode .input-group input,
+    body.dark-mode .input-group select,
+    body.dark-mode .input-group textarea {
+      background: #1f2d48;
+      border-color: #2d3d5e;
+      color: #e2e8f0;
+    }
+
+    .input-group textarea {
+      min-height: 40px;
+      max-height: 70px;
+    }
+
+    .input-group input:focus,
+    .input-group select:focus,
+    .input-group textarea:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+      background: white;
+    }
+
+    body.dark-mode .input-group input:focus,
+    body.dark-mode .input-group select:focus,
+    body.dark-mode .input-group textarea:focus {
+      background: #1f2d48;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+      border-color: #60a5fa;
+    }
+
+    .input-group input::placeholder,
+    .input-group textarea::placeholder {
+      color: #94a3b8;
+      font-weight: 400;
+    }
+
+    .btn-add {
+      background: #2563eb;
+      border: none;
+      padding: 0.6rem 1.8rem;
+      border-radius: 40px;
+      font-weight: 600;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 8px 16px -6px rgba(37, 99, 235, 0.3);
+      border: 1px solid rgba(255,255,255,0.2);
+      margin-left: auto;
+      align-self: center;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-add i {
+      font-size: 0.95rem;
+    }
+
+    .btn-add:hover {
+      background: #1d4ed8;
+      transform: scale(1.02);
+      box-shadow: 0 12px 24px -8px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-add:active {
+      transform: scale(0.97);
+    }
+
+    /* filter & list */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      gap: 0.6rem;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 0.3rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: transparent;
+      border: none;
+      padding: 0.35rem 1rem;
+      border-radius: 40px;
+      font-weight: 500;
+      font-size: 0.8rem;
+      color: #475569;
+      transition: all 0.15s;
+      cursor: pointer;
+      background: rgba(255,255,255,0.4);
+      backdrop-filter: blur(4px);
+      border: 1px solid transparent;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body.dark-mode .filter-btn {
+      color: #cbd5e1;
+      background: rgba(255,255,255,0.04);
+    }
+
+    .filter-btn i {
+      margin-right: 0.25rem;
+      font-size: 0.75rem;
+    }
+
+    .filter-btn.active {
+      background: #2563eb;
+      color: white;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+      border-color: #2563eb;
+    }
+
+    body.dark-mode .filter-btn.active {
+      background: #2563eb;
+      color: white;
+    }
+
+    .filter-btn:not(.active):hover {
+      background: rgba(37, 99, 235, 0.06);
+      border-color: #dbe7fe;
+    }
+
+    body.dark-mode .filter-btn:not(.active):hover {
+      background: rgba(37, 99, 235, 0.15);
+      border-color: #2d3d5e;
+    }
+
+    .clear-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-weight: 500;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.9rem;
+      border-radius: 30px;
+      transition: 0.15s;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+
+    .clear-btn:hover {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.06);
+      border-color: #fee2e2;
+    }
+
+    body.dark-mode .clear-btn:hover {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: #7f1d1d;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      margin-top: 0.4rem;
+    }
+
+    .task-card {
+      background: white;
+      padding: 1rem 1.2rem;
+      border-radius: 22px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.02);
+      border: 1px solid rgba(255,255,255,0.5);
+      transition: all 0.2s;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(4px);
+      background: rgba(255,255,255,0.75);
+      gap: 0.5rem 0.8rem;
+    }
+
+    body.dark-mode .task-card {
+      background: rgba(22, 34, 58, 0.8);
+      border-color: rgba(255,255,255,0.05);
+      backdrop-filter: blur(4px);
+    }
+
+    .task-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px -10px rgba(0, 20, 40, 0.1);
+      border-color: #dbe7fe;
+      background: white;
+    }
+
+    body.dark-mode .task-card:hover {
+      background: #1f2d48;
+      border-color: #2d3d5e;
+      box-shadow: 0 12px 24px -10px rgba(0,0,0,0.4);
+    }
+
+    .task-info {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.3rem 0.8rem;
+      flex: 1 1 200px;
+    }
+
+    .task-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #0f172a;
+      word-break: break-word;
+    }
+
+    body.dark-mode .task-title {
+      color: #f1f5f9;
+    }
+
+    .task-chapter {
+      font-size: 0.65rem;
+      font-weight: 600;
+      background: #eef2ff;
+      color: #2563eb;
+      padding: 0.1rem 0.7rem;
+      border-radius: 30px;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    body.dark-mode .task-chapter {
+      background: #1e2a44;
+      color: #93bbfc;
+    }
+
+    .task-comment {
+      font-size: 0.7rem;
+      color: #475569;
+      background: rgba(0,0,0,0.02);
+      padding: 0.05rem 0.7rem;
+      border-radius: 30px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      border-left: 3px solid #2563eb;
+      max-width: 180px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    body.dark-mode .task-comment {
+      color: #cbd5e1;
+      background: rgba(255,255,255,0.04);
+      border-left-color: #60a5fa;
+    }
+
+    .task-comment i {
+      font-size: 0.55rem;
+      color: #64748b;
+    }
+
+    .task-right {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem 0.8rem;
+      margin-left: auto;
+      flex: 0 1 auto;
+    }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .task-date {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      font-size: 0.65rem;
+      font-weight: 500;
+      color: #475569;
+      background: rgba(0,0,0,0.02);
+      padding: 0.1rem 0.6rem;
+      border-radius: 30px;
+    }
+
+    body.dark-mode .task-date {
+      color: #94a3b8;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .task-date i {
+      color: #2563eb;
+      font-size: 0.6rem;
+    }
+
+    .priority-badge {
+      font-size: 0.55rem;
+      font-weight: 700;
+      padding: 0.05rem 0.6rem;
+      border-radius: 30px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.15rem;
+    }
+
+    .priority-high { background: #fee2e2; color: #b91c1c; }
+    .priority-medium { background: #fef9c3; color: #854d0e; }
+    .priority-low { background: #dcfce7; color: #166534; }
+
+    body.dark-mode .priority-high { background: #3b1f1f; color: #fca5a5; }
+    body.dark-mode .priority-medium { background: #3b3510; color: #fde047; }
+    body.dark-mode .priority-low { background: #1a3a2a; color: #86efac; }
+
+    .task-actions {
+      display: flex;
+      gap: 0.1rem;
+      align-items: center;
+    }
+
+    .task-actions button {
+      background: transparent;
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      transition: 0.15s;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .task-actions .done-btn:hover {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+    
+    .task-actions .edit-btn:hover {
+      background: #e0f2fe;
+      color: #0284c7;
+    }
+
+    .task-actions .delete-btn:hover {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    body.dark-mode .task-actions .done-btn:hover {
+      background: #1a3a2a;
+      color: #4ade80;
+    }
+    
+    body.dark-mode .task-actions .edit-btn:hover {
+      background: #0c4a6e;
+      color: #38bdf8;
+    }
+
+    body.dark-mode .task-actions .delete-btn:hover {
+      background: #3b1f1f;
+      color: #f87171;
+    }
+
+    .task-card.completed .task-title {
+      text-decoration: line-through;
+      color: #94a3b8;
+    }
+
+    .task-card.completed {
+      background: rgba(240, 248, 240, 0.5);
+      border-color: #dcfce7;
+      opacity: 0.85;
+    }
+
+    body.dark-mode .task-card.completed {
+      background: rgba(20, 40, 30, 0.5);
+      border-color: #1a3a2a;
+    }
+
+    .task-timestamps {
+      width: 100%;
+      flex: 1 1 100%;
+      font-size: 0.6rem;
+      color: #94a3b8;
+      margin-top: 0.4rem;
+      display: flex;
+      gap: 1rem;
+      border-top: 1px dashed rgba(0,0,0,0.06);
+      padding-top: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    body.dark-mode .task-timestamps {
+      border-top-color: rgba(255,255,255,0.06);
+      color: #64748b;
+    }
+
+    .timestamp-item i {
+      margin-right: 0.2rem;
+      font-size: 0.55rem;
+      color: #cbd5e1;
+    }
+
+    body.dark-mode .timestamp-item i {
+      color: #475569;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      background: rgba(255,255,255,0.3);
+      border-radius: 48px;
+      backdrop-filter: blur(4px);
+      color: #475569;
+    }
+
+    body.dark-mode .empty-state {
+      background: rgba(255,255,255,0.03);
+      color: #94a3b8;
+    }
+
+    .empty-state i {
+      font-size: 2.5rem;
+      color: #cbd5e1;
+      margin-bottom: 0.6rem;
+    }
+    
+    /* modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      padding: 1rem;
+    }
+    
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    body.dark-mode .modal-overlay {
+      background: rgba(0, 0, 0, 0.6);
+    }
+    
+    .modal-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 36px;
+      max-width: 520px;
+      width: 100%;
+      padding: 1.8rem 1.8rem 2rem;
+      box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      transform: translateY(20px) scale(0.95);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .modal-overlay.active .modal-card {
+      transform: translateY(0) scale(1);
+    }
+    
+    body.dark-mode .modal-card {
+      background: rgba(22, 34, 58, 0.9);
+      border-color: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.6);
+    }
+    
+    .modal-card h2 {
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.3rem;
+      color: #0f172a;
+    }
+    
+    body.dark-mode .modal-card h2 {
+      color: #f1f5f9;
+    }
+    
+    .modal-card h2 i {
+      color: #2563eb;
+    }
+    
+    .modal-card .input-group {
+      min-width: 100%;
+      flex: 1 1 100%;
+    }
+    
+    .modal-card .input-group input,
+    .modal-card .input-group select,
+    .modal-card .input-group textarea {
+      background: white;
+      border: 1px solid #e2e8f0;
+    }
+    
+    body.dark-mode .modal-card .input-group input,
+    body.dark-mode .modal-card .input-group select,
+    body.dark-mode .modal-card .input-group textarea {
+      background: #1f2d48;
+      border-color: #2d3d5e;
+      color: #e2e8f0;
+    }
+    
+    .modal-actions {
+      display: flex;
+      gap: 0.8rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+    
+    .modal-actions .btn-cancel {
+      background: rgba(100, 116, 139, 0.12);
+      border: none;
+      padding: 0.5rem 1.6rem;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #475569;
+      cursor: pointer;
+      transition: 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    body.dark-mode .modal-actions .btn-cancel {
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.06);
+    }
+    
+    .modal-actions .btn-cancel:hover {
+      background: rgba(100, 116, 139, 0.2);
+    }
+    
+    .modal-actions .btn-save {
+      background: #2563eb;
+      border: none;
+      padding: 0.5rem 1.8rem;
+      border-radius: 40px;
+      font-weight: 600;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: 0.15s;
+      box-shadow: 0 8px 16px -6px rgba(37, 99, 235, 0.3);
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .modal-actions .btn-save:hover {
+      background: #1d4ed8;
+      transform: scale(1.02);
+    }
+    
+    .modal-actions .btn-save i {
+      font-size: 0.95rem;
+    }
+    
+    .modal-card .input-group + .input-group {
+      margin-top: 0.1rem;
+    }
+    
+    .modal-card .flex-row {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+    
+    .modal-card .flex-row .input-group {
+      flex: 1;
+      min-width: 110px;
+    }
+
+    /* --- responsive fine-tuning --- */
+    @media (max-width: 700px) {
+      .app-card {
+        padding: 1.2rem 1rem 1.5rem;
+        border-radius: 32px;
+      }
+      .add-section {
+        padding: 1rem 1rem;
+        gap: 0.6rem;
+      }
+      .input-group {
+        flex: 1 1 100%;
+        min-width: 100%;
+      }
+      .btn-add {
+        width: 100%;
+        justify-content: center;
+        margin-left: 0;
+      }
+      .task-card {
+        padding: 0.8rem 1rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+      }
+      .task-info {
+        flex: 1 1 100%;
+        gap: 0.3rem 0.6rem;
+      }
+      .task-right {
+        margin-left: 0;
+        justify-content: space-between;
+        width: 100%;
+        flex-wrap: wrap;
+      }
+      .task-meta {
+        gap: 0.3rem;
+      }
+      .task-timestamps {
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+      .header-left h1 {
+        font-size: 1.4rem;
+      }
+      .stats-badge {
+        padding: 0.3rem 0.9rem;
+        font-size: 0.8rem;
+      }
+      .filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.4rem;
+      }
+      .filter-group {
+        justify-content: center;
+      }
+      .clear-btn {
+        align-self: center;
+      }
+      .modal-card {
+        padding: 1.2rem;
+      }
+      .modal-card .flex-row {
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+      .modal-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .modal-actions .btn-cancel,
+      .modal-actions .btn-save {
+        flex: 1 1 auto;
+        justify-content: center;
+      }
+      .add-toggle {
+        width: 100%;
+        justify-content: center;
+      }
+      .task-comment {
+        max-width: 140px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .task-actions button {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+      }
+      .task-title {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-card">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <i class="fas fa-graduation-cap"></i>
+      <h1>To Do Study</h1>
+      <span>student</span>
+    </div>
+    <div class="header-right">
+      <div class="stats-badge">
+        <i class="fas fa-book-open"></i>
+        <span id="taskCount">0</span> topics
+      </div>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <i class="fas fa-moon"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ADD SECTION (collapsible) -->
+  <div class="add-section-wrapper">
+    <button class="add-toggle" id="addToggleBtn">
+      <i class="fas fa-plus-circle" id="toggleIcon"></i> 
+      <span id="toggleLabel">Add new topic</span>
+    </button>
+
+    <div class="add-section" id="addSection">
+      <div class="input-group">
+        <label><i class="fas fa-pencil-alt"></i> Topic</label>
+        <input type="text" id="taskInput" placeholder="e.g. Calculus limits" />
+      </div>
+      <div class="input-group">
+        <label><i class="fas fa-layer-group"></i> Chapter</label>
+        <input type="text" id="chapterInput" placeholder="e.g. Chapter 3" />
+      </div>
+      <div class="input-group">
+        <label><i class="fas fa-calendar-day"></i> Study date</label>
+        <input type="date" id="dateInput" />
+      </div>
+      <div class="input-group" style="flex:1 1 90px; min-width:90px;">
+        <label><i class="fas fa-flag"></i> Priority</label>
+        <select id="prioritySelect">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+      <div class="input-group" style="flex:1 1 140px; min-width:120px;">
+        <label><i class="fas fa-comment"></i> Comment</label>
+        <textarea id="commentInput" placeholder="notes, doubts..." rows="1"></textarea>
+      </div>
+      <button class="btn-add" id="addBtn"><i class="fas fa-plus-circle"></i> Add</button>
+    </div>
+  </div>
+
+  <!-- FILTER -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <button class="filter-btn active" data-filter="all"><i class="fas fa-list-ul"></i> All</button>
+      <button class="filter-btn" data-filter="pending"><i class="fas fa-clock"></i> Pending</button>
+      <button class="filter-btn" data-filter="completed"><i class="fas fa-check-circle"></i> Done</button>
+    </div>
+    <button class="clear-btn" id="clearCompleted"><i class="fas fa-trash-alt"></i> clear done</button>
+  </div>
+
+  <!-- TASK LIST -->
+  <div class="task-list" id="taskList">
+    <div class="empty-state" id="emptyState">
+      <i class="fas fa-notebook"></i>
+      <p>No tasks yet · add your first topic!</p>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="modal-overlay">
+  <div class="modal-card">
+    <h2><i class="fas fa-edit"></i> Edit Topic</h2>
+    <input type="hidden" id="editTaskId" />
+    
+    <div class="input-group">
+      <label>Topic</label>
+      <input type="text" id="editTaskInput" placeholder="Topic name" />
+    </div>
+    
+    <div class="input-group">
+      <label>Chapter</label>
+      <input type="text" id="editChapterInput" placeholder="Chapter details" />
+    </div>
+    
+    <div class="flex-row">
+      <div class="input-group">
+        <label>Study date</label>
+        <input type="date" id="editDateInput" />
+      </div>
+      <div class="input-group">
+        <label>Priority</label>
+        <select id="editPrioritySelect">
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="input-group">
+      <label>Comment</label>
+      <textarea id="editCommentInput" rows="2" placeholder="Update your notes..."></textarea>
+    </div>
+    
+    <div class="modal-actions">
+      <button class="btn-cancel" id="cancelEditBtn">Cancel</button>
+      <button class="btn-save" id="saveEditBtn"><i class="fas fa-save"></i> Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ----- STATE -----
+    let tasks = JSON.parse(localStorage.getItem('studyflow_tasks')) || [];
+    let currentFilter = 'all';
+
+    // DOM refs
+    const taskList = document.getElementById('taskList');
+    const taskInput = document.getElementById('taskInput');
+    const chapterInput = document.getElementById('chapterInput');
+    const dateInput = document.getElementById('dateInput');
+    const prioritySelect = document.getElementById('prioritySelect');
+    const commentInput = document.getElementById('commentInput');
+    const addBtn = document.getElementById('addBtn');
+    const taskCountSpan = document.getElementById('taskCount');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const clearCompletedBtn = document.getElementById('clearCompleted');
+    const themeToggle = document.getElementById('themeToggle');
+    
+    const addToggleBtn = document.getElementById('addToggleBtn');
+    const addSection = document.getElementById('addSection');
+    const toggleIcon = document.getElementById('toggleIcon');
+    const toggleLabel = document.getElementById('toggleLabel');
+
+    const editModal = document.getElementById('editModal');
+    const editTaskId = document.getElementById('editTaskId');
+    const editTaskInput = document.getElementById('editTaskInput');
+    const editChapterInput = document.getElementById('editChapterInput');
+    const editDateInput = document.getElementById('editDateInput');
+    const editPrioritySelect = document.getElementById('editPrioritySelect');
+    const editCommentInput = document.getElementById('editCommentInput');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const saveEditBtn = document.getElementById('saveEditBtn');
+
+    // ----- theme -----
+    function initTheme() {
+      const savedTheme = localStorage.getItem('studyflow_theme');
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeToggle.querySelector('i').className = 'fas fa-sun';
+      }
+    }
+    
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      const icon = themeToggle.querySelector('i');
+      icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+      localStorage.setItem('studyflow_theme', isDark ? 'dark' : 'light');
+    }
+    themeToggle.addEventListener('click', toggleTheme);
+
+    function toggleAddSection() {
+      addSection.classList.toggle('open');
+      const isOpen = addSection.classList.contains('open');
+      toggleIcon.className = isOpen ? 'fas fa-minus-circle' : 'fas fa-plus-circle';
+      toggleLabel.textContent = isOpen ? 'Close add form' : 'Add new topic';
+    }
+    addToggleBtn.addEventListener('click', toggleAddSection);
+
+    // ----- storage & helpers -----
+    function saveTasks() {
+      localStorage.setItem('studyflow_tasks', JSON.stringify(tasks));
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return 'no date';
+      const d = new Date(dateString + 'T00:00:00');
+      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function formatDateTime(isoString) {
+      if (!isoString) return '';
+      const d = new Date(isoString);
+      return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+    }
+
+    function getPriorityLabel(prio) {
+      const map = { high: 'High', medium: 'Medium', low: 'Low' };
+      return map[prio] || 'Medium';
+    }
+
+    // ----- render -----
+    function render() {
+      const sortedTasks = [...tasks].sort((a, b) => {
+        if (a.completed === b.completed) {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        }
+        return a.completed ? 1 : -1;
+      });
+
+      const filtered = sortedTasks.filter(task => {
+        if (currentFilter === 'pending') return !task.completed;
+        if (currentFilter === 'completed') return task.completed;
+        return true;
+      });
+
+      taskCountSpan.textContent = tasks.length;
+      taskList.innerHTML = '';
+
+      if (filtered.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.innerHTML = `<i class="fas fa-notebook"></i><p>${tasks.length === 0 ? 'No tasks yet · add your first topic!' : 'No tasks match this filter'}</p>`;
+        taskList.appendChild(empty);
+        return;
+      }
+
+      filtered.forEach((task) => {
+        const card = document.createElement('div');
+        card.className = `task-card ${task.completed ? 'completed' : ''}`;
+        card.dataset.id = task.id;
+
+        const chapterHtml = task.chapter ? `<span class="task-chapter"><i class="fas fa-bookmark"></i> ${task.chapter}</span>` : '';
+        const commentHtml = task.comment ? `<span class="task-comment"><i class="fas fa-quote-left"></i> ${task.comment}</span>` : '';
+        const priorityHtml = `<span class="priority-badge priority-${task.priority}"><i class="fas fa-flag"></i> ${getPriorityLabel(task.priority)}</span>`;
+        const dateHtml = `<span class="task-date" title="Study Date"><i class="fas fa-calendar-alt"></i> ${task.date ? formatDate(task.date) : 'no date'}</span>`;
+        
+        const addedTimeHtml = `<span class="timestamp-item"><i class="fas fa-clock"></i> Added: ${formatDateTime(task.createdAt) || 'Unknown'}</span>`;
+        const doneTimeHtml = task.completed && task.completedAt 
+          ? `<span class="timestamp-item"><i class="fas fa-check-double"></i> Done: ${formatDateTime(task.completedAt)}</span>` 
+          : '';
+
+        const timestampsHtml = `
+          <div class="task-timestamps">
+            ${addedTimeHtml}
+            ${doneTimeHtml}
+          </div>
+        `;
+
+        card.innerHTML = `
+          <div class="task-info">
+            <span class="task-title">${task.title}</span>
+            ${chapterHtml}
+            ${commentHtml}
+          </div>
+          <div class="task-right">
+            <div class="task-meta">
+              ${priorityHtml}
+              ${dateHtml}
+            </div>
+            <div class="task-actions">
+              <button class="done-btn" data-action="toggle" data-id="${task.id}" title="Toggle Complete"><i class="fas ${task.completed ? 'fa-undo-alt' : 'fa-check'}"></i></button>
+              <button class="edit-btn" data-action="edit" data-id="${task.id}" title="Edit Task"><i class="fas fa-edit"></i></button>
+              <button class="delete-btn" data-action="delete" data-id="${task.id}" title="Delete Task"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+          ${timestampsHtml}
+        `;
+        taskList.appendChild(card);
+      });
+
+      taskList.querySelectorAll('[data-action="toggle"]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = Number(btn.dataset.id);
+          toggleTask(id);
+        });
+      });
+      
+      taskList.querySelectorAll('[data-action="edit"]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = Number(btn.dataset.id);
+          openEditModal(id);
+        });
+      });
+
+      taskList.querySelectorAll('[data-action="delete"]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = Number(btn.dataset.id);
+          deleteTask(id);
+        });
+      });
+    }
+
+    // ----- CRUD -----
+    function addTask() {
+      const title = taskInput.value.trim();
+      const chapter = chapterInput.value.trim();
+      const date = dateInput.value;
+      const priority = prioritySelect.value;
+      const comment = commentInput.value.trim();
+
+      if (!title) {
+        taskInput.focus();
+        taskInput.style.borderColor = '#ef4444';
+        setTimeout(() => taskInput.style.borderColor = '', 800);
+        return;
+      }
+
+      const newTask = {
+        id: Date.now(),
+        title: title,
+        chapter: chapter,
+        date: date || '',
+        priority: priority,
+        comment: comment,
+        completed: false,
+        createdAt: new Date().toISOString(),
+        completedAt: null
+      };
+
+      tasks.push(newTask);
+      saveTasks();
+      
+      taskInput.value = '';
+      chapterInput.value = '';
+      dateInput.value = '';
+      commentInput.value = '';
+      prioritySelect.value = 'medium';
+      taskInput.focus();
+      
+      render();
+    }
+
+    function toggleTask(id) {
+      const taskIndex = tasks.findIndex(t => t.id === id);
+      if (taskIndex > -1) {
+        const task = tasks[taskIndex];
+        task.completed = !task.completed;
+        task.completedAt = task.completed ? new Date().toISOString() : null;
+        saveTasks();
+        render();
+      }
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      saveTasks();
+      render();
+    }
+
+    function clearCompleted() {
+      tasks = tasks.filter(t => !t.completed);
+      saveTasks();
+      render();
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      filterBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === filter);
+      });
+      render();
+    }
+    
+    // ----- modal -----
+    function openEditModal(id) {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+      
+      editTaskId.value = task.id;
+      editTaskInput.value = task.title;
+      editChapterInput.value = task.chapter || '';
+      editDateInput.value = task.date || '';
+      editPrioritySelect.value = task.priority || 'medium';
+      editCommentInput.value = task.comment || '';
+      
+      editModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeEditModal() {
+      editModal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    
+    function saveEdit() {
+      const id = Number(editTaskId.value);
+      const taskIndex = tasks.findIndex(t => t.id === id);
+      if (taskIndex === -1) return;
+      
+      const newTitle = editTaskInput.value.trim();
+      if (!newTitle) {
+        editTaskInput.focus();
+        editTaskInput.style.borderColor = '#ef4444';
+        setTimeout(() => editTaskInput.style.borderColor = '', 800);
+        return;
+      }
+      
+      tasks[taskIndex].title = newTitle;
+      tasks[taskIndex].chapter = editChapterInput.value.trim();
+      tasks[taskIndex].date = editDateInput.value;
+      tasks[taskIndex].priority = editPrioritySelect.value;
+      tasks[taskIndex].comment = editCommentInput.value.trim();
+      
+      saveTasks();
+      render();
+      closeEditModal();
+    }
+
+    // ----- event binding -----
+    addBtn.addEventListener('click', addTask);
+    taskInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTask(); });
+    chapterInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTask(); });
+    dateInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTask(); });
+    commentInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addTask(); } });
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        setFilter(btn.dataset.filter);
+      });
+    });
+
+    clearCompletedBtn.addEventListener('click', clearCompleted);
+    
+    cancelEditBtn.addEventListener('click', closeEditModal);
+    saveEditBtn.addEventListener('click', saveEdit);
+    editModal.addEventListener('click', (e) => {
+      if (e.target === editModal) closeEditModal();
+    });
+    
+    const modalInputs = [editTaskInput, editChapterInput, editDateInput];
+    modalInputs.forEach(input => {
+      input.addEventListener('keypress', (e) => { if (e.key === 'Enter') saveEdit(); });
+    });
+    editCommentInput.addEventListener('keypress', (e) => { 
+      if (e.key === 'Enter' && !e.shiftKey) { 
+        e.preventDefault(); 
+        saveEdit(); 
+      } 
+    });
+
+    initTheme();
+    render();
+  })();
+</script>
+</body>
+</html>
