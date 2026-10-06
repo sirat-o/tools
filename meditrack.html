@@ -4,1433 +4,379 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#080a0f">
-<title>MedTrack</title>
+<title>MedTrack - Medication Manager</title>
+
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          bgDark: '#080a0f',
+          surfaceDark: '#10131a',
+          surface2Dark: '#171b23',
+          surface3Dark: '#1d222c',
+          textDark: '#f5f7fb',
+          mutedDark: '#8c95a4',
+          borderDark: 'rgba(255,255,255,0.075)',
+          
+          bgLight: '#f4f6fa',
+          surfaceLight: '#ffffff',
+          surface2Light: '#f0f2f6',
+          surface3Light: '#e7eaf0',
+          textLight: '#161920',
+          mutedLight: '#687181',
+          borderLight: 'rgba(20,25,35,0.08)',
+
+          accent: '#806cff',
+          accent2: '#5c8dff',
+          greenCustom: '#36d39a',
+          redCustom: '#ff6478',
+          yellowCustom: '#ffc857',
+          blueCustom: '#5ca8ff',
+        },
+        fontFamily: {
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+        },
+        boxShadow: {
+          custom: '0 20px 70px rgba(0,0,0,0.25)',
+          customLight: '0 15px 50px rgba(30,40,60,0.08)',
+          modal: '0 30px 100px rgba(0,0,0,0.45)',
+        }
+      }
+    }
+  }
+</script>
+
+<!-- FontAwesome 6 CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-:root{
-  --bg:#080a0f;
-  --surface:#10131a;
-  --surface2:#171b23;
-  --surface3:#1d222c;
-  --text:#f5f7fb;
-  --muted:#8c95a4;
-  --border:rgba(255,255,255,.075);
-  --accent:#806cff;
-  --accent2:#5c8dff;
-  --green:#36d39a;
-  --red:#ff6478;
-  --yellow:#ffc857;
-  --blue:#5ca8ff;
-  --orange:#ff9f5a;
-  --shadow:0 20px 70px rgba(0,0,0,.25);
-  --radius:20px;
-}
-
-*{box-sizing:border-box;margin:0;padding:0}
-
-body{
-  min-height:100vh;
-  background:
-    radial-gradient(circle at 5% 0%,rgba(128,108,255,.14),transparent 28%),
-    radial-gradient(circle at 95% 5%,rgba(92,141,255,.08),transparent 25%),
-    var(--bg);
-  color:var(--text);
-  font-family:Inter,system-ui,sans-serif;
-}
-
-button,input,select,textarea{font:inherit}
-button{cursor:pointer}
-button:active{transform:scale(.98)}
-
-.app{
-  width:min(1120px,calc(100% - 28px));
-  margin:auto;
-  padding:25px 0 90px;
-}
-
-/* HEADER */
-
-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom:23px;
-}
-
-.brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-.logo{
-  width:44px;
-  height:44px;
-  display:grid;
-  place-items:center;
-  border-radius:14px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  box-shadow:0 10px 30px rgba(128,108,255,.25);
-  font-size:21px;
-}
-
-.brand h1{
-  font-size:20px;
-  letter-spacing:-.6px;
-}
-
-.brand p{
-  color:var(--muted);
-  font-size:11px;
-  margin-top:3px;
-}
-
-.icon-btn{
-  width:42px;
-  height:42px;
-  border-radius:13px;
-  border:1px solid var(--border);
-  background:rgba(255,255,255,.035);
-  color:var(--text);
-}
-
-/* NAV */
-
-.tabs{
-  display:flex;
-  gap:4px;
-  width:max-content;
-  padding:5px;
-  border-radius:16px;
-  background:rgba(255,255,255,.04);
-  border:1px solid var(--border);
-  margin-bottom:25px;
-}
-
-.tab{
-  border:0;
-  background:transparent;
-  color:var(--muted);
-  padding:11px 21px;
-  border-radius:11px;
-  font-size:12px;
-  font-weight:700;
-}
-
-.tab.active{
-  color:white;
-  background:var(--surface3);
-}
-
-/* VIEWS */
-
-.view{display:none}
-.view.active{
-  display:block;
-  animation:fade .22s ease;
-}
-
-@keyframes fade{
-  from{opacity:0;transform:translateY(5px)}
-  to{opacity:1;transform:none}
-}
-
-.page-title{
-  margin-bottom:20px;
-}
-
-.page-title h2{
-  font-size:32px;
-  letter-spacing:-1px;
-}
-
-.page-title p{
-  color:var(--muted);
-  font-size:12px;
-  margin-top:6px;
-}
-
-/* =====================================================
-   TRACKER
-===================================================== */
-
-.date-navigation{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:18px;
-}
-
-.date-main{
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-
-.date-arrow{
-  width:36px;
-  height:36px;
-  border-radius:11px;
-  border:1px solid var(--border);
-  background:var(--surface);
-  color:var(--text);
-}
-
-.date-card{
-  padding:9px 15px;
-  border-radius:12px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  min-width:170px;
-  text-align:center;
-}
-
-.date-card strong{
-  display:block;
-  font-size:13px;
-}
-
-.date-card span{
-  display:block;
-  color:var(--muted);
-  font-size:10px;
-  margin-top:3px;
-}
-
-.date-input{
-  background:var(--surface);
-  color:var(--text);
-  border:1px solid var(--border);
-  border-radius:11px;
-  padding:9px;
-}
-
-/* NEXT DOSE */
-
-.next-dose{
-  position:relative;
-  overflow:hidden;
-  padding:24px;
-  border-radius:22px;
-  background:
-    radial-gradient(circle at 90% 10%,rgba(128,108,255,.25),transparent 35%),
-    linear-gradient(135deg,rgba(128,108,255,.13),rgba(92,141,255,.05)),
-    var(--surface);
-  border:1px solid rgba(128,108,255,.22);
-  box-shadow:var(--shadow);
-  margin-bottom:16px;
-}
-
-.next-label{
-  display:flex;
-  align-items:center;
-  gap:7px;
-  color:#aaa3ff;
-  font-size:10px;
-  font-weight:800;
-  text-transform:uppercase;
-  letter-spacing:.8px;
-}
-
-.next-content{
-  display:flex;
-  align-items:center;
-  gap:15px;
-  margin-top:14px;
-}
-
-.next-icon{
-  width:58px;
-  height:58px;
-  border-radius:17px;
-  display:grid;
-  place-items:center;
-  background:rgba(128,108,255,.13);
-  font-size:27px;
-}
-
-.next-info{
-  flex:1;
-}
-
-.next-info h3{
-  font-size:19px;
-  letter-spacing:-.4px;
-}
-
-.next-info p{
-  color:var(--muted);
-  font-size:11px;
-  margin-top:5px;
-}
-
-.next-time{
-  text-align:right;
-}
-
-.next-time strong{
-  display:block;
-  font-size:21px;
-}
-
-.next-time span{
-  color:var(--muted);
-  font-size:10px;
-}
-
-.take-now{
-  margin-top:18px;
-  width:100%;
-  border:0;
-  padding:13px;
-  border-radius:12px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:white;
-  font-size:12px;
-  font-weight:800;
-}
-
-/* STATS */
-
-.stats{
-  display:grid;
-  grid-template-columns:1.2fr .8fr .8fr;
-  gap:12px;
-  margin-bottom:18px;
-}
-
-.stat{
-  padding:18px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:17px;
-}
-
-.stat-top{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.stat-icon{
-  width:34px;
-  height:34px;
-  display:grid;
-  place-items:center;
-  border-radius:10px;
-  background:rgba(128,108,255,.1);
-}
-
-.stat small{
-  color:var(--muted);
-  font-size:10px;
-}
-
-.stat strong{
-  display:block;
-  font-size:25px;
-  margin-top:10px;
-}
-
-.progress{
-  height:5px;
-  margin-top:11px;
-  border-radius:99px;
-  overflow:hidden;
-  background:rgba(255,255,255,.07);
-}
-
-.progress span{
-  display:block;
-  height:100%;
-  width:0;
-  background:linear-gradient(90deg,var(--accent),var(--blue));
-  border-radius:99px;
-  transition:.4s;
-}
-
-/* FILTERS */
-
-.section-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin:25px 0 12px;
-}
-
-.section-head h3{
-  font-size:15px;
-}
-
-.filters{
-  display:flex;
-  gap:6px;
-  overflow:auto;
-  padding-bottom:3px;
-}
-
-.filter{
-  white-space:nowrap;
-  border:1px solid var(--border);
-  background:var(--surface);
-  color:var(--muted);
-  padding:8px 12px;
-  border-radius:10px;
-  font-size:10px;
-  font-weight:700;
-}
-
-.filter.active{
-  color:white;
-  border-color:rgba(128,108,255,.4);
-  background:rgba(128,108,255,.12);
-}
-
-/* TIMELINE */
-
-.timeline{
-  position:relative;
-  display:grid;
-  gap:9px;
-}
-
-.timeline-item{
-  display:grid;
-  grid-template-columns:68px 1fr;
-  gap:10px;
-  position:relative;
-}
-
-.timeline-time{
-  padding-top:18px;
-  color:var(--muted);
-  font-size:10px;
-  text-align:right;
-}
-
-.timeline-card{
-  position:relative;
-  padding:15px;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  border-radius:17px;
-  border:1px solid var(--border);
-  background:var(--surface);
-  transition:.2s;
-}
-
-.timeline-card:hover{
-  border-color:rgba(128,108,255,.3);
-}
-
-.timeline-card.status-taken{
-  opacity:.68;
-}
-
-.timeline-card.status-missed{
-  border-color:rgba(255,100,120,.25);
-}
-
-.timeline-card.status-due{
-  border-color:rgba(128,108,255,.45);
-  box-shadow:0 0 0 1px rgba(128,108,255,.08);
-}
-
-.med-icon{
-  width:44px;
-  height:44px;
-  flex:0 0 44px;
-  border-radius:13px;
-  display:grid;
-  place-items:center;
-  background:rgba(128,108,255,.1);
-  font-size:20px;
-}
-
-.med-info{
-  flex:1;
-  min-width:0;
-}
-
-.med-info h4{
-  font-size:13px;
-}
-
-.med-info p{
-  color:var(--muted);
-  font-size:10px;
-  margin-top:5px;
-  line-height:1.5;
-}
-
-.status-pill{
-  font-size:9px;
-  font-weight:800;
-  padding:6px 8px;
-  border-radius:8px;
-  white-space:nowrap;
-}
-
-.status-pill.pending{
-  color:#cbd1db;
-  background:rgba(255,255,255,.06);
-}
-
-.status-pill.due{
-  color:#dcd7ff;
-  background:rgba(128,108,255,.16);
-}
-
-.status-pill.taken{
-  color:#082016;
-  background:var(--green);
-}
-
-.status-pill.missed{
-  color:#2c070d;
-  background:var(--red);
-}
-
-.status-pill.skipped{
-  color:#2b1d00;
-  background:var(--yellow);
-}
-
-.action-take{
-  border:0;
-  background:var(--green);
-  color:#061b13;
-  padding:8px 11px;
-  border-radius:9px;
-  font-size:10px;
-  font-weight:800;
-}
-
-.action-more{
-  width:32px;
-  height:32px;
-  border:1px solid var(--border);
-  background:rgba(255,255,255,.035);
-  color:var(--text);
-  border-radius:9px;
-}
-
-/* PRN */
-
-.prn-section{
-  margin-top:28px;
-}
-
-.prn-card{
-  padding:15px;
-  border:1px dashed var(--border);
-  border-radius:16px;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  background:rgba(255,255,255,.02);
-}
-
-/* =====================================================
-   MEDICINES
-===================================================== */
-
-.form-card{
-  max-width:850px;
-  padding:23px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:20px;
-}
-
-.form-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:14px;
-}
-
-.field{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-
-.field.full{
-  grid-column:1/-1;
-}
-
-.field label{
-  color:#b7bfcb;
-  font-size:10px;
-  font-weight:700;
-}
-
-.field input,
-.field select,
-.field textarea{
-  width:100%;
-  color:var(--text);
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:11px;
-  padding:11px;
-  outline:0;
-}
-
-.field textarea{
-  min-height:75px;
-  resize:vertical;
-}
-
-.schedule-builder{
-  margin-top:17px;
-  padding:17px;
-  border-radius:16px;
-  background:rgba(255,255,255,.025);
-  border:1px solid var(--border);
-}
-
-.schedule-builder h3{
-  font-size:12px;
-  margin-bottom:11px;
-}
-
-.schedule-tabs{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:6px;
-}
-
-.schedule-tab{
-  padding:10px 5px;
-  border-radius:9px;
-  border:1px solid var(--border);
-  background:var(--surface2);
-  color:var(--muted);
-  font-size:10px;
-  font-weight:700;
-}
-
-.schedule-tab.active{
-  color:#fff;
-  border-color:rgba(128,108,255,.45);
-  background:rgba(128,108,255,.12);
-}
-
-.schedule-panel{
-  margin-top:13px;
-}
-
-.time-row{
-  display:flex;
-  gap:7px;
-  margin-bottom:7px;
-}
-
-.time-row input{
-  flex:1;
-  color:var(--text);
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:10px;
-}
-
-.remove{
-  width:38px;
-  border:0;
-  background:rgba(255,100,120,.1);
-  color:var(--red);
-  border-radius:9px;
-}
-
-.secondary{
-  border:1px dashed var(--border);
-  background:transparent;
-  color:var(--muted);
-  border-radius:9px;
-  padding:8px 10px;
-  font-size:10px;
-}
-
-.days{
-  display:flex;
-  gap:5px;
-  margin-top:13px;
-}
-
-.day{
-  width:35px;
-  height:32px;
-  border-radius:8px;
-  border:1px solid var(--border);
-  background:var(--surface2);
-  color:var(--muted);
-  font-size:10px;
-  font-weight:700;
-}
-
-.day.active{
-  background:var(--accent);
-  color:white;
-  border-color:var(--accent);
-}
-
-.row{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex-wrap:wrap;
-}
-
-.small{
-  color:var(--text);
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:9px;
-  padding:9px;
-}
-
-.add-btn{
-  margin-top:18px;
-  border:0;
-  color:white;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  border-radius:11px;
-  padding:12px 18px;
-  font-size:11px;
-  font-weight:800;
-}
-
-/* MANAGE */
-
-.manage-list{
-  max-width:850px;
-  display:grid;
-  gap:9px;
-  margin-top:20px;
-}
-
-.manage-item{
-  padding:14px;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  border:1px solid var(--border);
-  border-radius:15px;
-  background:var(--surface);
-}
-
-.manage-icon{
-  width:42px;
-  height:42px;
-  display:grid;
-  place-items:center;
-  background:rgba(128,108,255,.1);
-  border-radius:12px;
-}
-
-.manage-info{
-  flex:1;
-}
-
-.manage-info strong{
-  font-size:13px;
-}
-
-.manage-info small{
-  display:block;
-  color:var(--muted);
-  font-size:9px;
-  line-height:1.5;
-  margin-top:4px;
-}
-
-.delete{
-  width:33px;
-  height:33px;
-  border:0;
-  border-radius:9px;
-  background:rgba(255,100,120,.1);
-  color:var(--red);
-}
-
-/* EMPTY */
-
-.empty{
-  text-align:center;
-  padding:50px 20px;
-  border:1px dashed var(--border);
-  border-radius:17px;
-  color:var(--muted);
-}
-
-.empty-icon{
-  font-size:34px;
-  margin-bottom:10px;
-}
-
-.empty h3{
-  color:var(--text);
-  font-size:14px;
-  margin-bottom:5px;
-}
-
-.empty p{
-  font-size:10px;
-}
-
-/* MODAL */
-
-.modal-backdrop{
-  position:fixed;
-  inset:0;
-  display:none;
-  align-items:flex-end;
-  justify-content:center;
-  padding:15px;
-  background:rgba(0,0,0,.65);
-  backdrop-filter:blur(8px);
-  z-index:50;
-}
-
-.modal-backdrop.open{
-  display:flex;
-}
-
-.modal{
-  width:min(500px,100%);
-  max-height:85vh;
-  overflow:auto;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:23px;
-  padding:20px;
-  box-shadow:0 30px 100px rgba(0,0,0,.45);
-  animation:modalIn .2s ease;
-}
-
-@keyframes modalIn{
-  from{opacity:0;transform:translateY(20px)}
-  to{opacity:1;transform:none}
-}
-
-.modal-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:16px;
-}
-
-.modal-head h3{
-  font-size:16px;
-}
-
-.close{
-  width:32px;
-  height:32px;
-  border:0;
-  border-radius:9px;
-  background:rgba(255,255,255,.06);
-  color:var(--text);
-}
-
-.modal-medicine{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:14px;
-  border-radius:14px;
-  background:var(--surface2);
-  margin-bottom:15px;
-}
-
-.modal-med-icon{
-  width:45px;
-  height:45px;
-  border-radius:13px;
-  display:grid;
-  place-items:center;
-  background:rgba(128,108,255,.1);
-  font-size:20px;
-}
-
-.modal-medicine strong{
-  font-size:14px;
-}
-
-.modal-medicine small{
-  display:block;
-  color:var(--muted);
-  margin-top:4px;
-  font-size:10px;
-}
-
-.modal-actions{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
-}
-
-.modal-action{
-  border:0;
-  border-radius:11px;
-  padding:12px;
-  font-size:11px;
-  font-weight:800;
-}
-
-.modal-action.take{
-  background:var(--green);
-  color:#061b13;
-}
-
-.modal-action.miss{
-  background:var(--red);
-  color:#26070c;
-}
-
-.modal-action.skip{
-  background:var(--yellow);
-  color:#291d00;
-}
-
-.modal-action.reset{
-  background:var(--surface3);
-  color:var(--text);
-}
-
-.details{
-  margin-top:15px;
-  display:grid;
-  gap:8px;
-}
-
-.detail{
-  display:flex;
-  justify-content:space-between;
-  padding:10px 0;
-  border-bottom:1px solid var(--border);
-  font-size:10px;
-}
-
-.detail span:first-child{color:var(--muted)}
-
-/* TOAST */
-
-.toast{
-  position:fixed;
-  left:50%;
-  bottom:22px;
-  transform:translate(-50%,20px);
-  opacity:0;
-  pointer-events:none;
-  padding:11px 16px;
-  background:#f4f6f8;
-  color:#11141a;
-  border-radius:11px;
-  font-size:11px;
-  font-weight:700;
-  z-index:100;
-  transition:.2s;
-}
-
-.toast.show{
-  opacity:1;
-  transform:translate(-50%,0);
-}
-
-/* LIGHT */
-
-body.light{
-  --bg:#f4f6fa;
-  --surface:#fff;
-  --surface2:#f0f2f6;
-  --surface3:#e7eaf0;
-  --text:#161920;
-  --muted:#687181;
-  --border:rgba(20,25,35,.08);
-  --shadow:0 15px 50px rgba(30,40,60,.08);
-  background:#f4f6fa;
-}
-
-/* MOBILE */
-
-@media(max-width:700px){
-
-  .app{
-    width:calc(100% - 18px);
-    padding-top:17px;
+  @keyframes fade {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: none; }
   }
-
-  .tabs{
-    width:100%;
+  .animate-fade {
+    animation: fade 0.22s ease;
   }
-
-  .tab{
-    flex:1;
-    padding:10px 5px;
-    font-size:10px;
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: none; }
   }
-
-  .page-title h2{
-    font-size:27px;
+  .animate-modal {
+    animation: modalIn 0.2s ease;
   }
-
-  .date-navigation{
-    align-items:stretch;
+  button:active {
+    transform: scale(0.98);
   }
-
-  .date-card{
-    min-width:0;
-    flex:1;
+  /* Custom background gradient mirroring original */
+  .bg-radial-custom {
+    background:
+      radial-gradient(circle at 5% 0%, rgba(128,108,255,0.14), transparent 28%),
+      radial-gradient(circle at 95% 5%, rgba(92,141,255,0.08), transparent 25%),
+      #080a0f;
   }
-
-  .date-input{
-    display:none;
+  body.light .bg-radial-custom {
+    background: #f4f6fa;
   }
-
-  .next-content{
-    align-items:flex-start;
+  .bg-next-card {
+    background:
+      radial-gradient(circle at 90% 10%, rgba(128,108,255,0.25), transparent 35%),
+      linear-gradient(135deg, rgba(128,108,255,0.13), rgba(92,141,255,0.05)),
+      #10131a;
   }
-
-  .next-time{
-    display:none;
+  body.light .bg-next-card {
+    background:
+      radial-gradient(circle at 90% 10%, rgba(128,108,255,0.15), transparent 35%),
+      linear-gradient(135deg, rgba(128,108,255,0.08), rgba(92,141,255,0.03)),
+      #ffffff;
   }
-
-  .stats{
-    grid-template-columns:1fr 1fr;
-  }
-
-  .stats .stat:first-child{
-    grid-column:1/-1;
-  }
-
-  .form-grid{
-    grid-template-columns:1fr;
-  }
-
-  .field.full{
-    grid-column:auto;
-  }
-
-  .schedule-tabs{
-    grid-template-columns:1fr 1fr;
-  }
-
-  .timeline-item{
-    grid-template-columns:48px 1fr;
-  }
-
-  .timeline-time{
-    font-size:9px;
-  }
-
-  .timeline-card{
-    padding:12px;
-  }
-
-  .med-icon{
-    width:39px;
-    height:39px;
-    flex-basis:39px;
-    font-size:17px;
-  }
-
-  .status-pill{
-    display:none;
-  }
-
-  .action-take{
-    padding:8px;
-  }
-}
 </style>
 </head>
 
-<body>
+<body class="min-h-screen bg-radial-custom text-textDark dark:text-textDark font-sans transition-colors duration-200">
 
-<div class="app">
+<div class="w-[min(1120px,calc(100%-28px))] mx-auto pt-[25px] pb-[90px]">
 
-<header>
-  <div class="brand">
-    <div class="logo">💊</div>
+<header class="flex items-center justify-between mb-[23px]">
+  <div class="flex items-center gap-3">
+    <div class="w-[44px] h-[44px] grid place-items-center rounded-[14px] bg-gradient-to-br from-accent to-accent2 shadow-[0_10px_30px_rgba(128,108,255,0.25)] text-[21px] text-white">
+      <i class="fa-solid fa-pills"></i>
+    </div>
     <div>
-      <h1>MedTrack</h1>
-      <p>Simple. Clear. On schedule.</p>
+      <h1 class="text-[20px] font-bold tracking-[-0.6px]">MedTrack</h1>
+      <p class="text-mutedDark dark:text-mutedDark text-[11px] mt-[3px]">Simple. Clear. On schedule.</p>
     </div>
   </div>
 
-  <button class="icon-btn" id="themeBtn">☀️</button>
+  <button class="w-[42px] h-[42px] rounded-[13px] border border-borderDark dark:border-borderDark bg-white/[0.035] dark:bg-white/[0.035] text-textDark dark:text-textDark flex items-center justify-center transition-colors" id="themeBtn" title="Toggle theme">
+    <i class="fa-solid fa-sun"></i>
+  </button>
 </header>
 
-<nav class="tabs">
-  <button class="tab active" data-view="tracker">Tracker</button>
-  <button class="tab" data-view="medicines">Medicines</button>
+<nav class="flex gap-[4px] w-max p-[5px] rounded-[16px] bg-white/[0.04] dark:bg-white/[0.04] border border-borderDark dark:border-borderDark mb-[25px] max-[700px]:w-full">
+  <button class="tab border-0 bg-transparent text-mutedDark dark:text-mutedDark py-[11px] px-[21px] rounded-[11px] text-[12px] font-bold transition-colors text-white bg-surface3Dark dark:bg-surface3Dark max-[700px]:flex-1 max-[700px]:py-[10px] max-[700px]:px-[5px] max-[700px]:text-[10px]" data-view="tracker">Tracker</button>
+  <button class="tab border-0 bg-transparent text-mutedDark dark:text-mutedDark py-[11px] px-[21px] rounded-[11px] text-[12px] font-bold transition-colors max-[700px]:flex-1 max-[700px]:py-[10px] max-[700px]:px-[5px] max-[700px]:text-[10px]" data-view="medicines">Medicines</button>
 </nav>
 
+<section id="tracker" class="view block animate-fade">
 
-<!-- =====================================================
-     TRACKER
-===================================================== -->
-
-<section id="tracker" class="view active">
-
-  <div class="page-title">
-    <h2>Good evening 👋</h2>
-    <p>Here's everything you need to take today.</p>
+  <div class="mb-[20px]">
+    <h2 class="text-[32px] font-bold tracking-[-1px] max-[700px]:text-[27px]">Good day 👋</h2>
+    <p class="text-mutedDark dark:text-mutedDark text-[12px] mt-[6px]">Here's everything you need to take today.</p>
   </div>
 
-
-  <!-- DATE NAVIGATION -->
-
-  <div class="date-navigation">
-
-    <div class="date-main">
-
-      <button class="date-arrow" id="prevDay">‹</button>
-
-      <div class="date-card">
-        <strong id="dateTitle">Today</strong>
-        <span id="dateSubtitle"></span>
+  <div class="flex items-center justify-between gap-[12px] mb-[18px] max-[700px]:items-stretch">
+    <div class="flex items-center gap-[8px]">
+      <button class="w-[36px] h-[36px] rounded-[11px] border border-borderDark dark:border-borderDark bg-surfaceDark dark:bg-surfaceDark text-textDark dark:text-textDark flex items-center justify-center" id="prevDay"><i class="fa-solid fa-chevron-left text-[12px]"></i></button>
+      <div class="py-[9px] px-[15px] rounded-[12px] bg-surfaceDark dark:bg-surfaceDark border border-borderDark dark:border-borderDark min-w-[170px] text-center max-[700px]:min-w-0 max-[700px]:flex-1">
+        <strong id="dateTitle" class="block text-[13px]">Today</strong>
+        <span id="dateSubtitle" class="block text-mutedDark dark:text-mutedDark text-[10px] mt-[3px]"></span>
       </div>
-
-      <button class="date-arrow" id="nextDay">›</button>
-
+      <button class="w-[36px] h-[36px] rounded-[11px] border border-borderDark dark:border-borderDark bg-surfaceDark dark:bg-surfaceDark text-textDark dark:text-textDark flex items-center justify-center" id="nextDay"><i class="fa-solid fa-chevron-right text-[12px]"></i></button>
     </div>
-
-    <input type="date" class="date-input" id="datePicker">
-
+    <input type="date" class="bg-surfaceDark dark:bg-surfaceDark text-textDark dark:text-textDark border border-borderDark dark:border-borderDark rounded-[11px] p-[9px] max-[700px]:hidden" id="datePicker">
   </div>
-
-
-  <!-- NEXT DOSE -->
 
   <div id="nextDose"></div>
 
-
-  <!-- STATS -->
-
-  <div class="stats">
-
-    <div class="stat">
-
-      <div class="stat-top">
-        <small>Today's adherence</small>
-        <div class="stat-icon">📈</div>
+  <div class="grid grid-cols-[1.2fr_0.8fr_0.8fr] gap-[12px] mb-[18px] max-[700px]:grid-cols-2">
+    <div class="p-[18px] bg-surfaceDark dark:bg-surfaceDark border border-borderDark dark:border-borderDark rounded-[17px] max-[700px]:col-span-full">
+      <div class="flex justify-between items-center">
+        <small class="text-mutedDark dark:text-mutedDark text-[10px]">Today's adherence</small>
+        <div class="w-[34px] h-[34px] grid place-items-center rounded-[10px] bg-accent/10 text-accent text-[14px]"><i class="fa-solid fa-chart-line"></i></div>
       </div>
-
-      <strong id="adherence">0%</strong>
-
-      <div class="progress">
-        <span id="adherenceBar"></span>
+      <strong id="adherence" class="block text-[25px] mt-[10px]">0%</strong>
+      <div class="h-[5px] mt-[11px] rounded-full overflow-hidden bg-white/[0.07]">
+        <span id="adherenceBar" class="block h-full w-0 bg-gradient-to-r from-accent to-blueCustom rounded-full transition-all duration-400"></span>
       </div>
-
     </div>
 
-    <div class="stat">
-
-      <div class="stat-top">
-        <small>Taken</small>
-        <div class="stat-icon">✓</div>
+    <div class="p-[18px] bg-surfaceDark dark:bg-surfaceDark border border-borderDark dark:border-borderDark rounded-[17px]">
+      <div class="flex justify-between items-center">
+        <small class="text-mutedDark dark:text-mutedDark text-[10px]">Taken</small>
+        <div class="w-[34px] h-[34px] grid place-items-center rounded-[10px] bg-accent/10 text-greenCustom text-[14px]"><i class="fa-solid fa-check"></i></div>
       </div>
-
-      <strong id="takenStat">0</strong>
-
+      <strong id="takenStat" class="block text-[25px] mt-[10px]">0</strong>
     </div>
 
-    <div class="stat">
-
-      <div class="stat-top">
-        <small>Remaining</small>
-        <div class="stat-icon">⏳</div>
+    <div class="p-[18px] bg-surfaceDark dark:bg-surfaceDark border border-borderDark dark:border-borderDark rounded-[17px]">
+      <div class="flex justify-between items-center">
+        <small class="text-mutedDark dark:text-mutedDark text-[10px]">Remaining</small>
+        <div class="w-[34px] h-[34px] grid place-items-center rounded-[10px] bg-accent/10 text-yellowCustom text-[14px]"><i class="fa-solid fa-hourglass-half"></i></div>
       </div>
-
-      <strong id="remainingStat">0</strong>
-
+      <strong id="remainingStat" class="block text-[25px] mt-[10px]">0</strong>
     </div>
-
   </div>
 
-
-  <!-- FILTER -->
-
-  <div class="section-head">
-    <h3>Today's doses</h3>
+  <div class="flex items-center justify-between mt-[25px] mb-[12px]">
+    <h3 class="text-[15px] font-bold">Today's doses</h3>
   </div>
 
-  <div class="filters">
-
-    <button class="filter active" data-filter="all">All</button>
-    <button class="filter" data-filter="due">Due now</button>
-    <button class="filter" data-filter="pending">Upcoming</button>
-    <button class="filter" data-filter="taken">Taken</button>
-    <button class="filter" data-filter="missed">Missed</button>
-
+  <div class="flex gap-[6px] overflow-x-auto pb-[3px]">
+    <button class="filter whitespace-nowrap border border-borderDark dark:border-borderDark bg-surfaceDark dark:bg-surfaceDark text-mutedDark dark:text-mutedDark py-[8px] px-[12px] rounded-[10px] text-[10px] font-bold text-white border-accent/40 bg-accent/[0.12]" data-filter="all">All</button>
+    <button class="filter whitespace-nowrap border border-borderDark dark:border-borderDark bg-surfaceDark dark:bg-surfaceDark text-mutedDark dark:text-mutedDark py-[8px] px-[12px] rounded-[10px] text-[10px] font-bold" data-filter="due">Due now</button>
+    <button class="filter whitespace-nowrap border border-borderDark dark:border-borderDark bg-surfaceDark dark:bg-surfaceDark text-mutedDark dark:text-mutedDark py-[8px] px-[12px] rounded-[10px] text-[10px] font-bold" data-filter="pending">Upcoming</button>
+    <button class="filter whitespace-nowrap border border-borderDark dark:border-borderDark bg-surfaceDark dark:bg-surfaceDark text-mutedDark dark:text-mutedDark py-[8px] px-[12px] rounded-[10px] text-[10px] font-bold" data-filter="taken">Taken</button>
+    <button class="filter whitespace-nowrap border border-borderDark dark:border-borderDark bg-surfaceDark dark:bg-surfaceDark text-mutedDark dark:text-mutedDark py-[8px] px-[12px] rounded-[10px] text-[10px] font-bold" data-filter="missed">Missed</button>
   </div>
 
-
-  <!-- TIMELINE -->
-
-  <div class="timeline" id="timeline" style="margin-top:12px"></div>
-
-
-  <!-- PRN -->
-
-  <div id="prnSection" class="prn-section"></div>
+  <div class="relative grid gap-[9px] mt-[12px]" id="timeline"></div>
+  <div id="prnSection" class="mt-[28px]"></div>
 
 </section>
 
+<section id="medicines" class="view hidden animate-fade">
 
-<!-- =====================================================
-     MEDICINES
-===================================================== -->
-
-<section id="medicines" class="view">
-
-  <div class="page-title">
-    <h2>My medicines</h2>
-    <p>Create a schedule that matches exactly how you take it.</p>
+  <div class="mb-[20px]">
+    <h2 class="text-[32px] font-bold tracking-[-1px] max-[700px]:text-[27px]">My medicines</h2>
+    <p class="text-mutedDark dark:text-mutedDark text-[12px] mt-[6px]">Create or edit a schedule with custom duration and start dates.</p>
   </div>
 
+  <div class="max-w-[850px] p-[23px] bg-surfaceDark dark:bg-surfaceDark border border-borderDark dark:border-borderDark rounded-[20px]">
+    <div class="grid grid-cols-2 gap-[14px] max-[700px]:grid-cols-1">
 
-  <div class="form-card">
-
-    <div class="form-grid">
-
-      <div class="field">
-        <label>Medicine name</label>
-        <input id="medName" placeholder="e.g. Napa">
+      <div class="flex flex-col gap-[6px]">
+        <label class="text-[#b7bfcb] text-[10px] font-bold">Medicine name</label>
+        <input id="medName" placeholder="e.g. Napa Extra" class="w-full text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[11px] p-[11px] outline-none">
       </div>
 
-      <div class="field">
-        <label>Dosage</label>
-        <input id="medDose" placeholder="e.g. 500 mg / 10 ml / 1 drop">
+      <div class="flex flex-col gap-[6px]">
+        <label class="text-[#b7bfcb] text-[10px] font-bold">Dosage</label>
+        <input id="medDose" placeholder="e.g. 500 mg / 10 ml / 1 drop" class="w-full text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[11px] p-[11px] outline-none">
       </div>
 
-      <div class="field">
-        <label>Medicine type</label>
-        <select id="medType">
-          <option value="💊">Tablet / Capsule</option>
-          <option value="🥤">Syrup</option>
-          <option value="👁️">Eye drops</option>
-          <option value="👂">Ear drops</option>
-          <option value="💉">Injection</option>
-          <option value="🧴">Cream / Ointment</option>
-          <option value="🌿">Other</option>
+      <div class="flex flex-col gap-[6px]">
+        <label class="text-[#b7bfcb] text-[10px] font-bold">Medicine type</label>
+        <select id="medType" class="w-full text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[11px] p-[11px] outline-none">
+          <option value="fa-solid fa-pills">Tablet / Capsule</option>
+          <option value="fa-bottle-droplet">Syrup</option>
+          <option value="fa-solid fa-eye-dropper">Eye drops</option>
+          <option value="fa-solid fa-eye-dropper">Ear drops</option>
+          <option value="fa-solid fa-syringe">Injection</option>
+          <option value="fa-pump-soap">Cream / Ointment</option>
+          <option value="fa-brands fa-canadian-maple-leaf">Other</option>
         </select>
       </div>
 
-      <div class="field">
-        <label>Instructions / notes</label>
-        <input id="medNotes" placeholder="e.g. Take with water">
+      <div class="flex flex-col gap-[6px]">
+        <label class="text-[#b7bfcb] text-[10px] font-bold">Instructions / notes</label>
+        <input id="medNotes" placeholder="e.g. Take after meal with full glass of water" class="w-full text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[11px] p-[11px] outline-none">
       </div>
 
     </div>
 
+    <div class="mt-[17px] p-[17px] rounded-[16px] bg-white/[0.025] border border-borderDark dark:border-borderDark">
+      <h3 class="text-[12px] font-bold mb-[11px]">
+        <i class="fa-regular fa-calendar-days mr-1 text-accent"></i> Start Date & Duration Settings
+      </h3>
+      
+      <div class="grid grid-cols-2 gap-[14px] mb-[12px] max-[700px]:grid-cols-1">
+        <div class="flex flex-col gap-[6px]">
+          <label class="text-[#b7bfcb] text-[10px] font-bold">When should this start?</label>
+          <input type="date" id="startDateInput" class="w-full text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[11px] p-[11px] outline-none">
+        </div>
 
-    <!-- SCHEDULE -->
-
-    <div class="schedule-builder">
-
-      <h3>Schedule type</h3>
-
-      <div class="schedule-tabs">
-
-        <button class="schedule-tab active" data-schedule="fixed">
-          🕐 Fixed time
-        </button>
-
-        <button class="schedule-tab" data-schedule="meal">
-          🍽️ Meal
-        </button>
-
-        <button class="schedule-tab" data-schedule="interval">
-          ⏱️ Interval
-        </button>
-
-        <button class="schedule-tab" data-schedule="prn">
-          ⚡ As needed
-        </button>
-
+        <div class="flex flex-col gap-[6px]">
+          <label class="text-[#b7bfcb] text-[10px] font-bold">Duration / Limitation</label>
+          <select id="durationMode" class="w-full text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[11px] p-[11px] outline-none">
+            <option value="indefinite">Continuous / Repeat until stopped</option>
+            <option value="days">Fixed number of days (e.g. 5 or 7 days)</option>
+            <option value="specificDate">Until a specific end date</option>
+          </select>
+        </div>
       </div>
 
+      <!-- Presets / Custom Days Input -->
+      <div id="daysDurationPanel" class="hidden mt-[10px]">
+        <label class="text-[#b7bfcb] text-[10px] font-bold block">Select course duration:</label>
+        <div class="flex flex-wrap gap-[6px] mt-[8px]">
+          <button class="preset-btn py-[7px] px-[12px] rounded-[8px] border border-borderDark dark:border-borderDark bg-surface2Dark dark:bg-surface2Dark text-mutedDark dark:text-mutedDark text-[10px] font-semibold text-white border-accent bg-accent/20" data-days="5">5 Days</button>
+          <button class="preset-btn py-[7px] px-[12px] rounded-[8px] border border-borderDark dark:border-borderDark bg-surface2Dark dark:bg-surface2Dark text-mutedDark dark:text-mutedDark text-[10px] font-semibold" data-days="7">7 Days</button>
+          <button class="preset-btn py-[7px] px-[12px] rounded-[8px] border border-borderDark dark:border-borderDark bg-surface2Dark dark:bg-surface2Dark text-mutedDark dark:text-mutedDark text-[10px] font-semibold" data-days="10">10 Days</button>
+          <button class="preset-btn py-[7px] px-[12px] rounded-[8px] border border-borderDark dark:border-borderDark bg-surface2Dark dark:bg-surface2Dark text-mutedDark dark:text-mutedDark text-[10px] font-semibold" data-days="14">14 Days</button>
+          <button class="preset-btn py-[7px] px-[12px] rounded-[8px] border border-borderDark dark:border-borderDark bg-surface2Dark dark:bg-surface2Dark text-mutedDark dark:text-mutedDark text-[10px] font-semibold" data-days="30">30 Days</button>
+        </div>
+        <div class="flex items-center gap-[8px] flex-wrap mt-[10px]">
+          <span class="text-[10px] text-mutedDark dark:text-mutedDark">Or custom days:</span>
+          <input type="number" id="customDaysInput" class="w-[80px] text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[9px] p-[9px] outline-none" value="5" min="1" max="365">
+          <span class="text-[10px] text-mutedDark dark:text-mutedDark">days</span>
+        </div>
+      </div>
 
-      <!-- FIXED -->
+      <!-- Specific End Date Panel -->
+      <div id="endDatePanel" class="hidden mt-[10px]">
+        <div class="flex flex-col gap-[6px]">
+          <label class="text-[#b7bfcb] text-[10px] font-bold">End Date (Last active day)</label>
+          <input type="date" id="endDateInput" class="w-full text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[11px] p-[11px] outline-none">
+        </div>
+      </div>
+    </div>
 
-      <div class="schedule-panel" id="schedule-fixed">
+    <div class="mt-[17px] p-[17px] rounded-[16px] bg-white/[0.025] border border-borderDark dark:border-borderDark">
+      <h3 class="text-[12px] font-bold mb-[11px]">Schedule type</h3>
 
+      <div class="grid grid-cols-4 gap-[6px] max-[700px]:grid-cols-2">
+        <button class="schedule-tab py-[10px] px-[5px] rounded-full border border-borderDark dark:border-borderDark bg-surface2Dark dark:bg-surface2Dark text-mutedDark dark:text-mutedDark text-[10px] font-bold text-white border-accent/45 bg-accent/[0.12]" data-schedule="fixed"><i class="fa-regular fa-clock mr-1"></i> Fixed time</button>
+        <button class="schedule-tab py-[10px] px-[5px] rounded-full border border-borderDark dark:border-borderDark bg-surface2Dark dark:bg-surface2Dark text-mutedDark dark:text-mutedDark text-[10px] font-bold" data-schedule="meal"><i class="fa-solid fa-utensils mr-1"></i> Meal</button>
+        <button class="schedule-tab py-[10px] px-[5px] rounded-full border border-borderDark dark:border-borderDark bg-surface2Dark dark:bg-surface2Dark text-mutedDark dark:text-mutedDark text-[10px] font-bold" data-schedule="interval"><i class="fa-solid fa-stopwatch mr-1"></i> Interval</button>
+        <button class="schedule-tab py-[10px] px-[5px] rounded-full border border-borderDark dark:border-borderDark bg-surface2Dark dark:bg-surface2Dark text-mutedDark dark:text-mutedDark text-[10px] font-bold" data-schedule="prn"><i class="fa-solid fa-bolt mr-1"></i> As needed</button>
+      </div>
+
+      <div class="schedule-panel mt-[13px]" id="schedule-fixed">
         <div id="timeRows">
-
-          <div class="time-row">
-            <input type="time">
-            <button class="remove" onclick="removeTime(this)">×</button>
-          </div>
-
-        </div>
-
-        <button class="secondary" onclick="addTime()">
-          + Add another dose time
-        </button>
-
-        <div style="margin-top:12px">
-          <small style="color:var(--muted);font-size:9px">
-            Repeat on
-          </small>
-
-          <div class="days">
-
-            <button class="day active" data-day="0">S</button>
-            <button class="day active" data-day="1">M</button>
-            <button class="day active" data-day="2">T</button>
-            <button class="day active" data-day="3">W</button>
-            <button class="day active" data-day="4">T</button>
-            <button class="day active" data-day="5">F</button>
-            <button class="day active" data-day="6">S</button>
-
+          <div class="flex gap-[7px] mb-[7px] time-row">
+            <input type="time" class="flex-1 text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[10px] p-[10px] outline-none">
+            <button class="w-[38px] border-0 bg-redCustom/10 text-redCustom rounded-[9px] flex items-center justify-center" onclick="removeTime(this)"><i class="fa-solid fa-xmark"></i></button>
           </div>
         </div>
 
+        <button class="border border-dashed border-borderDark dark:border-borderDark bg-transparent text-mutedDark dark:text-mutedDark rounded-[9px] py-[8px] px-[10px] text-[10px]" onclick="addTime()">+ Add another dose time</button>
+
+        <div class="mt-[12px]">
+          <small class="text-mutedDark dark:text-mutedDark text-[9px] block">Repeat on</small>
+          <div class="flex gap-[5px] mt-[13px]">
+            <button class="day w-[35px] h-[32px] rounded-[8px] border border-accent bg-accent text-white text-[10px] font-bold" data-day="0">S</button>
+            <button class="day w-[35px] h-[32px] rounded-[8px] border border-accent bg-accent text-white text-[10px] font-bold" data-day="1">M</button>
+            <button class="day w-[35px] h-[32px] rounded-[8px] border border-accent bg-accent text-white text-[10px] font-bold" data-day="2">T</button>
+            <button class="day w-[35px] h-[32px] rounded-[8px] border border-accent bg-accent text-white text-[10px] font-bold" data-day="3">W</button>
+            <button class="day w-[35px] h-[32px] rounded-[8px] border border-accent bg-accent text-white text-[10px] font-bold" data-day="4">T</button>
+            <button class="day w-[35px] h-[32px] rounded-[8px] border border-accent bg-accent text-white text-[10px] font-bold" data-day="5">F</button>
+            <button class="day w-[35px] h-[32px] rounded-[8px] border border-accent bg-accent text-white text-[10px] font-bold" data-day="6">S</button>
+          </div>
+        </div>
       </div>
 
-
-      <!-- MEAL -->
-
-      <div class="schedule-panel" id="schedule-meal" style="display:none">
-
+      <div class="schedule-panel mt-[13px] hidden" id="schedule-meal">
         <div id="mealRows">
-
-          <div class="row meal-row" style="margin-bottom:7px">
-
-            <select class="small meal-relation">
+          <div class="flex items-center gap-[8px] flex-wrap mb-[7px] meal-row">
+            <select class="small meal-relation text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[9px] p-[9px] outline-none">
               <option value="After">After</option>
               <option value="Before">Before</option>
               <option value="With">With</option>
             </select>
-
-            <select class="small meal-name">
+            <select class="small meal-name text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[9px] p-[9px] outline-none">
               <option value="Breakfast">Breakfast</option>
               <option value="Lunch">Lunch</option>
               <option value="Dinner">Dinner</option>
             </select>
-
-            <button class="remove" onclick="removeMeal(this)">×</button>
-
+            <button class="w-[38px] h-[36px] border-0 bg-redCustom/10 text-redCustom rounded-[9px] flex items-center justify-center" onclick="removeMeal(this)"><i class="fa-solid fa-xmark"></i></button>
           </div>
-
         </div>
-
-        <button class="secondary" onclick="addMeal()">
-          + Add another meal
-        </button>
-
+        <button class="border border-dashed border-borderDark dark:border-borderDark bg-transparent text-mutedDark dark:text-mutedDark rounded-[9px] py-[8px] px-[10px] text-[10px]" onclick="addMeal()">+ Add another meal</button>
       </div>
 
-
-      <!-- INTERVAL -->
-
-      <div class="schedule-panel" id="schedule-interval" style="display:none">
-
-        <div class="row">
-
-          <span style="font-size:10px;color:var(--muted)">
-            Every
-          </span>
-
-          <input
-            id="intervalHours"
-            class="small"
-            type="number"
-            min="1"
-            max="168"
-            value="3"
-            style="width:70px"
-          >
-
-          <span style="font-size:10px;color:var(--muted)">
-            hours
-          </span>
-
+      <div class="schedule-panel mt-[13px] hidden" id="schedule-interval">
+        <div class="flex items-center gap-[8px] flex-wrap">
+          <span class="text-[10px] text-mutedDark dark:text-mutedDark">Every</span>
+          <input id="intervalHours" class="w-[70px] text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[9px] p-[9px] outline-none" type="number" min="1" max="168" value="3">
+          <span class="text-[10px] text-mutedDark dark:text-mutedDark">hours</span>
         </div>
-
-        <div class="row" style="margin-top:9px">
-
-          <span style="font-size:10px;color:var(--muted)">
-            Starting at
-          </span>
-
-          <input id="intervalStart" class="small" type="time">
-
+        <div class="flex items-center gap-[8px] flex-wrap mt-[9px]">
+          <span class="text-[10px] text-mutedDark dark:text-mutedDark">Starting at</span>
+          <input id="intervalStart" class="text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[9px] p-[9px] outline-none" type="time">
         </div>
-
-        <p style="font-size:9px;color:var(--muted);margin-top:9px;line-height:1.5">
+        <p class="text-[9px] text-mutedDark dark:text-mutedDark mt-[9px] leading-[1.5]">
           Example: every 4 hours starting at 8:00 AM → 8 AM, 12 PM, 4 PM, 8 PM.
         </p>
-
       </div>
 
-
-      <!-- PRN -->
-
-      <div class="schedule-panel" id="schedule-prn" style="display:none">
-
-        <p style="font-size:10px;color:var(--muted);line-height:1.6">
-          This medicine does not have a fixed schedule.
-          You will be able to record it manually from the Tracker.
+      <div class="schedule-panel mt-[13px] hidden" id="schedule-prn">
+        <p class="text-[10px] text-mutedDark dark:text-mutedDark leading-[1.6]">
+          This medicine does not have a fixed time schedule. You can record doses as needed from the Tracker.
         </p>
-
       </div>
-
     </div>
 
-
-    <button class="add-btn" id="addMedicine">
-      + Add Medicine
-    </button>
+    <div class="flex gap-[10px] items-center mt-[18px]">
+      <button class="border-0 text-white bg-gradient-to-br from-accent to-accent2 rounded-[11px] py-[12px] px-[18px] text-[11px] font-extrabold" id="addMedicine">+ Add Medicine</button>
+      <button class="border-0 text-textDark bg-surface3Dark rounded-[11px] py-[12px] px-[18px] text-[11px] font-extrabold hidden" id="cancelEdit" onclick="resetForm()">Cancel Edit</button>
+    </div>
 
   </div>
 
-
-  <div class="manage-list" id="manageList"></div>
+  <div class="max-w-[850px] grid gap-[9px] mt-[20px]" id="manageList"></div>
 
 </section>
 
 </div>
 
-
-<!-- =====================================================
-     DOSE MODAL
-===================================================== -->
-
-<div class="modal-backdrop" id="modal">
-
-  <div class="modal">
-
-    <div class="modal-head">
-      <h3>Dose details</h3>
-      <button class="close" onclick="closeModal()">×</button>
+<div class="fixed inset-0 hidden items-end justify-center p-[15px] bg-black/65 backdrop-blur-[8px] z-50 modal-backdrop" id="modal">
+  <div class="w-[min(500px,100%)] max-h-[85vh] overflow-y-auto bg-surfaceDark dark:bg-surfaceDark border border-borderDark dark:border-borderDark rounded-[23px] p-[20px] shadow-modal animate-modal">
+    <div class="flex justify-between items-center mb-[16px]">
+      <h3 id="modalHeadTitle" class="text-[16px] font-bold">Dose details</h3>
+      <button class="w-[32px] h-[32px] border-0 rounded-[9px] bg-white/[0.06] text-textDark dark:text-textDark flex items-center justify-center" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
-
     <div id="modalBody"></div>
-
   </div>
-
 </div>
 
-
-<div class="toast" id="toast"></div>
-
+<div class="fixed left-1/2 bottom-[22px] -translate-x-1/2 translate-y-[20px] opacity-0 pointer-events-none py-[11px] px-[16px] bg-[#f4f6f8] text-[#11141a] rounded-[11px] text-[11px] font-bold z-[100] transition-all duration-200" id="toast"></div>
 
 <script>
-
-/* =====================================================
-   STORAGE
-===================================================== */
-
 const MED_KEY="medtrack_v2_medicines";
 const HISTORY_KEY="medtrack_v2_history";
 const THEME_KEY="medtrack_v2_theme";
@@ -1441,1346 +387,1001 @@ let history=JSON.parse(localStorage.getItem(HISTORY_KEY)||"{}");
 let selectedDate=getToday();
 let currentFilter="all";
 let currentSchedule="fixed";
-
+let activeDurationDays=5;
+let editingMedicineId=null;
 
 const $=s=>document.querySelector(s);
 const $$=s=>document.querySelectorAll(s);
 
-
-/* =====================================================
-   HELPERS
-===================================================== */
-
 function getToday(){
-
   const d=new Date();
   const offset=d.getTimezoneOffset();
-
   return new Date(d.getTime()-offset*60000)
     .toISOString()
     .split("T")[0];
-
 }
 
 function save(){
-
-  localStorage.setItem(
-    MED_KEY,
-    JSON.stringify(medicines)
-  );
-
-  localStorage.setItem(
-    HISTORY_KEY,
-    JSON.stringify(history)
-  );
-
+  localStorage.setItem(MED_KEY,JSON.stringify(medicines));
+  localStorage.setItem(HISTORY_KEY,JSON.stringify(history));
 }
 
 function escapeHTML(v){
-
   return String(v??"")
     .replaceAll("&","&amp;")
     .replaceAll("<","&lt;")
     .replaceAll(">","&gt;")
     .replaceAll('"',"&quot;")
     .replaceAll("'","&#039;");
-
 }
 
 function toast(message){
-
   const el=$("#toast");
-
   el.textContent=message;
-  el.classList.add("show");
-
+  el.classList.add("opacity-100", "translate-y-0");
+  el.classList.remove("opacity-0", "translate-y-[20px]");
   clearTimeout(window.__toast);
-
-  window.__toast=setTimeout(
-    ()=>el.classList.remove("show"),
-    2200
-  );
-
+  window.__toast=setTimeout(()=>{
+    el.classList.remove("opacity-100", "translate-y-0");
+    el.classList.add("opacity-0", "translate-y-[20px]");
+  },2200);
 }
 
 function formatTime(time){
-
   if(!time)return "";
-
   const [h,m]=time.split(":");
-
   const d=new Date();
-
   d.setHours(+h,+m);
-
   return d.toLocaleTimeString([],{
     hour:"numeric",
     minute:"2-digit"
   });
-
 }
 
-function formatDate(date){
-
-  const d=new Date(date+"T12:00:00");
-
+function formatDate(dateStr){
+  if(!dateStr) return "";
+  const d=new Date(dateStr+"T12:00:00");
   return d.toLocaleDateString([],{
-    weekday:"long",
-    month:"long",
-    day:"numeric"
+    weekday:"short",
+    month:"short",
+    day:"numeric",
+    year:"numeric"
   });
-
 }
 
-function addDays(date,amount){
-
-  const d=new Date(date+"T12:00:00");
-
+function addDays(dateStr,amount){
+  const d=new Date(dateStr+"T12:00:00");
   d.setDate(d.getDate()+amount);
-
   return d.toISOString().split("T")[0];
-
 }
 
+$("#startDateInput").value=getToday();
+$("#endDateInput").value=addDays(getToday(),6);
 
-/* =====================================================
-   TABS
-===================================================== */
+$("#durationMode").onchange=e=>{
+  const val=e.target.value;
+  $("#daysDurationPanel").style.display = val==="days" ? "block" : "none";
+  $("#endDatePanel").style.display = val==="specificDate" ? "block" : "none";
+};
 
-$$(".tab").forEach(tab=>{
-
-  tab.onclick=()=>{
-
-    $$(".tab").forEach(x=>x.classList.remove("active"));
-    $$(".view").forEach(x=>x.classList.remove("active"));
-
-    tab.classList.add("active");
-    $("#"+tab.dataset.view).classList.add("active");
-
-    if(tab.dataset.view==="tracker")
-      renderTracker();
-
-    if(tab.dataset.view==="medicines")
-      renderManage();
-
+$$(".preset-btn").forEach(btn=>{
+  btn.onclick=()=>{
+    $$(".preset-btn").forEach(x=>{
+      x.classList.remove("text-white", "border-accent", "bg-accent/20");
+    });
+    btn.classList.add("text-white", "border-accent", "bg-accent/20");
+    activeDurationDays = +btn.dataset.days;
+    $("#customDaysInput").value = activeDurationDays;
   };
-
 });
 
+$("#customDaysInput").oninput=e=>{
+  const val = +e.target.value;
+  if(val > 0) activeDurationDays = val;
+  $$(".preset-btn").forEach(btn=>{
+    const isActive = +btn.dataset.days === val;
+    btn.classList.toggle("text-white", isActive);
+    btn.classList.toggle("border-accent", isActive);
+    btn.classList.toggle("bg-accent/20", isActive);
+  });
+};
 
-/* =====================================================
-   DATE
-===================================================== */
+$$(".tab").forEach(tab=>{
+  tab.onclick=()=>{
+    $$(".tab").forEach(x=>{
+      x.classList.remove("text-white", "bg-surface3Dark");
+    });
+    $$(".view").forEach(x=>{
+      x.classList.add("hidden");
+      x.classList.remove("block");
+    });
+
+    tab.classList.add("text-white", "bg-surface3Dark");
+    const viewEl = $("#"+tab.dataset.view);
+    viewEl.classList.remove("hidden");
+    viewEl.classList.add("block");
+
+    if(tab.dataset.view==="tracker") renderTracker();
+    if(tab.dataset.view==="medicines") renderManage();
+  };
+});
 
 $("#datePicker").value=selectedDate;
-
 $("#datePicker").onchange=()=>{
-
   selectedDate=$("#datePicker").value;
-
   renderTracker();
-
 };
 
 $("#prevDay").onclick=()=>{
-
   selectedDate=addDays(selectedDate,-1);
-
   $("#datePicker").value=selectedDate;
-
   renderTracker();
-
 };
 
 $("#nextDay").onclick=()=>{
-
   selectedDate=addDays(selectedDate,1);
-
   $("#datePicker").value=selectedDate;
-
   renderTracker();
-
 };
 
-
-/* =====================================================
-   SCHEDULE TYPE
-===================================================== */
-
 $$(".schedule-tab").forEach(tab=>{
-
   tab.onclick=()=>{
-
-    $$(".schedule-tab")
-      .forEach(x=>x.classList.remove("active"));
-
-    tab.classList.add("active");
-
+    $$(".schedule-tab").forEach(x=>{
+      x.classList.remove("text-white", "border-accent/45", "bg-accent/[0.12]");
+    });
+    tab.classList.add("text-white", "border-accent/45", "bg-accent/[0.12]");
     currentSchedule=tab.dataset.schedule;
-
-    $$(".schedule-panel")
-      .forEach(x=>x.style.display="none");
-
-    $("#schedule-"+currentSchedule)
-      .style.display="block";
-
+    $$(".schedule-panel").forEach(x=>x.classList.add("hidden"));
+    $("#schedule-"+currentSchedule).classList.remove("hidden");
   };
-
 });
-
-
-/* =====================================================
-   DAYS
-===================================================== */
 
 $$(".day").forEach(day=>{
-
-  day.onclick=()=>{
-    day.classList.toggle("active");
+  day.onclick=()=>{ 
+    const isActive = day.classList.contains("bg-accent");
+    if(isActive) {
+      day.classList.remove("bg-accent", "border-accent", "text-white");
+      day.classList.add("bg-surface2Dark", "border-borderDark", "text-mutedDark");
+    } else {
+      day.classList.add("bg-accent", "border-accent", "text-white");
+      day.classList.remove("bg-surface2Dark", "border-borderDark", "text-mutedDark");
+    }
   };
-
 });
 
-
-/* =====================================================
-   TIME BUILDER
-===================================================== */
-
 function addTime(){
-
   const row=document.createElement("div");
-
-  row.className="time-row";
-
+  row.className="flex gap-[7px] mb-[7px] time-row";
   row.innerHTML=`
-    <input type="time">
-    <button class="remove" onclick="removeTime(this)">×</button>
+    <input type="time" class="flex-1 text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[10px] p-[10px] outline-none">
+    <button class="w-[38px] border-0 bg-redCustom/10 text-redCustom rounded-[9px] flex items-center justify-center" onclick="removeTime(this)"><i class="fa-solid fa-xmark"></i></button>
   `;
-
-  $("#timeRows").appendChild(row);
-
-}
-
-function removeTime(btn){
-
-  const rows=$$("#timeRows .time-row");
-
+  $("#timeRows").appendChild(row); }  function removeTime(btn){   const rows=$$("#timeRows .time-row");
   if(rows.length<=1){
     toast("Keep at least one dose time.");
     return;
   }
-
   btn.parentElement.remove();
-
 }
 
-
-/* =====================================================
-   MEAL BUILDER
-===================================================== */
-
 function addMeal(){
-
   const row=document.createElement("div");
-
-  row.className="row meal-row";
-
-  row.style.marginBottom="7px";
-
+  row.className="flex items-center gap-[8px] flex-wrap mb-[7px] meal-row";
   row.innerHTML=`
-
-    <select class="small meal-relation">
+    <select class="small meal-relation text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[9px] p-[9px] outline-none">
       <option value="After">After</option>
       <option value="Before">Before</option>
       <option value="With">With</option>
     </select>
 
-    <select class="small meal-name">
+    <select class="small meal-name text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[9px] p-[9px] outline-none">
       <option value="Breakfast">Breakfast</option>
       <option value="Lunch">Lunch</option>
       <option value="Dinner">Dinner</option>
     </select>
 
-    <button class="remove" onclick="removeMeal(this)">×</button>
+    <button class="w-[38px] h-[36px] border-0 bg-redCustom/10 text-redCustom rounded-[9px] flex items-center justify-center" onclick="removeMeal(this)"><i class="fa-solid fa-xmark"></i></button>
   `;
-
-  $("#mealRows").appendChild(row);
-
-}
-
-function removeMeal(btn){
-
-  const rows=$$("#mealRows .meal-row");
-
+  $("#mealRows").appendChild(row); }  function removeMeal(btn){   const rows=$$("#mealRows .meal-row");
   if(rows.length<=1){
     toast("Keep at least one meal rule.");
     return;
   }
-
   btn.parentElement.remove();
-
 }
 
-
-/* =====================================================
-   ADD MEDICINE
-===================================================== */
-
 $("#addMedicine").onclick=()=>{
-
   const name=$("#medName").value.trim();
-
   if(!name){
     toast("Enter the medicine name.");
     $("#medName").focus();
     return;
   }
 
+  const startDate = $("#startDateInput").value || getToday();
+  const durationMode = $("#durationMode").value;
+
+  let durationInfo = { mode: durationMode };
+
+  if(durationMode === "days") {
+    const days = +$("#customDaysInput").value || 5;
+    durationInfo.days = days;
+    durationInfo.endDate = addDays(startDate, days - 1);
+  } else if(durationMode === "specificDate") {
+    const endDate = $("#endDateInput").value;
+    if(!endDate || endDate < startDate) {
+      toast("Select a valid end date on or after the start date.");
+      return;
+    }
+    durationInfo.endDate = endDate;
+  }
+
+  const isEditing = Boolean(editingMedicineId);
+  const existingMed = isEditing ? medicines[editingMedicineId] : null;
 
   const medicine={
-
-    id:"med_"+Date.now(),
-
+    id: isEditing ? editingMedicineId : "med_"+Date.now(),
     name,
-
     dose:$("#medDose").value.trim()||"As prescribed",
-
     type:$("#medType").value,
-
     notes:$("#medNotes").value.trim(),
-
+    startDate,
+    duration: durationInfo,
     schedule:{
       type:currentSchedule
     },
-
-    createdAt:Date.now()
-
+    createdAt: existingMed ? existingMed.createdAt : Date.now()
   };
 
-
-  /* FIXED */
-
   if(currentSchedule==="fixed"){
-
-    const times=[
-      ...$("#timeRows").querySelectorAll("input")
-    ]
-    .map(x=>x.value)
-    .filter(Boolean);
-
+    const times=[...$("#timeRows").querySelectorAll("input")].map(x=>x.value).filter(Boolean);
     if(!times.length){
       toast("Add at least one dose time.");
       return;
     }
-
-    const days=[
-      ...document.querySelectorAll(".day.active")
-    ].map(x=>+x.dataset.day);
-
+    const days=[...document.querySelectorAll(".day")].filter(x=>x.classList.contains("bg-accent")).map(x=>+x.dataset.day);
     medicine.schedule.times=times;
     medicine.schedule.days=days;
-
   }
-
-
-  /* MEAL */
 
   if(currentSchedule==="meal"){
-
-    const rules=[
-      ...document.querySelectorAll(".meal-row")
-    ].map(row=>({
-
+    const rules=[...document.querySelectorAll(".meal-row")].map(row=>({
       relation:row.querySelector(".meal-relation").value,
-
       meal:row.querySelector(".meal-name").value
-
     }));
-
     medicine.schedule.rules=rules;
-
   }
 
-
-  /* INTERVAL */
-
   if(currentSchedule==="interval"){
-
     const hours=+$("#intervalHours").value;
-
     if(!hours||hours<1){
       toast("Enter a valid interval.");
       return;
     }
-
     medicine.schedule.hours=hours;
-
-    medicine.schedule.start=
-      $("#intervalStart").value||"08:00";
-
+    medicine.schedule.start=$("#intervalStart").value||"08:00";
   }
 
-
   medicines[medicine.id]=medicine;
-
   save();
-
+  const successMsg = isEditing ? "Medicine updated ✓" : "Medicine added ✓";
   resetForm();
-
   renderManage();
   renderTracker();
-
-  toast("Medicine added ✓");
-
+  toast(successMsg);
 };
 
+function editMedicine(id){
+  const m = medicines[id];
+  if(!m) return;
 
-/* =====================================================
-   RESET FORM
-===================================================== */
+  editingMedicineId = id;
+  $("#addMedicine").textContent = "✓ Update Medicine";
+  $("#cancelEdit").classList.remove("hidden");
+
+  $("#medName").value = m.name || "";
+  $("#medDose").value = m.dose || "";
+  $("#medType").value = m.type || "fa-pills";
+  $("#medNotes").value = m.notes || "";
+  $("#startDateInput").value = m.startDate || getToday();
+
+  const dur = m.duration || { mode: "indefinite" };
+  $("#durationMode").value = dur.mode;
+  $("#daysDurationPanel").style.display = dur.mode === "days" ? "block" : "none";
+  $("#endDatePanel").style.display = dur.mode === "specificDate" ? "block" : "none";
+
+  if(dur.mode === "days") {
+    const days = dur.days || 5;
+    $("#customDaysInput").value = days;     activeDurationDays = days;     $$(".preset-btn").forEach(btn => {
+      const isActive = +btn.dataset.days === days;
+      btn.classList.toggle("text-white", isActive);
+      btn.classList.toggle("border-accent", isActive);
+      btn.classList.toggle("bg-accent/20", isActive);
+    });
+  } else if(dur.mode === "specificDate") {
+    $("#endDateInput").value = dur.endDate || "";
+  }
+
+  currentSchedule = m.schedule?.type || "fixed";
+  $$(".schedule-tab").forEach(tab => {     const isActive = tab.dataset.schedule === currentSchedule;     tab.classList.toggle("text-white", isActive);     tab.classList.toggle("border-accent/45", isActive);     tab.classList.toggle("bg-accent/[0.12]", isActive);   });   $$
+(".schedule-panel").forEach(x => x.classList.add("hidden"));
+  $("#schedule-" + currentSchedule).classList.remove("hidden");
+
+  if(currentSchedule === "fixed") {
+    const times = m.schedule.times || ["08:00"];
+    $("#timeRows").innerHTML = times.map(t => `
+      <div class="flex gap-[7px] mb-[7px] time-row">
+        <input type="time" value="${t}" class="flex-1 text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[10px] p-[10px] outline-none">
+        <button class="w-[38px] border-0 bg-redCustom/10 text-redCustom rounded-[9px] flex items-center justify-center" onclick="removeTime(this)"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    `).join("");
+
+    const activeDays = m.schedule.days || [0, 1, 2, 3, 4, 5, 6];
+    $$(".day").forEach(d => {
+      const isDayActive = activeDays.includes(+d.dataset.day);
+      if(isDayActive) {
+        d.classList.add("bg-accent", "border-accent", "text-white");
+        d.classList.remove("bg-surface2Dark", "border-borderDark", "text-mutedDark");
+      } else {
+        d.classList.remove("bg-accent", "border-accent", "text-white");
+        d.classList.add("bg-surface2Dark", "border-borderDark", "text-mutedDark");
+      }
+    });
+  }
+
+  if(currentSchedule === "meal") {
+    const rules = m.schedule.rules || [{ relation: "After", meal: "Breakfast" }];
+    $("#mealRows").innerHTML = rules.map(r => `
+      <div class="flex items-center gap-[8px] flex-wrap mb-[7px] meal-row">
+        <select class="small meal-relation text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[9px] p-[9px] outline-none">
+          <option value="After" ${r.relation === "After" ? "selected" : ""}>After</option>
+          <option value="Before" ${r.relation === "Before" ? "selected" : ""}>Before</option>
+          <option value="With" ${r.relation === "With" ? "selected" : ""}>With</option>
+        </select>
+        <select class="small meal-name text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[9px] p-[9px] outline-none">
+          <option value="Breakfast" ${r.meal === "Breakfast" ? "selected" : ""}>Breakfast</option>
+          <option value="Lunch" ${r.meal === "Lunch" ? "selected" : ""}>Lunch</option>
+          <option value="Dinner" ${r.meal === "Dinner" ? "selected" : ""}>Dinner</option>
+        </select>
+        <button class="w-[38px] h-[36px] border-0 bg-redCustom/10 text-redCustom rounded-[9px] flex items-center justify-center" onclick="removeMeal(this)"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    `).join("");
+  }
+
+  if(currentSchedule === "interval") {
+    $("#intervalHours").value = m.schedule.hours || 3;
+    $("#intervalStart").value = m.schedule.start || "08:00";
+  }
+
+  $("#medName").scrollIntoView({ behavior: "smooth", block: "center" });
+  $("#medName").focus();
+}
 
 function resetForm(){
+  editingMedicineId = null;
+  $("#addMedicine").textContent = "+ Add Medicine";
+  $("#cancelEdit").classList.add("hidden");
 
   $("#medName").value="";
   $("#medDose").value="";
   $("#medNotes").value="";
-
+  $("#startDateInput").value=getToday();
+  $("#durationMode").value="indefinite";
+  $("#daysDurationPanel").style.display="none";
+  $("#endDatePanel").style.display="none";
   $("#intervalStart").value="";
+  $("#intervalHours").value=3;
+  $("#customDaysInput").value=5;    $$(".preset-btn").forEach(btn => {
+    const isActive = btn.dataset.days === "5";
+    btn.classList.toggle("text-white", isActive);
+    btn.classList.toggle("border-accent", isActive);
+    btn.classList.toggle("bg-accent/20", isActive);
+  });
+
+  currentSchedule="fixed";
+  $$(".schedule-tab").forEach(tab=>{     const isActive = tab.dataset.schedule === "fixed";     tab.classList.toggle("text-white", isActive);     tab.classList.toggle("border-accent/45", isActive);     tab.classList.toggle("bg-accent/[0.12]", isActive);   });   $$
+(".schedule-panel").forEach(x=>x.classList.add("hidden"));
+  $("#schedule-fixed").classList.remove("hidden");    $$(".day").forEach(day => {
+    day.classList.add("bg-accent", "border-accent", "text-white");
+    day.classList.remove("bg-surface2Dark", "border-borderDark", "text-mutedDark");
+  });
 
   $("#timeRows").innerHTML=`
-    <div class="time-row">
-      <input type="time">
-      <button class="remove" onclick="removeTime(this)">×</button>
+    <div class="flex gap-[7px] mb-[7px] time-row">
+      <input type="time" class="flex-1 text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[10px] p-[10px] outline-none">
+      <button class="w-[38px] border-0 bg-redCustom/10 text-redCustom rounded-[9px] flex items-center justify-center" onclick="removeTime(this)"><i class="fa-solid fa-xmark"></i></button>
     </div>
   `;
 
   $("#mealRows").innerHTML=`
-    <div class="row meal-row" style="margin-bottom:7px">
-
-      <select class="small meal-relation">
+    <div class="flex items-center gap-[8px] flex-wrap mb-[7px] meal-row">
+      <select class="small meal-relation text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[9px] p-[9px] outline-none">
         <option value="After">After</option>
         <option value="Before">Before</option>
         <option value="With">With</option>
       </select>
-
-      <select class="small meal-name">
+      <select class="small meal-name text-textDark dark:text-textDark bg-surface2Dark dark:bg-surface2Dark border border-borderDark dark:border-borderDark rounded-[9px] p-[9px] outline-none">
         <option value="Breakfast">Breakfast</option>
         <option value="Lunch">Lunch</option>
         <option value="Dinner">Dinner</option>
       </select>
-
-      <button class="remove" onclick="removeMeal(this)">×</button>
-
+      <button class="w-[38px] h-[36px] border-0 bg-redCustom/10 text-redCustom rounded-[9px] flex items-center justify-center" onclick="removeMeal(this)"><i class="fa-solid fa-xmark"></i></button>
     </div>
   `;
-
 }
 
+function isMedicineActiveOnDate(m, dateStr) {
+  const start = m.startDate || "2000-01-01";
+  if(dateStr < start) return false;
 
-/* =====================================================
-   GENERATE DOSES
-===================================================== */
+  const dur = m.duration || { mode: "indefinite" };
+  if(dur.mode === "days" || dur.mode === "specificDate") {
+    if(dur.endDate && dateStr > dur.endDate) {
+      return false;
+    }
+  }
+  return true;
+}
 
 function getDoses(medicine,date){
+  if(!isMedicineActiveOnDate(medicine, date)) {
+    return [];
+  }
 
   const s=medicine.schedule;
   const doses=[];
-
   const day=new Date(date+"T12:00:00");
   const weekday=day.getDay();
 
-
-  /* FIXED */
-
   if(s.type==="fixed"){
-
-    if(!s.days.includes(weekday))
-      return [];
-
+    if(!s.days.includes(weekday)) return [];
     s.times.forEach(time=>{
-
       doses.push({
-
         key:medicine.id+"_fixed_"+time,
-
         medicineId:medicine.id,
-
         time,
-
         context:"Scheduled dose"
-
       });
-
     });
-
   }
 
-
-  /* MEAL */
-
   if(s.type==="meal"){
-
     s.rules.forEach((rule,index)=>{
-
       let approx="12:00";
-
       if(rule.meal==="Breakfast")approx="08:00";
       if(rule.meal==="Lunch")approx="13:00";
       if(rule.meal==="Dinner")approx="20:00";
 
       doses.push({
-
         key:medicine.id+"_meal_"+index,
-
         medicineId:medicine.id,
-
         time:approx,
-
         context:`${rule.relation} ${rule.meal}`
-
       });
-
     });
-
   }
 
-
-  /* INTERVAL */
-
   if(s.type==="interval"){
-
     const [h,m]=s.start.split(":").map(Number);
-
     let current=new Date(date+"T00:00:00");
-
     current.setHours(h,m,0,0);
-
     const end=new Date(date+"T23:59:59");
-
     let count=0;
 
     while(current<=end&&count<100){
-
       const time=
         String(current.getHours()).padStart(2,"0")+":"+
         String(current.getMinutes()).padStart(2,"0");
 
       doses.push({
-
         key:medicine.id+"_interval_"+time,
-
         medicineId:medicine.id,
-
         time,
-
         context:`Every ${s.hours} hours`
-
       });
 
-      current.setHours(
-        current.getHours()+s.hours
-      );
-
+      current.setHours(current.getHours()+s.hours);
       count++;
-
     }
-
   }
 
-
-  /* PRN */
-
   if(s.type==="prn"){
-
     return [];
-
   }
 
   return doses;
-
 }
 
-
-/* =====================================================
-   STATUS
-===================================================== */
-
 function getStatus(date,key){
-
   return history[date]?.[key]||"pending";
-
 }
 
 function setStatus(date,key,status){
-
-  if(!history[date])
-    history[date]={};
-
-  if(status==="pending")
-    delete history[date][key];
-  else
-    history[date][key]=status;
-
+  if(!history[date]) history[date]={};
+  if(status==="pending") delete history[date][key];
+  else history[date][key]=status;
   save();
-
 }
 
-
-/* =====================================================
-   IS DOSE DUE
-===================================================== */
-
 function isDue(dose){
-
-  if(selectedDate!==getToday())
-    return false;
-
-  if(!dose.time)
-    return false;
+  if(selectedDate!==getToday()) return false;
+  if(!dose.time) return false;
 
   const now=new Date();
-
   const [h,m]=dose.time.split(":");
-
   const target=new Date();
-
   target.setHours(+h,+m,0,0);
-
   const diff=(target-now)/60000;
 
   return diff<=15&&diff>=-120;
-
 }
 
-
-/* =====================================================
-   TRACKER
-===================================================== */
-
 function renderTracker(){
-
   updateDateHeader();
 
   const allDoses=[];
-
   Object.values(medicines).forEach(m=>{
-
     getDoses(m,selectedDate).forEach(d=>{
-
-      allDoses.push({
-        ...d,
-        medicine:m
-      });
-
+      allDoses.push({ ...d, medicine:m });
     });
-
   });
-
 
   allDoses.sort((a,b)=>{
-
     if(!a.time)return 1;
     if(!b.time)return -1;
-
     return a.time.localeCompare(b.time);
-
   });
 
-
   const dayHistory=history[selectedDate]||{};
-
-  const taken=Object.values(dayHistory)
-    .filter(x=>x==="taken").length;
-
+  const taken=Object.values(dayHistory).filter(x=>x==="taken").length;
   const total=allDoses.length;
-
   const remaining=Math.max(total-taken,0);
-
-  const adherence=total
-    ?Math.round(taken/total*100)
-    :0;
+  const adherence=total ? Math.round(taken/total*100) : 0;
 
   $("#adherence").textContent=adherence+"%";
   $("#adherenceBar").style.width=adherence+"%";
   $("#takenStat").textContent=taken;
   $("#remainingStat").textContent=remaining;
 
-
   renderNextDose(allDoses);
   renderTimeline(allDoses);
   renderPRN();
-
 }
-
-
-/* =====================================================
-   DATE HEADER
-===================================================== */
 
 function updateDateHeader(){
-
   const today=getToday();
-
   if(selectedDate===today){
-
     $("#dateTitle").textContent="Today";
-
   }else if(selectedDate===addDays(today,-1)){
-
     $("#dateTitle").textContent="Yesterday";
-
   }else if(selectedDate===addDays(today,1)){
-
     $("#dateTitle").textContent="Tomorrow";
-
   }else{
-
     $("#dateTitle").textContent=formatDate(selectedDate);
-
   }
-
   $("#dateSubtitle").textContent=formatDate(selectedDate);
-
 }
 
-
-/* =====================================================
-   NEXT DOSE
-===================================================== */
-
 function renderNextDose(doses){
-
-  const pending=doses.filter(d=>
-    getStatus(selectedDate,d.key)==="pending"
-  );
-
+  const pending=doses.filter(d=>getStatus(selectedDate,d.key)==="pending");
   let next=null;
 
   if(selectedDate===getToday()){
-
     const now=new Date();
-
     next=pending.find(d=>{
-
       if(!d.time)return false;
-
       const [h,m]=d.time.split(":");
-
       const t=new Date();
-
       t.setHours(+h,+m,0,0);
-
       return t>=now;
-
     });
-
   }
 
-  if(!next)
-    next=pending.find(d=>d.time);
-
+  if(!next) next=pending.find(d=>d.time);
 
   if(!next){
-
     $("#nextDose").innerHTML=`
-      <div class="next-dose">
-
-        <div class="next-label">✓ Schedule complete</div>
-
-        <div class="next-content">
-
-          <div class="next-icon">🎉</div>
-
-          <div class="next-info">
-            <h3>You're all caught up</h3>
-            <p>No pending scheduled doses.</p>
-          </div>
-
+      <div class="relative overflow-hidden p-[24px] rounded-[22px] bg-next-card border border-accent/22 shadow-custom mb-[16px]">
+        <div class="flex items-center gap-[7px] text-[#aaa3ff] text-[10px] font-extrabold uppercase tracking-[0.8px]">
+          <i class="fa-solid fa-circle-check"></i> Schedule complete
         </div>
-
+        <div class="flex items-center gap-[15px] mt-[14px] max-[700px]:items-start">
+          <div class="w-[58px] h-[58px] rounded-[17px] grid place-items-center bg-accent/13 text-[27px] text-accent">
+            <i class="fa-solid fa-champagne-glasses"></i>
+          </div>
+          <div>
+            <h3 class="text-[19px] font-bold tracking-[-0.4px]">You're all caught up</h3>
+            <p class="text-mutedDark dark:text-mutedDark text-[11px] mt-[5px]">No pending scheduled doses for this date.</p>
+          </div>
+        </div>
       </div>
     `;
-
     return;
-
   }
-
 
   const status=isDue(next)?"due":"pending";
 
   $("#nextDose").innerHTML=`
-
-    <div class="next-dose">
-
-      <div class="next-label">
-        ${status==="due"?"🔔 Due now":"⏭ Next dose"}
+    <div class="relative overflow-hidden p-[24px] rounded-[22px] bg-next-card border border-accent/22 shadow-custom mb-[16px]">
+      <div class="flex items-center gap-[7px] text-[#aaa3ff] text-[10px] font-extrabold uppercase tracking-[0.8px]">
+        ${status==="due" ? '<i class="fa-solid fa-bell"></i> Due now' : '<i class="fa-solid fa-[#aaa3ff]"></i> Next dose'}
       </div>
-
-      <div class="next-content">
-
-        <div class="next-icon">
-          ${next.medicine.type}
+      <div class="flex items-center gap-[15px] mt-[14px] max-[700px]:items-start">
+        <div class="w-[58px] h-[58px] rounded-[17px] grid place-items-center bg-accent/13 text-[27px] text-accent">
+          <i class="fa-solid ${next.medicine.type || 'fa-pills'}"></i>
         </div>
-
-        <div class="next-info">
-
-          <h3>${escapeHTML(next.medicine.name)}</h3>
-
-          <p>
+        <div class="flex-1">
+          <h3 class="text-[19px] font-bold tracking-[-0.4px]">${escapeHTML(next.medicine.name)}</h3>
+          <p class="text-mutedDark dark:text-mutedDark text-[11px] mt-[5px]">
             ${escapeHTML(next.medicine.dose)}
             • ${escapeHTML(next.context)}
           </p>
-
         </div>
-
-        <div class="next-time">
-
-          <strong>${formatTime(next.time)}</strong>
-
-          <span>${status==="due"?"Now":"Upcoming"}</span>
-
+        <div class="text-right max-[700px]:hidden">
+          <strong class="block text-[21px] font-bold">${formatTime(next.time)}</strong>
+          <span class="text-mutedDark dark:text-mutedDark text-[10px]">${status==="due"?"Now":"Upcoming"}</span>
         </div>
-
       </div>
-
-      <button
-        class="take-now"
-        onclick="quickTake('${next.key}')"
-      >
-        ✓ Take this dose
-      </button>
-
+      <button class="mt-[18px] w-full border-0 p-[13px] rounded-[12px] bg-gradient-to-br from-accent to-accent2 text-white text-[12px] font-extrabold" onclick="quickTake('${next.key}')">✓ Take this dose</button>
     </div>
   `;
-
 }
 
-
-/* =====================================================
-   TIMELINE
-===================================================== */
-
 function renderTimeline(doses){
-
   let visible=doses;
 
   if(currentFilter==="taken")
     visible=doses.filter(d=>getStatus(selectedDate,d.key)==="taken");
-
   if(currentFilter==="missed")
     visible=doses.filter(d=>getStatus(selectedDate,d.key)==="missed");
-
   if(currentFilter==="pending")
     visible=doses.filter(d=>getStatus(selectedDate,d.key)==="pending");
-
   if(currentFilter==="due")
-    visible=doses.filter(d=>
-      getStatus(selectedDate,d.key)==="pending"&&isDue(d)
-    );
-
+    visible=doses.filter(d=>getStatus(selectedDate,d.key)==="pending"&&isDue(d));
 
   if(!visible.length){
-
     $("#timeline").innerHTML=`
-      <div class="empty">
-        <div class="empty-icon">
-          ${currentFilter==="taken"?"✓":"📋"}
+      <div class="text-center py-[50px] px-[20px] border border-dashed border-borderDark dark:border-borderDark rounded-[17px] text-mutedDark dark:text-mutedDark">
+        <div class="text-[34px] mb-[10px]">
+          <i class="fa-solid ${currentFilter==="taken"?"fa-check-double":"fa-clipboard-list"}"></i>
         </div>
-        <h3>No doses here</h3>
-        <p>Nothing matches this filter.</p>
+        <h3 class="text-textDark dark:text-textDark text-[14px] font-bold mb-[5px]">No doses here</h3>
+        <p class="text-[10px]">Nothing matches this filter for ${selectedDate===getToday()?"today":selectedDate}.</p>
       </div>
     `;
-
     return;
-
   }
 
-
   $("#timeline").innerHTML=visible.map(d=>{
-
     const status=getStatus(selectedDate,d.key);
-
     const due=status==="pending"&&isDue(d);
-
     const finalStatus=due?"due":status;
 
     let statusText="Upcoming";
+    let pillStyle="text-[#cbd1db] bg-white/[0.06]";
+    if(status==="taken"){ statusText="Taken"; pillStyle="text-[#082016] bg-greenCustom"; }
+    if(status==="missed"){ statusText="Missed"; pillStyle="text-[#2c070d] bg-redCustom"; }
+    if(status==="skipped"){ statusText="Skipped"; pillStyle="text-[#2b1d00] bg-yellowCustom"; }
+    if(due){ statusText="Due now"; pillStyle="text-[#dcd7ff] bg-accent/16"; }
 
-    if(status==="taken")statusText="Taken";
-    if(status==="missed")statusText="Missed";
-    if(status==="skipped")statusText="Skipped";
-    if(due)statusText="Due now";
-
+    let cardBorder = "border-borderDark dark:border-borderDark";
+    let cardExtra = "";
+    if(status === "taken") cardExtra = "opacity-[0.68]";
+    if(status === "missed") cardBorder = "border-redCustom/25";
+    if(due) cardBorder = "border-accent/45 shadow-[0_0_0_1px_rgba(128,108,255,0.08)]";
 
     return `
-
-      <div class="timeline-item">
-
-        <div class="timeline-time">
-          ${d.time?formatTime(d.time):"—"}
-        </div>
-
-        <div class="timeline-card status-${finalStatus}">
-
-          <div class="med-icon">
-            ${d.medicine.type}
+      <div class="grid grid-cols-[68px_1fr] gap-[10px] relative max-[700px]:grid-cols-[48px_1fr]">
+        <div class="pt-[18px] text-mutedDark dark:text-mutedDark text-[10px] text-right max-[700px]:text-[9px]">${d.time?formatTime(d.time):"—"}</div>
+        <div class="relative p-[15px] flex items-center gap-[12px] rounded-[17px] border ${cardBorder} bg-surfaceDark dark:bg-surfaceDark hover:border-accent/30 transition-all ${cardExtra} max-[700px]:p-[12px]">
+          <div class="w-[44px] h-[44px] shrink-0 rounded-[13px] grid place-items-center bg-accent/10 text-[20px] text-accent max-[700px]:w-[39px] max-[700px]:h-[39px] max-[700px]:text-[17px]">
+            <i class="fa-solid ${d.medicine.type || 'fa-pills'}"></i>
           </div>
-
-          <div class="med-info">
-
-            <h4>${escapeHTML(d.medicine.name)}</h4>
-
-            <p>
+          <div class="flex-1 min-w-0">
+            <h4 class="text-[13px] font-bold">${escapeHTML(d.medicine.name)}</h4>
+            <p class="text-mutedDark dark:text-mutedDark text-[10px] mt-[5px] leading-[1.5]">
               ${escapeHTML(d.medicine.dose)}
               • ${escapeHTML(d.context)}
-              ${d.medicine.notes
-                ?" • "+escapeHTML(d.medicine.notes)
-                :""}
+              ${d.medicine.notes ? " • "+escapeHTML(d.medicine.notes) : ""}
             </p>
-
           </div>
-
           ${
             status==="pending"
-            ?
-            `<button
-              class="action-take"
-              onclick="quickTake('${d.key}')"
-            >✓ Take</button>`
-            :
-            `<span class="status-pill ${finalStatus}">
-              ${statusText}
-            </span>`
+            ? `<button class="border-0 bg-greenCustom text-[#061b13] py-[8px] px-[11px] rounded-full text-[10px] font-extrabold max-[700px]:p-[8px]" onclick="quickTake('${d.key}')"><i class="fa-solid fa-check mr-1"></i>Take</button>`
+            : `<span class="text-[9px] font-extrabold py-[6px] px-[8px] rounded-[8px] whitespace-nowrap ${pillStyle} max-[700px]:hidden">${statusText}</span>`
           }
-
-          <button
-            class="action-more"
-            onclick="openDose('${d.key}')"
-          >⋯</button>
-
+          <button class="w-[32px] h-[32px] border border-borderDark dark:border-borderDark bg-white/[0.035] text-textDark dark:text-textDark rounded-[9px] flex items-center justify-center text-[12px]" onclick="openDose('${d.key}')"><i class="fa-solid fa-ellipsis"></i></button>
         </div>
-
       </div>
     `;
-
   }).join("");
-
 }
-
-
-/* =====================================================
-   PRN
-===================================================== */
 
 function renderPRN(){
-
-  const prn=Object.values(medicines)
-    .filter(m=>m.schedule.type==="prn");
-
+  const today=getToday();
+  const prn=Object.values(medicines).filter(m=>m.schedule.type==="prn" && isMedicineActiveOnDate(m, selectedDate));
 
   if(!prn.length){
-
     $("#prnSection").innerHTML="";
     return;
-
   }
 
-
   $("#prnSection").innerHTML=`
-
-    <div class="section-head">
-      <h3>As needed</h3>
+    <div class="flex items-center justify-between mt-[25px] mb-[12px]">
+      <h3 class="text-[15px] font-bold">As needed</h3>
     </div>
-
-    <div style="display:grid;gap:8px">
-
+    <div class="grid gap-[8px]">
       ${prn.map(m=>`
-
-        <div class="prn-card">
-
-          <div class="med-icon">
-            ${m.type}
+        <div class="p-[15px] border border-dashed border-borderDark dark:border-borderDark rounded-[16px] flex items-center gap-[12px] bg-white/[0.02]">
+          <div class="w-[44px] h-[44px] shrink-0 rounded-[13px] grid place-items-center bg-accent/10 text-[20px] text-accent">
+            <i class="fa-solid ${m.type || 'fa-pills'}"></i>
           </div>
-
-          <div class="med-info">
-
-            <h4>${escapeHTML(m.name)}</h4>
-
-            <p>
-              ${escapeHTML(m.dose)}
-              ${m.notes
-                ?" • "+escapeHTML(m.notes)
-                :""}
+          <div class="flex-1 min-w-0">
+            <h4 class="text-[13px] font-bold">${escapeHTML(m.name)}</h4>
+            <p class="text-mutedDark dark:text-mutedDark text-[10px] mt-[5px] leading-[1.5]">
+              ${escapeHTML(m.dose)}${m.notes ? " • "+escapeHTML(m.notes) : ""}
             </p>
-
           </div>
-
-          <button
-            class="action-take"
-            onclick="takePRN('${m.id}')"
-          >
-            + Record
-          </button>
-
+          <button class="border-0 bg-greenCustom text-[#061b13] py-[8px] px-[11px] rounded-full text-[10px] font-extrabold" onclick="takePRN('${m.id}')">+ Record</button>
         </div>
-
       `).join("")}
-
     </div>
   `;
-
 }
-
-
-/* =====================================================
-   QUICK TAKE
-===================================================== */
 
 function quickTake(key){
-
   setStatus(selectedDate,key,"taken");
-
   renderTracker();
-
   toast("Dose recorded ✓");
-
 }
-
-
-/* =====================================================
-   PRN TAKE
-===================================================== */
 
 function takePRN(id){
-
   const key=id+"_prn_"+Date.now();
-
   setStatus(selectedDate,key,"taken");
-
   renderTracker();
-
   toast("Medicine recorded ✓");
-
 }
-
-
-/* =====================================================
-   DOSE MODAL
-===================================================== */
 
 let activeDose=null;
 
 function openDose(key){
-
   let found=null;
-
   Object.values(medicines).some(m=>{
-
-    const dose=getDoses(m,selectedDate)
-      .find(d=>d.key===key);
-
+    const dose=getDoses(m,selectedDate).find(d=>d.key===key);
     if(dose){
-
-      found={
-        ...dose,
-        medicine:m
-      };
-
+      found={ ...dose, medicine:m };
       return true;
-
     }
-
     return false;
-
   });
 
-
   if(!found)return;
-
   activeDose=found;
 
-
-  const status=getStatus(
-    selectedDate,
-    found.key
-  );
-
+  const status=getStatus(selectedDate,found.key);
+  $("#modalHeadTitle").textContent="Dose Details";
 
   $("#modalBody").innerHTML=`
-
-    <div class="modal-medicine">
-
-      <div class="modal-med-icon">
-        ${found.medicine.type}
+    <div class="flex items-center gap-[12px] p-[14px] rounded-[14px] bg-surface2Dark dark:bg-surface2Dark mb-[15px]">
+      <div class="w-[45px] h-[45px] rounded-[13px] grid place-items-center bg-accent/10 text-[20px] text-accent">
+        <i class="fa-solid ${found.medicine.type || 'fa-pills'}"></i>
       </div>
-
       <div>
-        <strong>${escapeHTML(found.medicine.name)}</strong>
-
-        <small>
-          ${escapeHTML(found.medicine.dose)}
-        </small>
+        <strong class="text-[14px] block">${escapeHTML(found.medicine.name)}</strong>
+        <small class="block text-mutedDark dark:text-mutedDark text-[10px] mt-[4px]">${escapeHTML(found.medicine.dose)}</small>
       </div>
-
     </div>
 
-
-    <div class="modal-actions">
-
-      <button
-        class="modal-action take"
-        onclick="modalStatus('taken')"
-      >✓ Taken</button>
-
-      <button
-        class="modal-action miss"
-        onclick="modalStatus('missed')"
-      >✕ Missed</button>
-
-      <button
-        class="modal-action skip"
-        onclick="modalStatus('skipped')"
-      >↷ Skip</button>
-
-      <button
-        class="modal-action reset"
-        onclick="modalStatus('pending')"
-      >Reset</button>
-
+    <div class="grid grid-cols-2 gap-[8px]">
+      <button class="border-0 rounded-[11px] p-[12px] text-[11px] font-extrabold bg-greenCustom text-[#061b13]" onclick="modalStatus('taken')">✓ Taken</button>
+      <button class="border-0 rounded-[11px] p-[12px] text-[11px] font-extrabold bg-redCustom text-[#26070c]" onclick="modalStatus('missed')">✕ Missed</button>
+      <button class="border-0 rounded-[11px] p-[12px] text-[11px] font-extrabold bg-yellowCustom text-[#291d00]" onclick="modalStatus('skipped')">↷ Skip</button>
+      <button class="border-0 rounded-[11px] p-[12px] text-[11px] font-extrabold bg-surface3Dark text-textDark" onclick="modalStatus('pending')">Reset</button>
     </div>
 
-
-    <div class="details">
-
-      <div class="detail">
-        <span>Scheduled</span>
-        <strong>
-          ${found.time?formatTime(found.time):"As needed"}
-        </strong>
+    <div class="mt-[15px] grid gap-[8px]">
+      <div class="flex justify-between py-[10px] border-b border-borderDark dark:border-borderDark text-[10px]">
+        <span class="text-mutedDark dark:text-mutedDark">Scheduled</span>
+        <strong class="font-bold">${found.time?formatTime(found.time):"As needed"}</strong>
       </div>
-
-      <div class="detail">
-        <span>Instructions</span>
-        <strong>
-          ${escapeHTML(found.context)}
-        </strong>
+      <div class="flex justify-between py-[10px] border-b border-borderDark dark:border-borderDark text-[10px]">
+        <span class="text-mutedDark dark:text-mutedDark">Instructions</span>
+        <strong class="font-bold">${escapeHTML(found.context)}</strong>
       </div>
-
-      <div class="detail">
-        <span>Current status</span>
-        <strong>${status}</strong>
+      <div class="flex justify-between py-[10px] border-b border-borderDark dark:border-borderDark text-[10px]">
+        <span class="text-mutedDark dark:text-mutedDark">Current status</span>
+        <strong class="font-bold">${status}</strong>
       </div>
-
+      <div class="flex justify-between py-[10px] border-b border-borderDark dark:border-borderDark text-[10px]">
+        <span class="text-mutedDark dark:text-mutedDark">Start Date</span>
+        <strong class="font-bold">${formatDate(found.medicine.startDate||getToday())}</strong>
+      </div>
+      <div class="flex justify-between py-[10px] border-b border-borderDark dark:border-borderDark text-[10px]">
+        <span class="text-mutedDark dark:text-mutedDark">Duration</span>
+        <strong class="font-bold">${getDurationSummary(found.medicine)}</strong>
+      </div>
       ${
         found.medicine.notes
-        ?
-        `<div class="detail">
-          <span>Notes</span>
-          <strong>${escapeHTML(found.medicine.notes)}</strong>
-        </div>`
+        ? `<div class="flex justify-between py-[10px] border-b border-borderDark dark:border-borderDark text-[10px]">
+            <span class="text-mutedDark dark:text-mutedDark">Notes</span>
+            <strong class="font-bold">${escapeHTML(found.medicine.notes)}</strong>
+          </div>`
         :""
       }
-
     </div>
   `;
 
-
-  $("#modal").classList.add("open");
-
+  const modalEl = $("#modal");
+  modalEl.classList.remove("hidden");
+  modalEl.classList.add("flex");
 }
 
 function closeModal(){
-
-  $("#modal").classList.remove("open");
+  const modalEl = $("#modal");
+  modalEl.classList.add("hidden");
+  modalEl.classList.remove("flex");
   activeDose=null;
-
 }
 
 function modalStatus(status){
-
   if(!activeDose)return;
-
-  setStatus(
-    selectedDate,
-    activeDose.key,
-    status
-  );
-
+  setStatus(selectedDate,activeDose.key,status);
   closeModal();
-
   renderTracker();
-
   toast(
-    status==="taken"
-      ?"Dose marked as taken ✓"
-      :status==="missed"
-      ?"Dose marked as missed"
-      :status==="skipped"
-      ?"Dose skipped"
-      :"Dose reset"
+    status==="taken"?"Dose marked as taken ✓":
+    status==="missed"?"Dose marked as missed":
+    status==="skipped"?"Dose skipped":"Dose reset"
   );
-
 }
 
 $("#modal").onclick=e=>{
-
-  if(e.target===$("#modal"))
-    closeModal();
-
+  if(e.target===$("#modal")) closeModal();
 };
 
-
-/* =====================================================
-   FILTERS
-===================================================== */
-
-$$(".filter").forEach(btn=>{
-
-  btn.onclick=()=>{
-
-    $$(".filter")
-      .forEach(x=>x.classList.remove("active"));
-
-    btn.classList.add("active");
-
+$$(".filter").forEach(btn=>{   btn.onclick=()=>{     $$
+(".filter").forEach(x=>{
+      x.classList.remove("text-white", "border-accent/40", "bg-accent/[0.12]");
+    });
+    btn.classList.add("text-white", "border-accent/40", "bg-accent/[0.12]");
     currentFilter=btn.dataset.filter;
-
     renderTracker();
-
   };
-
 });
 
+function getDurationSummary(m) {
+  const dur = m.duration || { mode: "indefinite" };
+  const startStr = formatDate(m.startDate || getToday());
 
-/* =====================================================
-   MEDICINE MANAGEMENT
-===================================================== */
+  if(dur.mode === "days") {
+    return `${dur.days} days (Ends ${formatDate(dur.endDate)})`;
+  }
+  if(dur.mode === "specificDate") {
+    return `Until ${formatDate(dur.endDate)}`;
+  }
+  return "Continuous / No end date";
+}
+
+function getMedicineStatusBadge(m) {
+  const today = getToday();
+  const start = m.startDate || "2000-01-01";
+  const dur = m.duration || { mode: "indefinite" };
+
+  if(today < start) {
+    return `<span class="text-[9px] font-extrabold py-[4px] px-[8px] rounded-[6px] uppercase tracking-[0.5px] inline-block bg-yellowCustom/15 text-yellowCustom">Starts ${formatDate(start)}</span>`;
+  }
+
+  if((dur.mode === "days" || dur.mode === "specificDate") && dur.endDate && today > dur.endDate) {
+    return `<span class="text-[9px] font-extrabold py-[4px] px-[8px] rounded-[6px] uppercase tracking-[0.5px] inline-block bg-redCustom/15 text-redCustom">Completed / Expired</span>`;
+  }
+
+  return `<span class="text-[9px] font-extrabold py-[4px] px-[8px] rounded-[6px] uppercase tracking-[0.5px] inline-block bg-greenCustom/15 text-greenCustom">Active Course</span>`;
+}
 
 function renderManage(){
-
   const list=Object.values(medicines);
 
   if(!list.length){
-
     $("#manageList").innerHTML=`
-      <div class="empty">
-        <div class="empty-icon">💊</div>
-        <h3>No medicines added</h3>
-        <p>Create your first schedule above.</p>
+      <div class="text-center py-[50px] px-[20px] border border-dashed border-borderDark dark:border-borderDark rounded-[17px] text-mutedDark dark:text-mutedDark">
+        <div class="text-[34px] mb-[10px] text-accent"><i class="fa-solid fa-pills"></i></div>
+        <h3 class="text-textDark dark:text-textDark text-[14px] font-bold mb-[5px]">No medicines added</h3>
+        <p class="text-[10px]">Create your first medicine schedule above.</p>
       </div>
     `;
-
     return;
-
   }
 
-
   $("#manageList").innerHTML=list.map(m=>`
-
-    <div class="manage-item">
-
-      <div class="manage-icon">
-        ${m.type}
+    <div class="p-[14px] flex items-center gap-[12px] border border-borderDark dark:border-borderDark rounded-[15px] bg-surfaceDark dark:bg-surfaceDark">
+      <div class="w-[42px] h-[42px] grid place-items-center bg-accent/10 rounded-[12px] text-accent text-[18px]">
+        <i class="fa-solid ${m.type || 'fa-pills'}"></i>
       </div>
-
-      <div class="manage-info">
-
-        <strong>${escapeHTML(m.name)}</strong>
-
-        <small>
+      <div class="flex-1">
+        <div class="flex items-center gap-[8px] mb-[2px]">
+          <strong class="text-[13px] font-bold">${escapeHTML(m.name)}</strong>
+          ${getMedicineStatusBadge(m)}
+        </div>
+        <small class="block text-mutedDark dark:text-mutedDark text-[9px] leading-[1.5] mt-[4px]">
           ${escapeHTML(m.dose)}
           • ${scheduleDescription(m)}
-          ${m.notes
-            ?" • "+escapeHTML(m.notes)
-            :""}
+          <br>
+          📅 Started: <strong>${formatDate(m.startDate || getToday())}</strong>
+          • Duration: <strong>${getDurationSummary(m)}</strong>
+          ${m.notes ? " • "+escapeHTML(m.notes) : ""}
         </small>
-
       </div>
-
-      <button
-        class="delete"
-        onclick="deleteMedicine('${m.id}')"
-      >🗑</button>
-
+      <div class="flex gap-[6px]">
+        <button class="w-[33px] h-[33px] border-0 rounded-[9px] bg-accent/12 text-accent flex items-center justify-center text-[12px]" onclick="editMedicine('${m.id}')" title="Edit medicine"><i class="fa-solid fa-pen"></i></button>
+        <button class="w-[33px] h-[33px] border-0 rounded-[9px] bg-redCustom/10 text-redCustom flex items-center justify-center text-[12px]" onclick="promptDeleteMedicine('${m.id}')" title="Delete medicine"><i class="fa-solid fa-trash"></i></button>
+      </div>
     </div>
-
   `).join("");
-
 }
-
 
 function scheduleDescription(m){
-
   const s=m.schedule;
-
   if(s.type==="fixed")
     return "At "+s.times.map(formatTime).join(", ");
-
   if(s.type==="meal")
-    return s.rules
-      .map(x=>x.relation+" "+x.meal)
-      .join(" + ");
-
+    return s.rules.map(x=>x.relation+" "+x.meal).join(" + ");
   if(s.type==="interval")
     return `Every ${s.hours} hours from ${formatTime(s.start)}`;
-
   return "As needed";
-
 }
 
-
-function deleteMedicine(id){
-
+function promptDeleteMedicine(id){
   const m=medicines[id];
-
   if(!m)return;
 
-  if(!confirm(`Delete "${m.name}"?`))
-    return;
-
-  delete medicines[id];
-
-  save();
-
-  renderManage();
-  renderTracker();
-
-  toast("Medicine deleted.");
-
+  $("#modalHeadTitle").textContent="Confirm Deletion";
+  $("#modalBody").innerHTML=`
+    <div class="text-center py-[10px]">
+      <div class="text-[36px] mb-[10px] text-yellowCustom"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <h4 class="text-[15px] font-bold mb-[6px]">Delete "${escapeHTML(m.name)}"?</h4>
+      <p class="text-mutedDark dark:text-mutedDark text-[11px] mb-[18px]">This will remove this medicine and its future schedule.</p>
+      <div class="flex gap-[10px] justify-center">
+        <button class="border-0 rounded-[11px] p-[12px] text-[11px] font-extrabold bg-surface3Dark text-textDark flex-1" onclick="closeModal()">Cancel</button>
+        <button class="border-0 rounded-[11px] p-[12px] text-[11px] font-extrabold bg-redCustom text-[#26070c] flex-1" onclick="confirmDeleteMedicine('${id}')">Delete</button>
+      </div>
+    </div>
+  `;
+  const modalEl = $("#modal");
+  modalEl.classList.remove("hidden");
+  modalEl.classList.add("flex");
 }
 
-
-/* =====================================================
-   THEME
-===================================================== */
+function confirmDeleteMedicine(id){
+  if(editingMedicineId === id) {
+    resetForm();
+  }
+  delete medicines[id];
+  save();
+  closeModal();
+  renderManage();
+  renderTracker();
+  toast("Medicine deleted.");
+}
 
 if(localStorage.getItem(THEME_KEY)==="light"){
-
   document.body.classList.add("light");
-  $("#themeBtn").textContent="🌙";
-
+  document.documentElement.classList.remove("dark");
+  $("#themeBtn").innerHTML='<i class="fa-solid fa-moon"></i>';
+} else {
+  document.documentElement.classList.add("dark");
 }
 
 $("#themeBtn").onclick=()=>{
-
   document.body.classList.toggle("light");
-
   const light=document.body.classList.contains("light");
-
-  localStorage.setItem(
-    THEME_KEY,
-    light?"light":"dark"
-  );
-
-  $("#themeBtn").textContent=
-    light?"🌙":"☀️";
-
+  if(light) {
+    document.documentElement.classList.remove("dark");
+  } else {
+    document.documentElement.classList.add("dark");
+  }
+  localStorage.setItem(THEME_KEY, light?"light":"dark");
+  $("#themeBtn").innerHTML=light?'<i class="fa-solid fa-moon"></i>':'<i class="fa-solid fa-sun"></i>';
 };
-
-
-/* =====================================================
-   INITIAL
-===================================================== */
 
 renderTracker();
 renderManage();
