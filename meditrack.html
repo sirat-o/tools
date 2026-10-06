@@ -1,0 +1,2791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#080a0f">
+<title>MedTrack</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root{
+  --bg:#080a0f;
+  --surface:#10131a;
+  --surface2:#171b23;
+  --surface3:#1d222c;
+  --text:#f5f7fb;
+  --muted:#8c95a4;
+  --border:rgba(255,255,255,.075);
+  --accent:#806cff;
+  --accent2:#5c8dff;
+  --green:#36d39a;
+  --red:#ff6478;
+  --yellow:#ffc857;
+  --blue:#5ca8ff;
+  --orange:#ff9f5a;
+  --shadow:0 20px 70px rgba(0,0,0,.25);
+  --radius:20px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 5% 0%,rgba(128,108,255,.14),transparent 28%),
+    radial-gradient(circle at 95% 5%,rgba(92,141,255,.08),transparent 25%),
+    var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,sans-serif;
+}
+
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:active{transform:scale(.98)}
+
+.app{
+  width:min(1120px,calc(100% - 28px));
+  margin:auto;
+  padding:25px 0 90px;
+}
+
+/* HEADER */
+
+header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:23px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.logo{
+  width:44px;
+  height:44px;
+  display:grid;
+  place-items:center;
+  border-radius:14px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  box-shadow:0 10px 30px rgba(128,108,255,.25);
+  font-size:21px;
+}
+
+.brand h1{
+  font-size:20px;
+  letter-spacing:-.6px;
+}
+
+.brand p{
+  color:var(--muted);
+  font-size:11px;
+  margin-top:3px;
+}
+
+.icon-btn{
+  width:42px;
+  height:42px;
+  border-radius:13px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.035);
+  color:var(--text);
+}
+
+/* NAV */
+
+.tabs{
+  display:flex;
+  gap:4px;
+  width:max-content;
+  padding:5px;
+  border-radius:16px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);
+  margin-bottom:25px;
+}
+
+.tab{
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  padding:11px 21px;
+  border-radius:11px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.tab.active{
+  color:white;
+  background:var(--surface3);
+}
+
+/* VIEWS */
+
+.view{display:none}
+.view.active{
+  display:block;
+  animation:fade .22s ease;
+}
+
+@keyframes fade{
+  from{opacity:0;transform:translateY(5px)}
+  to{opacity:1;transform:none}
+}
+
+.page-title{
+  margin-bottom:20px;
+}
+
+.page-title h2{
+  font-size:32px;
+  letter-spacing:-1px;
+}
+
+.page-title p{
+  color:var(--muted);
+  font-size:12px;
+  margin-top:6px;
+}
+
+/* =====================================================
+   TRACKER
+===================================================== */
+
+.date-navigation{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:18px;
+}
+
+.date-main{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.date-arrow{
+  width:36px;
+  height:36px;
+  border-radius:11px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--text);
+}
+
+.date-card{
+  padding:9px 15px;
+  border-radius:12px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  min-width:170px;
+  text-align:center;
+}
+
+.date-card strong{
+  display:block;
+  font-size:13px;
+}
+
+.date-card span{
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+  margin-top:3px;
+}
+
+.date-input{
+  background:var(--surface);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:9px;
+}
+
+/* NEXT DOSE */
+
+.next-dose{
+  position:relative;
+  overflow:hidden;
+  padding:24px;
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 90% 10%,rgba(128,108,255,.25),transparent 35%),
+    linear-gradient(135deg,rgba(128,108,255,.13),rgba(92,141,255,.05)),
+    var(--surface);
+  border:1px solid rgba(128,108,255,.22);
+  box-shadow:var(--shadow);
+  margin-bottom:16px;
+}
+
+.next-label{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  color:#aaa3ff;
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.8px;
+}
+
+.next-content{
+  display:flex;
+  align-items:center;
+  gap:15px;
+  margin-top:14px;
+}
+
+.next-icon{
+  width:58px;
+  height:58px;
+  border-radius:17px;
+  display:grid;
+  place-items:center;
+  background:rgba(128,108,255,.13);
+  font-size:27px;
+}
+
+.next-info{
+  flex:1;
+}
+
+.next-info h3{
+  font-size:19px;
+  letter-spacing:-.4px;
+}
+
+.next-info p{
+  color:var(--muted);
+  font-size:11px;
+  margin-top:5px;
+}
+
+.next-time{
+  text-align:right;
+}
+
+.next-time strong{
+  display:block;
+  font-size:21px;
+}
+
+.next-time span{
+  color:var(--muted);
+  font-size:10px;
+}
+
+.take-now{
+  margin-top:18px;
+  width:100%;
+  border:0;
+  padding:13px;
+  border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:white;
+  font-size:12px;
+  font-weight:800;
+}
+
+/* STATS */
+
+.stats{
+  display:grid;
+  grid-template-columns:1.2fr .8fr .8fr;
+  gap:12px;
+  margin-bottom:18px;
+}
+
+.stat{
+  padding:18px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:17px;
+}
+
+.stat-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.stat-icon{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:rgba(128,108,255,.1);
+}
+
+.stat small{
+  color:var(--muted);
+  font-size:10px;
+}
+
+.stat strong{
+  display:block;
+  font-size:25px;
+  margin-top:10px;
+}
+
+.progress{
+  height:5px;
+  margin-top:11px;
+  border-radius:99px;
+  overflow:hidden;
+  background:rgba(255,255,255,.07);
+}
+
+.progress span{
+  display:block;
+  height:100%;
+  width:0;
+  background:linear-gradient(90deg,var(--accent),var(--blue));
+  border-radius:99px;
+  transition:.4s;
+}
+
+/* FILTERS */
+
+.section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin:25px 0 12px;
+}
+
+.section-head h3{
+  font-size:15px;
+}
+
+.filters{
+  display:flex;
+  gap:6px;
+  overflow:auto;
+  padding-bottom:3px;
+}
+
+.filter{
+  white-space:nowrap;
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--muted);
+  padding:8px 12px;
+  border-radius:10px;
+  font-size:10px;
+  font-weight:700;
+}
+
+.filter.active{
+  color:white;
+  border-color:rgba(128,108,255,.4);
+  background:rgba(128,108,255,.12);
+}
+
+/* TIMELINE */
+
+.timeline{
+  position:relative;
+  display:grid;
+  gap:9px;
+}
+
+.timeline-item{
+  display:grid;
+  grid-template-columns:68px 1fr;
+  gap:10px;
+  position:relative;
+}
+
+.timeline-time{
+  padding-top:18px;
+  color:var(--muted);
+  font-size:10px;
+  text-align:right;
+}
+
+.timeline-card{
+  position:relative;
+  padding:15px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border-radius:17px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:.2s;
+}
+
+.timeline-card:hover{
+  border-color:rgba(128,108,255,.3);
+}
+
+.timeline-card.status-taken{
+  opacity:.68;
+}
+
+.timeline-card.status-missed{
+  border-color:rgba(255,100,120,.25);
+}
+
+.timeline-card.status-due{
+  border-color:rgba(128,108,255,.45);
+  box-shadow:0 0 0 1px rgba(128,108,255,.08);
+}
+
+.med-icon{
+  width:44px;
+  height:44px;
+  flex:0 0 44px;
+  border-radius:13px;
+  display:grid;
+  place-items:center;
+  background:rgba(128,108,255,.1);
+  font-size:20px;
+}
+
+.med-info{
+  flex:1;
+  min-width:0;
+}
+
+.med-info h4{
+  font-size:13px;
+}
+
+.med-info p{
+  color:var(--muted);
+  font-size:10px;
+  margin-top:5px;
+  line-height:1.5;
+}
+
+.status-pill{
+  font-size:9px;
+  font-weight:800;
+  padding:6px 8px;
+  border-radius:8px;
+  white-space:nowrap;
+}
+
+.status-pill.pending{
+  color:#cbd1db;
+  background:rgba(255,255,255,.06);
+}
+
+.status-pill.due{
+  color:#dcd7ff;
+  background:rgba(128,108,255,.16);
+}
+
+.status-pill.taken{
+  color:#082016;
+  background:var(--green);
+}
+
+.status-pill.missed{
+  color:#2c070d;
+  background:var(--red);
+}
+
+.status-pill.skipped{
+  color:#2b1d00;
+  background:var(--yellow);
+}
+
+.action-take{
+  border:0;
+  background:var(--green);
+  color:#061b13;
+  padding:8px 11px;
+  border-radius:9px;
+  font-size:10px;
+  font-weight:800;
+}
+
+.action-more{
+  width:32px;
+  height:32px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.035);
+  color:var(--text);
+  border-radius:9px;
+}
+
+/* PRN */
+
+.prn-section{
+  margin-top:28px;
+}
+
+.prn-card{
+  padding:15px;
+  border:1px dashed var(--border);
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:rgba(255,255,255,.02);
+}
+
+/* =====================================================
+   MEDICINES
+===================================================== */
+
+.form-card{
+  max-width:850px;
+  padding:23px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.field.full{
+  grid-column:1/-1;
+}
+
+.field label{
+  color:#b7bfcb;
+  font-size:10px;
+  font-weight:700;
+}
+
+.field input,
+.field select,
+.field textarea{
+  width:100%;
+  color:var(--text);
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:11px;
+  outline:0;
+}
+
+.field textarea{
+  min-height:75px;
+  resize:vertical;
+}
+
+.schedule-builder{
+  margin-top:17px;
+  padding:17px;
+  border-radius:16px;
+  background:rgba(255,255,255,.025);
+  border:1px solid var(--border);
+}
+
+.schedule-builder h3{
+  font-size:12px;
+  margin-bottom:11px;
+}
+
+.schedule-tabs{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:6px;
+}
+
+.schedule-tab{
+  padding:10px 5px;
+  border-radius:9px;
+  border:1px solid var(--border);
+  background:var(--surface2);
+  color:var(--muted);
+  font-size:10px;
+  font-weight:700;
+}
+
+.schedule-tab.active{
+  color:#fff;
+  border-color:rgba(128,108,255,.45);
+  background:rgba(128,108,255,.12);
+}
+
+.schedule-panel{
+  margin-top:13px;
+}
+
+.time-row{
+  display:flex;
+  gap:7px;
+  margin-bottom:7px;
+}
+
+.time-row input{
+  flex:1;
+  color:var(--text);
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px;
+}
+
+.remove{
+  width:38px;
+  border:0;
+  background:rgba(255,100,120,.1);
+  color:var(--red);
+  border-radius:9px;
+}
+
+.secondary{
+  border:1px dashed var(--border);
+  background:transparent;
+  color:var(--muted);
+  border-radius:9px;
+  padding:8px 10px;
+  font-size:10px;
+}
+
+.days{
+  display:flex;
+  gap:5px;
+  margin-top:13px;
+}
+
+.day{
+  width:35px;
+  height:32px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:var(--surface2);
+  color:var(--muted);
+  font-size:10px;
+  font-weight:700;
+}
+
+.day.active{
+  background:var(--accent);
+  color:white;
+  border-color:var(--accent);
+}
+
+.row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.small{
+  color:var(--text);
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:9px;
+  padding:9px;
+}
+
+.add-btn{
+  margin-top:18px;
+  border:0;
+  color:white;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:11px;
+  padding:12px 18px;
+  font-size:11px;
+  font-weight:800;
+}
+
+/* MANAGE */
+
+.manage-list{
+  max-width:850px;
+  display:grid;
+  gap:9px;
+  margin-top:20px;
+}
+
+.manage-item{
+  padding:14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border:1px solid var(--border);
+  border-radius:15px;
+  background:var(--surface);
+}
+
+.manage-icon{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  background:rgba(128,108,255,.1);
+  border-radius:12px;
+}
+
+.manage-info{
+  flex:1;
+}
+
+.manage-info strong{
+  font-size:13px;
+}
+
+.manage-info small{
+  display:block;
+  color:var(--muted);
+  font-size:9px;
+  line-height:1.5;
+  margin-top:4px;
+}
+
+.delete{
+  width:33px;
+  height:33px;
+  border:0;
+  border-radius:9px;
+  background:rgba(255,100,120,.1);
+  color:var(--red);
+}
+
+/* EMPTY */
+
+.empty{
+  text-align:center;
+  padding:50px 20px;
+  border:1px dashed var(--border);
+  border-radius:17px;
+  color:var(--muted);
+}
+
+.empty-icon{
+  font-size:34px;
+  margin-bottom:10px;
+}
+
+.empty h3{
+  color:var(--text);
+  font-size:14px;
+  margin-bottom:5px;
+}
+
+.empty p{
+  font-size:10px;
+}
+
+/* MODAL */
+
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  padding:15px;
+  background:rgba(0,0,0,.65);
+  backdrop-filter:blur(8px);
+  z-index:50;
+}
+
+.modal-backdrop.open{
+  display:flex;
+}
+
+.modal{
+  width:min(500px,100%);
+  max-height:85vh;
+  overflow:auto;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:23px;
+  padding:20px;
+  box-shadow:0 30px 100px rgba(0,0,0,.45);
+  animation:modalIn .2s ease;
+}
+
+@keyframes modalIn{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:none}
+}
+
+.modal-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:16px;
+}
+
+.modal-head h3{
+  font-size:16px;
+}
+
+.close{
+  width:32px;
+  height:32px;
+  border:0;
+  border-radius:9px;
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+}
+
+.modal-medicine{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px;
+  border-radius:14px;
+  background:var(--surface2);
+  margin-bottom:15px;
+}
+
+.modal-med-icon{
+  width:45px;
+  height:45px;
+  border-radius:13px;
+  display:grid;
+  place-items:center;
+  background:rgba(128,108,255,.1);
+  font-size:20px;
+}
+
+.modal-medicine strong{
+  font-size:14px;
+}
+
+.modal-medicine small{
+  display:block;
+  color:var(--muted);
+  margin-top:4px;
+  font-size:10px;
+}
+
+.modal-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.modal-action{
+  border:0;
+  border-radius:11px;
+  padding:12px;
+  font-size:11px;
+  font-weight:800;
+}
+
+.modal-action.take{
+  background:var(--green);
+  color:#061b13;
+}
+
+.modal-action.miss{
+  background:var(--red);
+  color:#26070c;
+}
+
+.modal-action.skip{
+  background:var(--yellow);
+  color:#291d00;
+}
+
+.modal-action.reset{
+  background:var(--surface3);
+  color:var(--text);
+}
+
+.details{
+  margin-top:15px;
+  display:grid;
+  gap:8px;
+}
+
+.detail{
+  display:flex;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid var(--border);
+  font-size:10px;
+}
+
+.detail span:first-child{color:var(--muted)}
+
+/* TOAST */
+
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:22px;
+  transform:translate(-50%,20px);
+  opacity:0;
+  pointer-events:none;
+  padding:11px 16px;
+  background:#f4f6f8;
+  color:#11141a;
+  border-radius:11px;
+  font-size:11px;
+  font-weight:700;
+  z-index:100;
+  transition:.2s;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translate(-50%,0);
+}
+
+/* LIGHT */
+
+body.light{
+  --bg:#f4f6fa;
+  --surface:#fff;
+  --surface2:#f0f2f6;
+  --surface3:#e7eaf0;
+  --text:#161920;
+  --muted:#687181;
+  --border:rgba(20,25,35,.08);
+  --shadow:0 15px 50px rgba(30,40,60,.08);
+  background:#f4f6fa;
+}
+
+/* MOBILE */
+
+@media(max-width:700px){
+
+  .app{
+    width:calc(100% - 18px);
+    padding-top:17px;
+  }
+
+  .tabs{
+    width:100%;
+  }
+
+  .tab{
+    flex:1;
+    padding:10px 5px;
+    font-size:10px;
+  }
+
+  .page-title h2{
+    font-size:27px;
+  }
+
+  .date-navigation{
+    align-items:stretch;
+  }
+
+  .date-card{
+    min-width:0;
+    flex:1;
+  }
+
+  .date-input{
+    display:none;
+  }
+
+  .next-content{
+    align-items:flex-start;
+  }
+
+  .next-time{
+    display:none;
+  }
+
+  .stats{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .stats .stat:first-child{
+    grid-column:1/-1;
+  }
+
+  .form-grid{
+    grid-template-columns:1fr;
+  }
+
+  .field.full{
+    grid-column:auto;
+  }
+
+  .schedule-tabs{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .timeline-item{
+    grid-template-columns:48px 1fr;
+  }
+
+  .timeline-time{
+    font-size:9px;
+  }
+
+  .timeline-card{
+    padding:12px;
+  }
+
+  .med-icon{
+    width:39px;
+    height:39px;
+    flex-basis:39px;
+    font-size:17px;
+  }
+
+  .status-pill{
+    display:none;
+  }
+
+  .action-take{
+    padding:8px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+  <div class="brand">
+    <div class="logo">💊</div>
+    <div>
+      <h1>MedTrack</h1>
+      <p>Simple. Clear. On schedule.</p>
+    </div>
+  </div>
+
+  <button class="icon-btn" id="themeBtn">☀️</button>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-view="tracker">Tracker</button>
+  <button class="tab" data-view="medicines">Medicines</button>
+</nav>
+
+
+<!-- =====================================================
+     TRACKER
+===================================================== -->
+
+<section id="tracker" class="view active">
+
+  <div class="page-title">
+    <h2>Good evening 👋</h2>
+    <p>Here's everything you need to take today.</p>
+  </div>
+
+
+  <!-- DATE NAVIGATION -->
+
+  <div class="date-navigation">
+
+    <div class="date-main">
+
+      <button class="date-arrow" id="prevDay">‹</button>
+
+      <div class="date-card">
+        <strong id="dateTitle">Today</strong>
+        <span id="dateSubtitle"></span>
+      </div>
+
+      <button class="date-arrow" id="nextDay">›</button>
+
+    </div>
+
+    <input type="date" class="date-input" id="datePicker">
+
+  </div>
+
+
+  <!-- NEXT DOSE -->
+
+  <div id="nextDose"></div>
+
+
+  <!-- STATS -->
+
+  <div class="stats">
+
+    <div class="stat">
+
+      <div class="stat-top">
+        <small>Today's adherence</small>
+        <div class="stat-icon">📈</div>
+      </div>
+
+      <strong id="adherence">0%</strong>
+
+      <div class="progress">
+        <span id="adherenceBar"></span>
+      </div>
+
+    </div>
+
+    <div class="stat">
+
+      <div class="stat-top">
+        <small>Taken</small>
+        <div class="stat-icon">✓</div>
+      </div>
+
+      <strong id="takenStat">0</strong>
+
+    </div>
+
+    <div class="stat">
+
+      <div class="stat-top">
+        <small>Remaining</small>
+        <div class="stat-icon">⏳</div>
+      </div>
+
+      <strong id="remainingStat">0</strong>
+
+    </div>
+
+  </div>
+
+
+  <!-- FILTER -->
+
+  <div class="section-head">
+    <h3>Today's doses</h3>
+  </div>
+
+  <div class="filters">
+
+    <button class="filter active" data-filter="all">All</button>
+    <button class="filter" data-filter="due">Due now</button>
+    <button class="filter" data-filter="pending">Upcoming</button>
+    <button class="filter" data-filter="taken">Taken</button>
+    <button class="filter" data-filter="missed">Missed</button>
+
+  </div>
+
+
+  <!-- TIMELINE -->
+
+  <div class="timeline" id="timeline" style="margin-top:12px"></div>
+
+
+  <!-- PRN -->
+
+  <div id="prnSection" class="prn-section"></div>
+
+</section>
+
+
+<!-- =====================================================
+     MEDICINES
+===================================================== -->
+
+<section id="medicines" class="view">
+
+  <div class="page-title">
+    <h2>My medicines</h2>
+    <p>Create a schedule that matches exactly how you take it.</p>
+  </div>
+
+
+  <div class="form-card">
+
+    <div class="form-grid">
+
+      <div class="field">
+        <label>Medicine name</label>
+        <input id="medName" placeholder="e.g. Napa">
+      </div>
+
+      <div class="field">
+        <label>Dosage</label>
+        <input id="medDose" placeholder="e.g. 500 mg / 10 ml / 1 drop">
+      </div>
+
+      <div class="field">
+        <label>Medicine type</label>
+        <select id="medType">
+          <option value="💊">Tablet / Capsule</option>
+          <option value="🥤">Syrup</option>
+          <option value="👁️">Eye drops</option>
+          <option value="👂">Ear drops</option>
+          <option value="💉">Injection</option>
+          <option value="🧴">Cream / Ointment</option>
+          <option value="🌿">Other</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Instructions / notes</label>
+        <input id="medNotes" placeholder="e.g. Take with water">
+      </div>
+
+    </div>
+
+
+    <!-- SCHEDULE -->
+
+    <div class="schedule-builder">
+
+      <h3>Schedule type</h3>
+
+      <div class="schedule-tabs">
+
+        <button class="schedule-tab active" data-schedule="fixed">
+          🕐 Fixed time
+        </button>
+
+        <button class="schedule-tab" data-schedule="meal">
+          🍽️ Meal
+        </button>
+
+        <button class="schedule-tab" data-schedule="interval">
+          ⏱️ Interval
+        </button>
+
+        <button class="schedule-tab" data-schedule="prn">
+          ⚡ As needed
+        </button>
+
+      </div>
+
+
+      <!-- FIXED -->
+
+      <div class="schedule-panel" id="schedule-fixed">
+
+        <div id="timeRows">
+
+          <div class="time-row">
+            <input type="time">
+            <button class="remove" onclick="removeTime(this)">×</button>
+          </div>
+
+        </div>
+
+        <button class="secondary" onclick="addTime()">
+          + Add another dose time
+        </button>
+
+        <div style="margin-top:12px">
+          <small style="color:var(--muted);font-size:9px">
+            Repeat on
+          </small>
+
+          <div class="days">
+
+            <button class="day active" data-day="0">S</button>
+            <button class="day active" data-day="1">M</button>
+            <button class="day active" data-day="2">T</button>
+            <button class="day active" data-day="3">W</button>
+            <button class="day active" data-day="4">T</button>
+            <button class="day active" data-day="5">F</button>
+            <button class="day active" data-day="6">S</button>
+
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- MEAL -->
+
+      <div class="schedule-panel" id="schedule-meal" style="display:none">
+
+        <div id="mealRows">
+
+          <div class="row meal-row" style="margin-bottom:7px">
+
+            <select class="small meal-relation">
+              <option value="After">After</option>
+              <option value="Before">Before</option>
+              <option value="With">With</option>
+            </select>
+
+            <select class="small meal-name">
+              <option value="Breakfast">Breakfast</option>
+              <option value="Lunch">Lunch</option>
+              <option value="Dinner">Dinner</option>
+            </select>
+
+            <button class="remove" onclick="removeMeal(this)">×</button>
+
+          </div>
+
+        </div>
+
+        <button class="secondary" onclick="addMeal()">
+          + Add another meal
+        </button>
+
+      </div>
+
+
+      <!-- INTERVAL -->
+
+      <div class="schedule-panel" id="schedule-interval" style="display:none">
+
+        <div class="row">
+
+          <span style="font-size:10px;color:var(--muted)">
+            Every
+          </span>
+
+          <input
+            id="intervalHours"
+            class="small"
+            type="number"
+            min="1"
+            max="168"
+            value="3"
+            style="width:70px"
+          >
+
+          <span style="font-size:10px;color:var(--muted)">
+            hours
+          </span>
+
+        </div>
+
+        <div class="row" style="margin-top:9px">
+
+          <span style="font-size:10px;color:var(--muted)">
+            Starting at
+          </span>
+
+          <input id="intervalStart" class="small" type="time">
+
+        </div>
+
+        <p style="font-size:9px;color:var(--muted);margin-top:9px;line-height:1.5">
+          Example: every 4 hours starting at 8:00 AM → 8 AM, 12 PM, 4 PM, 8 PM.
+        </p>
+
+      </div>
+
+
+      <!-- PRN -->
+
+      <div class="schedule-panel" id="schedule-prn" style="display:none">
+
+        <p style="font-size:10px;color:var(--muted);line-height:1.6">
+          This medicine does not have a fixed schedule.
+          You will be able to record it manually from the Tracker.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <button class="add-btn" id="addMedicine">
+      + Add Medicine
+    </button>
+
+  </div>
+
+
+  <div class="manage-list" id="manageList"></div>
+
+</section>
+
+</div>
+
+
+<!-- =====================================================
+     DOSE MODAL
+===================================================== -->
+
+<div class="modal-backdrop" id="modal">
+
+  <div class="modal">
+
+    <div class="modal-head">
+      <h3>Dose details</h3>
+      <button class="close" onclick="closeModal()">×</button>
+    </div>
+
+    <div id="modalBody"></div>
+
+  </div>
+
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+
+<script>
+
+/* =====================================================
+   STORAGE
+===================================================== */
+
+const MED_KEY="medtrack_v2_medicines";
+const HISTORY_KEY="medtrack_v2_history";
+const THEME_KEY="medtrack_v2_theme";
+
+let medicines=JSON.parse(localStorage.getItem(MED_KEY)||"{}");
+let history=JSON.parse(localStorage.getItem(HISTORY_KEY)||"{}");
+
+let selectedDate=getToday();
+let currentFilter="all";
+let currentSchedule="fixed";
+
+
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function getToday(){
+
+  const d=new Date();
+  const offset=d.getTimezoneOffset();
+
+  return new Date(d.getTime()-offset*60000)
+    .toISOString()
+    .split("T")[0];
+
+}
+
+function save(){
+
+  localStorage.setItem(
+    MED_KEY,
+    JSON.stringify(medicines)
+  );
+
+  localStorage.setItem(
+    HISTORY_KEY,
+    JSON.stringify(history)
+  );
+
+}
+
+function escapeHTML(v){
+
+  return String(v??"")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+function toast(message){
+
+  const el=$("#toast");
+
+  el.textContent=message;
+  el.classList.add("show");
+
+  clearTimeout(window.__toast);
+
+  window.__toast=setTimeout(
+    ()=>el.classList.remove("show"),
+    2200
+  );
+
+}
+
+function formatTime(time){
+
+  if(!time)return "";
+
+  const [h,m]=time.split(":");
+
+  const d=new Date();
+
+  d.setHours(+h,+m);
+
+  return d.toLocaleTimeString([],{
+    hour:"numeric",
+    minute:"2-digit"
+  });
+
+}
+
+function formatDate(date){
+
+  const d=new Date(date+"T12:00:00");
+
+  return d.toLocaleDateString([],{
+    weekday:"long",
+    month:"long",
+    day:"numeric"
+  });
+
+}
+
+function addDays(date,amount){
+
+  const d=new Date(date+"T12:00:00");
+
+  d.setDate(d.getDate()+amount);
+
+  return d.toISOString().split("T")[0];
+
+}
+
+
+/* =====================================================
+   TABS
+===================================================== */
+
+$$(".tab").forEach(tab=>{
+
+  tab.onclick=()=>{
+
+    $$(".tab").forEach(x=>x.classList.remove("active"));
+    $$(".view").forEach(x=>x.classList.remove("active"));
+
+    tab.classList.add("active");
+    $("#"+tab.dataset.view).classList.add("active");
+
+    if(tab.dataset.view==="tracker")
+      renderTracker();
+
+    if(tab.dataset.view==="medicines")
+      renderManage();
+
+  };
+
+});
+
+
+/* =====================================================
+   DATE
+===================================================== */
+
+$("#datePicker").value=selectedDate;
+
+$("#datePicker").onchange=()=>{
+
+  selectedDate=$("#datePicker").value;
+
+  renderTracker();
+
+};
+
+$("#prevDay").onclick=()=>{
+
+  selectedDate=addDays(selectedDate,-1);
+
+  $("#datePicker").value=selectedDate;
+
+  renderTracker();
+
+};
+
+$("#nextDay").onclick=()=>{
+
+  selectedDate=addDays(selectedDate,1);
+
+  $("#datePicker").value=selectedDate;
+
+  renderTracker();
+
+};
+
+
+/* =====================================================
+   SCHEDULE TYPE
+===================================================== */
+
+$$(".schedule-tab").forEach(tab=>{
+
+  tab.onclick=()=>{
+
+    $$(".schedule-tab")
+      .forEach(x=>x.classList.remove("active"));
+
+    tab.classList.add("active");
+
+    currentSchedule=tab.dataset.schedule;
+
+    $$(".schedule-panel")
+      .forEach(x=>x.style.display="none");
+
+    $("#schedule-"+currentSchedule)
+      .style.display="block";
+
+  };
+
+});
+
+
+/* =====================================================
+   DAYS
+===================================================== */
+
+$$(".day").forEach(day=>{
+
+  day.onclick=()=>{
+    day.classList.toggle("active");
+  };
+
+});
+
+
+/* =====================================================
+   TIME BUILDER
+===================================================== */
+
+function addTime(){
+
+  const row=document.createElement("div");
+
+  row.className="time-row";
+
+  row.innerHTML=`
+    <input type="time">
+    <button class="remove" onclick="removeTime(this)">×</button>
+  `;
+
+  $("#timeRows").appendChild(row);
+
+}
+
+function removeTime(btn){
+
+  const rows=$$("#timeRows .time-row");
+
+  if(rows.length<=1){
+    toast("Keep at least one dose time.");
+    return;
+  }
+
+  btn.parentElement.remove();
+
+}
+
+
+/* =====================================================
+   MEAL BUILDER
+===================================================== */
+
+function addMeal(){
+
+  const row=document.createElement("div");
+
+  row.className="row meal-row";
+
+  row.style.marginBottom="7px";
+
+  row.innerHTML=`
+
+    <select class="small meal-relation">
+      <option value="After">After</option>
+      <option value="Before">Before</option>
+      <option value="With">With</option>
+    </select>
+
+    <select class="small meal-name">
+      <option value="Breakfast">Breakfast</option>
+      <option value="Lunch">Lunch</option>
+      <option value="Dinner">Dinner</option>
+    </select>
+
+    <button class="remove" onclick="removeMeal(this)">×</button>
+  `;
+
+  $("#mealRows").appendChild(row);
+
+}
+
+function removeMeal(btn){
+
+  const rows=$$("#mealRows .meal-row");
+
+  if(rows.length<=1){
+    toast("Keep at least one meal rule.");
+    return;
+  }
+
+  btn.parentElement.remove();
+
+}
+
+
+/* =====================================================
+   ADD MEDICINE
+===================================================== */
+
+$("#addMedicine").onclick=()=>{
+
+  const name=$("#medName").value.trim();
+
+  if(!name){
+    toast("Enter the medicine name.");
+    $("#medName").focus();
+    return;
+  }
+
+
+  const medicine={
+
+    id:"med_"+Date.now(),
+
+    name,
+
+    dose:$("#medDose").value.trim()||"As prescribed",
+
+    type:$("#medType").value,
+
+    notes:$("#medNotes").value.trim(),
+
+    schedule:{
+      type:currentSchedule
+    },
+
+    createdAt:Date.now()
+
+  };
+
+
+  /* FIXED */
+
+  if(currentSchedule==="fixed"){
+
+    const times=[
+      ...$("#timeRows").querySelectorAll("input")
+    ]
+    .map(x=>x.value)
+    .filter(Boolean);
+
+    if(!times.length){
+      toast("Add at least one dose time.");
+      return;
+    }
+
+    const days=[
+      ...document.querySelectorAll(".day.active")
+    ].map(x=>+x.dataset.day);
+
+    medicine.schedule.times=times;
+    medicine.schedule.days=days;
+
+  }
+
+
+  /* MEAL */
+
+  if(currentSchedule==="meal"){
+
+    const rules=[
+      ...document.querySelectorAll(".meal-row")
+    ].map(row=>({
+
+      relation:row.querySelector(".meal-relation").value,
+
+      meal:row.querySelector(".meal-name").value
+
+    }));
+
+    medicine.schedule.rules=rules;
+
+  }
+
+
+  /* INTERVAL */
+
+  if(currentSchedule==="interval"){
+
+    const hours=+$("#intervalHours").value;
+
+    if(!hours||hours<1){
+      toast("Enter a valid interval.");
+      return;
+    }
+
+    medicine.schedule.hours=hours;
+
+    medicine.schedule.start=
+      $("#intervalStart").value||"08:00";
+
+  }
+
+
+  medicines[medicine.id]=medicine;
+
+  save();
+
+  resetForm();
+
+  renderManage();
+  renderTracker();
+
+  toast("Medicine added ✓");
+
+};
+
+
+/* =====================================================
+   RESET FORM
+===================================================== */
+
+function resetForm(){
+
+  $("#medName").value="";
+  $("#medDose").value="";
+  $("#medNotes").value="";
+
+  $("#intervalStart").value="";
+
+  $("#timeRows").innerHTML=`
+    <div class="time-row">
+      <input type="time">
+      <button class="remove" onclick="removeTime(this)">×</button>
+    </div>
+  `;
+
+  $("#mealRows").innerHTML=`
+    <div class="row meal-row" style="margin-bottom:7px">
+
+      <select class="small meal-relation">
+        <option value="After">After</option>
+        <option value="Before">Before</option>
+        <option value="With">With</option>
+      </select>
+
+      <select class="small meal-name">
+        <option value="Breakfast">Breakfast</option>
+        <option value="Lunch">Lunch</option>
+        <option value="Dinner">Dinner</option>
+      </select>
+
+      <button class="remove" onclick="removeMeal(this)">×</button>
+
+    </div>
+  `;
+
+}
+
+
+/* =====================================================
+   GENERATE DOSES
+===================================================== */
+
+function getDoses(medicine,date){
+
+  const s=medicine.schedule;
+  const doses=[];
+
+  const day=new Date(date+"T12:00:00");
+  const weekday=day.getDay();
+
+
+  /* FIXED */
+
+  if(s.type==="fixed"){
+
+    if(!s.days.includes(weekday))
+      return [];
+
+    s.times.forEach(time=>{
+
+      doses.push({
+
+        key:medicine.id+"_fixed_"+time,
+
+        medicineId:medicine.id,
+
+        time,
+
+        context:"Scheduled dose"
+
+      });
+
+    });
+
+  }
+
+
+  /* MEAL */
+
+  if(s.type==="meal"){
+
+    s.rules.forEach((rule,index)=>{
+
+      let approx="12:00";
+
+      if(rule.meal==="Breakfast")approx="08:00";
+      if(rule.meal==="Lunch")approx="13:00";
+      if(rule.meal==="Dinner")approx="20:00";
+
+      doses.push({
+
+        key:medicine.id+"_meal_"+index,
+
+        medicineId:medicine.id,
+
+        time:approx,
+
+        context:`${rule.relation} ${rule.meal}`
+
+      });
+
+    });
+
+  }
+
+
+  /* INTERVAL */
+
+  if(s.type==="interval"){
+
+    const [h,m]=s.start.split(":").map(Number);
+
+    let current=new Date(date+"T00:00:00");
+
+    current.setHours(h,m,0,0);
+
+    const end=new Date(date+"T23:59:59");
+
+    let count=0;
+
+    while(current<=end&&count<100){
+
+      const time=
+        String(current.getHours()).padStart(2,"0")+":"+
+        String(current.getMinutes()).padStart(2,"0");
+
+      doses.push({
+
+        key:medicine.id+"_interval_"+time,
+
+        medicineId:medicine.id,
+
+        time,
+
+        context:`Every ${s.hours} hours`
+
+      });
+
+      current.setHours(
+        current.getHours()+s.hours
+      );
+
+      count++;
+
+    }
+
+  }
+
+
+  /* PRN */
+
+  if(s.type==="prn"){
+
+    return [];
+
+  }
+
+  return doses;
+
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+function getStatus(date,key){
+
+  return history[date]?.[key]||"pending";
+
+}
+
+function setStatus(date,key,status){
+
+  if(!history[date])
+    history[date]={};
+
+  if(status==="pending")
+    delete history[date][key];
+  else
+    history[date][key]=status;
+
+  save();
+
+}
+
+
+/* =====================================================
+   IS DOSE DUE
+===================================================== */
+
+function isDue(dose){
+
+  if(selectedDate!==getToday())
+    return false;
+
+  if(!dose.time)
+    return false;
+
+  const now=new Date();
+
+  const [h,m]=dose.time.split(":");
+
+  const target=new Date();
+
+  target.setHours(+h,+m,0,0);
+
+  const diff=(target-now)/60000;
+
+  return diff<=15&&diff>=-120;
+
+}
+
+
+/* =====================================================
+   TRACKER
+===================================================== */
+
+function renderTracker(){
+
+  updateDateHeader();
+
+  const allDoses=[];
+
+  Object.values(medicines).forEach(m=>{
+
+    getDoses(m,selectedDate).forEach(d=>{
+
+      allDoses.push({
+        ...d,
+        medicine:m
+      });
+
+    });
+
+  });
+
+
+  allDoses.sort((a,b)=>{
+
+    if(!a.time)return 1;
+    if(!b.time)return -1;
+
+    return a.time.localeCompare(b.time);
+
+  });
+
+
+  const dayHistory=history[selectedDate]||{};
+
+  const taken=Object.values(dayHistory)
+    .filter(x=>x==="taken").length;
+
+  const total=allDoses.length;
+
+  const remaining=Math.max(total-taken,0);
+
+  const adherence=total
+    ?Math.round(taken/total*100)
+    :0;
+
+  $("#adherence").textContent=adherence+"%";
+  $("#adherenceBar").style.width=adherence+"%";
+  $("#takenStat").textContent=taken;
+  $("#remainingStat").textContent=remaining;
+
+
+  renderNextDose(allDoses);
+  renderTimeline(allDoses);
+  renderPRN();
+
+}
+
+
+/* =====================================================
+   DATE HEADER
+===================================================== */
+
+function updateDateHeader(){
+
+  const today=getToday();
+
+  if(selectedDate===today){
+
+    $("#dateTitle").textContent="Today";
+
+  }else if(selectedDate===addDays(today,-1)){
+
+    $("#dateTitle").textContent="Yesterday";
+
+  }else if(selectedDate===addDays(today,1)){
+
+    $("#dateTitle").textContent="Tomorrow";
+
+  }else{
+
+    $("#dateTitle").textContent=formatDate(selectedDate);
+
+  }
+
+  $("#dateSubtitle").textContent=formatDate(selectedDate);
+
+}
+
+
+/* =====================================================
+   NEXT DOSE
+===================================================== */
+
+function renderNextDose(doses){
+
+  const pending=doses.filter(d=>
+    getStatus(selectedDate,d.key)==="pending"
+  );
+
+  let next=null;
+
+  if(selectedDate===getToday()){
+
+    const now=new Date();
+
+    next=pending.find(d=>{
+
+      if(!d.time)return false;
+
+      const [h,m]=d.time.split(":");
+
+      const t=new Date();
+
+      t.setHours(+h,+m,0,0);
+
+      return t>=now;
+
+    });
+
+  }
+
+  if(!next)
+    next=pending.find(d=>d.time);
+
+
+  if(!next){
+
+    $("#nextDose").innerHTML=`
+      <div class="next-dose">
+
+        <div class="next-label">✓ Schedule complete</div>
+
+        <div class="next-content">
+
+          <div class="next-icon">🎉</div>
+
+          <div class="next-info">
+            <h3>You're all caught up</h3>
+            <p>No pending scheduled doses.</p>
+          </div>
+
+        </div>
+
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  const status=isDue(next)?"due":"pending";
+
+  $("#nextDose").innerHTML=`
+
+    <div class="next-dose">
+
+      <div class="next-label">
+        ${status==="due"?"🔔 Due now":"⏭ Next dose"}
+      </div>
+
+      <div class="next-content">
+
+        <div class="next-icon">
+          ${next.medicine.type}
+        </div>
+
+        <div class="next-info">
+
+          <h3>${escapeHTML(next.medicine.name)}</h3>
+
+          <p>
+            ${escapeHTML(next.medicine.dose)}
+            • ${escapeHTML(next.context)}
+          </p>
+
+        </div>
+
+        <div class="next-time">
+
+          <strong>${formatTime(next.time)}</strong>
+
+          <span>${status==="due"?"Now":"Upcoming"}</span>
+
+        </div>
+
+      </div>
+
+      <button
+        class="take-now"
+        onclick="quickTake('${next.key}')"
+      >
+        ✓ Take this dose
+      </button>
+
+    </div>
+  `;
+
+}
+
+
+/* =====================================================
+   TIMELINE
+===================================================== */
+
+function renderTimeline(doses){
+
+  let visible=doses;
+
+  if(currentFilter==="taken")
+    visible=doses.filter(d=>getStatus(selectedDate,d.key)==="taken");
+
+  if(currentFilter==="missed")
+    visible=doses.filter(d=>getStatus(selectedDate,d.key)==="missed");
+
+  if(currentFilter==="pending")
+    visible=doses.filter(d=>getStatus(selectedDate,d.key)==="pending");
+
+  if(currentFilter==="due")
+    visible=doses.filter(d=>
+      getStatus(selectedDate,d.key)==="pending"&&isDue(d)
+    );
+
+
+  if(!visible.length){
+
+    $("#timeline").innerHTML=`
+      <div class="empty">
+        <div class="empty-icon">
+          ${currentFilter==="taken"?"✓":"📋"}
+        </div>
+        <h3>No doses here</h3>
+        <p>Nothing matches this filter.</p>
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  $("#timeline").innerHTML=visible.map(d=>{
+
+    const status=getStatus(selectedDate,d.key);
+
+    const due=status==="pending"&&isDue(d);
+
+    const finalStatus=due?"due":status;
+
+    let statusText="Upcoming";
+
+    if(status==="taken")statusText="Taken";
+    if(status==="missed")statusText="Missed";
+    if(status==="skipped")statusText="Skipped";
+    if(due)statusText="Due now";
+
+
+    return `
+
+      <div class="timeline-item">
+
+        <div class="timeline-time">
+          ${d.time?formatTime(d.time):"—"}
+        </div>
+
+        <div class="timeline-card status-${finalStatus}">
+
+          <div class="med-icon">
+            ${d.medicine.type}
+          </div>
+
+          <div class="med-info">
+
+            <h4>${escapeHTML(d.medicine.name)}</h4>
+
+            <p>
+              ${escapeHTML(d.medicine.dose)}
+              • ${escapeHTML(d.context)}
+              ${d.medicine.notes
+                ?" • "+escapeHTML(d.medicine.notes)
+                :""}
+            </p>
+
+          </div>
+
+          ${
+            status==="pending"
+            ?
+            `<button
+              class="action-take"
+              onclick="quickTake('${d.key}')"
+            >✓ Take</button>`
+            :
+            `<span class="status-pill ${finalStatus}">
+              ${statusText}
+            </span>`
+          }
+
+          <button
+            class="action-more"
+            onclick="openDose('${d.key}')"
+          >⋯</button>
+
+        </div>
+
+      </div>
+    `;
+
+  }).join("");
+
+}
+
+
+/* =====================================================
+   PRN
+===================================================== */
+
+function renderPRN(){
+
+  const prn=Object.values(medicines)
+    .filter(m=>m.schedule.type==="prn");
+
+
+  if(!prn.length){
+
+    $("#prnSection").innerHTML="";
+    return;
+
+  }
+
+
+  $("#prnSection").innerHTML=`
+
+    <div class="section-head">
+      <h3>As needed</h3>
+    </div>
+
+    <div style="display:grid;gap:8px">
+
+      ${prn.map(m=>`
+
+        <div class="prn-card">
+
+          <div class="med-icon">
+            ${m.type}
+          </div>
+
+          <div class="med-info">
+
+            <h4>${escapeHTML(m.name)}</h4>
+
+            <p>
+              ${escapeHTML(m.dose)}
+              ${m.notes
+                ?" • "+escapeHTML(m.notes)
+                :""}
+            </p>
+
+          </div>
+
+          <button
+            class="action-take"
+            onclick="takePRN('${m.id}')"
+          >
+            + Record
+          </button>
+
+        </div>
+
+      `).join("")}
+
+    </div>
+  `;
+
+}
+
+
+/* =====================================================
+   QUICK TAKE
+===================================================== */
+
+function quickTake(key){
+
+  setStatus(selectedDate,key,"taken");
+
+  renderTracker();
+
+  toast("Dose recorded ✓");
+
+}
+
+
+/* =====================================================
+   PRN TAKE
+===================================================== */
+
+function takePRN(id){
+
+  const key=id+"_prn_"+Date.now();
+
+  setStatus(selectedDate,key,"taken");
+
+  renderTracker();
+
+  toast("Medicine recorded ✓");
+
+}
+
+
+/* =====================================================
+   DOSE MODAL
+===================================================== */
+
+let activeDose=null;
+
+function openDose(key){
+
+  let found=null;
+
+  Object.values(medicines).some(m=>{
+
+    const dose=getDoses(m,selectedDate)
+      .find(d=>d.key===key);
+
+    if(dose){
+
+      found={
+        ...dose,
+        medicine:m
+      };
+
+      return true;
+
+    }
+
+    return false;
+
+  });
+
+
+  if(!found)return;
+
+  activeDose=found;
+
+
+  const status=getStatus(
+    selectedDate,
+    found.key
+  );
+
+
+  $("#modalBody").innerHTML=`
+
+    <div class="modal-medicine">
+
+      <div class="modal-med-icon">
+        ${found.medicine.type}
+      </div>
+
+      <div>
+        <strong>${escapeHTML(found.medicine.name)}</strong>
+
+        <small>
+          ${escapeHTML(found.medicine.dose)}
+        </small>
+      </div>
+
+    </div>
+
+
+    <div class="modal-actions">
+
+      <button
+        class="modal-action take"
+        onclick="modalStatus('taken')"
+      >✓ Taken</button>
+
+      <button
+        class="modal-action miss"
+        onclick="modalStatus('missed')"
+      >✕ Missed</button>
+
+      <button
+        class="modal-action skip"
+        onclick="modalStatus('skipped')"
+      >↷ Skip</button>
+
+      <button
+        class="modal-action reset"
+        onclick="modalStatus('pending')"
+      >Reset</button>
+
+    </div>
+
+
+    <div class="details">
+
+      <div class="detail">
+        <span>Scheduled</span>
+        <strong>
+          ${found.time?formatTime(found.time):"As needed"}
+        </strong>
+      </div>
+
+      <div class="detail">
+        <span>Instructions</span>
+        <strong>
+          ${escapeHTML(found.context)}
+        </strong>
+      </div>
+
+      <div class="detail">
+        <span>Current status</span>
+        <strong>${status}</strong>
+      </div>
+
+      ${
+        found.medicine.notes
+        ?
+        `<div class="detail">
+          <span>Notes</span>
+          <strong>${escapeHTML(found.medicine.notes)}</strong>
+        </div>`
+        :""
+      }
+
+    </div>
+  `;
+
+
+  $("#modal").classList.add("open");
+
+}
+
+function closeModal(){
+
+  $("#modal").classList.remove("open");
+  activeDose=null;
+
+}
+
+function modalStatus(status){
+
+  if(!activeDose)return;
+
+  setStatus(
+    selectedDate,
+    activeDose.key,
+    status
+  );
+
+  closeModal();
+
+  renderTracker();
+
+  toast(
+    status==="taken"
+      ?"Dose marked as taken ✓"
+      :status==="missed"
+      ?"Dose marked as missed"
+      :status==="skipped"
+      ?"Dose skipped"
+      :"Dose reset"
+  );
+
+}
+
+$("#modal").onclick=e=>{
+
+  if(e.target===$("#modal"))
+    closeModal();
+
+};
+
+
+/* =====================================================
+   FILTERS
+===================================================== */
+
+$$(".filter").forEach(btn=>{
+
+  btn.onclick=()=>{
+
+    $$(".filter")
+      .forEach(x=>x.classList.remove("active"));
+
+    btn.classList.add("active");
+
+    currentFilter=btn.dataset.filter;
+
+    renderTracker();
+
+  };
+
+});
+
+
+/* =====================================================
+   MEDICINE MANAGEMENT
+===================================================== */
+
+function renderManage(){
+
+  const list=Object.values(medicines);
+
+  if(!list.length){
+
+    $("#manageList").innerHTML=`
+      <div class="empty">
+        <div class="empty-icon">💊</div>
+        <h3>No medicines added</h3>
+        <p>Create your first schedule above.</p>
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  $("#manageList").innerHTML=list.map(m=>`
+
+    <div class="manage-item">
+
+      <div class="manage-icon">
+        ${m.type}
+      </div>
+
+      <div class="manage-info">
+
+        <strong>${escapeHTML(m.name)}</strong>
+
+        <small>
+          ${escapeHTML(m.dose)}
+          • ${scheduleDescription(m)}
+          ${m.notes
+            ?" • "+escapeHTML(m.notes)
+            :""}
+        </small>
+
+      </div>
+
+      <button
+        class="delete"
+        onclick="deleteMedicine('${m.id}')"
+      >🗑</button>
+
+    </div>
+
+  `).join("");
+
+}
+
+
+function scheduleDescription(m){
+
+  const s=m.schedule;
+
+  if(s.type==="fixed")
+    return "At "+s.times.map(formatTime).join(", ");
+
+  if(s.type==="meal")
+    return s.rules
+      .map(x=>x.relation+" "+x.meal)
+      .join(" + ");
+
+  if(s.type==="interval")
+    return `Every ${s.hours} hours from ${formatTime(s.start)}`;
+
+  return "As needed";
+
+}
+
+
+function deleteMedicine(id){
+
+  const m=medicines[id];
+
+  if(!m)return;
+
+  if(!confirm(`Delete "${m.name}"?`))
+    return;
+
+  delete medicines[id];
+
+  save();
+
+  renderManage();
+  renderTracker();
+
+  toast("Medicine deleted.");
+
+}
+
+
+/* =====================================================
+   THEME
+===================================================== */
+
+if(localStorage.getItem(THEME_KEY)==="light"){
+
+  document.body.classList.add("light");
+  $("#themeBtn").textContent="🌙";
+
+}
+
+$("#themeBtn").onclick=()=>{
+
+  document.body.classList.toggle("light");
+
+  const light=document.body.classList.contains("light");
+
+  localStorage.setItem(
+    THEME_KEY,
+    light?"light":"dark"
+  );
+
+  $("#themeBtn").textContent=
+    light?"🌙":"☀️";
+
+};
+
+
+/* =====================================================
+   INITIAL
+===================================================== */
+
+renderTracker();
+renderManage();
+
+</script>
+
+</body>
+</html>
